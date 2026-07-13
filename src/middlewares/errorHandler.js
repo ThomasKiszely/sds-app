@@ -6,6 +6,7 @@ function errorHandler(error, req, res, next) {
     const status = error.status || 500;
 
     // Kun vis brugerfejl til brugeren
+    // bruges således: throw { isUserError: true, message: "Bruger findes allerede" };
     const safeMessage = error.isUserError
         ? error.message
         : "Noget gik galt – prøv igen";
