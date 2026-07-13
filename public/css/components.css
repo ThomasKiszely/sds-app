@@ -1,0 +1,25 @@
+.error-card {
+    background: var(--card-bg);
+    padding: var(--space-3) var(--space-2);
+    width: 100%;            /* fuld bredde */
+    max-width: none;        /* fjern begrænsning */
+    text-align: center;
+    border-radius: var(--border-radius);
+    margin: 0;              /* ingen auto-centering */
+}
+
+
+.error-card img {
+    max-width: 200px;
+    margin-bottom: var(--space-2);
+}
+
+.error-card h1 {
+    font-size: 3rem;
+    color: var(--secondary-color);
+}
+
+.error-card p {
+    font-size: 1.2rem;
+}
+

@@ -1,0 +1,86 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Tema: SDS rød/hvid/sort */
+:root {
+    --primary-color: #A02121;      /* rød baggrund */
+    --secondary-color: #d40000;    /* rød tekst */
+    --accent-color: #000000;       /* sort */
+    --background-color: #ffffff;   /* hvid */
+    --text-color: #000000;         /* sort tekst */
+    --card-bg: #f8f8f8;            /* lys grå/hvid */
+    --border-color: #e0e0e0;
+    --border-radius: 6px;
+
+    /* spacing scale */
+    --space-1: .5rem;
+    --space-2: 1rem;
+    --space-3: 2rem;
+}
+
+/* Basis styling */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 0;
+}
+
+/* Overskrifter */
+h1, h2, h3 {
+    text-align: center;
+    margin-bottom: var(--space-2);
+    color: var(--secondary-color);
+}
+
+/* Lister */
+ul {
+}
+
+li {
+}
+
+/* Knapper */
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+    background: var(--secondary-color);
+    transform: scale(1.05);
+}
+
+/* Formularer */
+form {
+}
+
+input {
+}
+
+select {}
+
+/* Utilities */
+.center-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+}
+
+
+/* Breakpoints */
+@media (min-width: 768px) {
+
+}
