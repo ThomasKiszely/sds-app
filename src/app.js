@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const router = require('./routes/UserRoutes');
+const userRouter = require('./routes/userRoutes');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
@@ -28,7 +28,7 @@ app.use(session({
 }));
 
 // Routes
-app.use('/api', router);
+app.use('/user', userRouter);
 
 app.use(notFound);
 app.use(errorHandler);

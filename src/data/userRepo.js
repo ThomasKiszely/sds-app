@@ -1,7 +1,11 @@
 const User = require('../models/User');
 
-async function findByName(name) {
-    return User.findOne({ name });
+async function findByName(userName) {
+    return User.findOne({ userName });
+}
+
+async function findById(id) {
+    return User.findById(id);
 }
 
 async function createUser(data) {
@@ -9,7 +13,26 @@ async function createUser(data) {
     return await newUser.save();
 }
 
+async function deactivateUser(id) {
+    return User.findByIdAndUpdate(
+        id,
+        { active: false },
+        { new: true, runValidators: true }
+    );
+}
+
+async function reactivateUser(id) {
+    return User.findByIdAndUpdate(
+        id,
+        { active: true },
+        { new: true, runValidators: true}
+    );
+}
+
 module.exports = {
+    findById,
     findByName,
-    createUser
+    createUser,
+    deactivateUser,
+    reactivateUser
 };
