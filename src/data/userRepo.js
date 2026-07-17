@@ -5,7 +5,7 @@ async function findByName(userName) {
 }
 
 async function findById(id) {
-    return User.findById(id);
+    return User.findById(id, { password: 0 });
 }
 
 async function createUser(data) {
@@ -29,10 +29,34 @@ async function reactivateUser(id) {
     );
 }
 
+async function getAllUsers() {
+    return User.find({}, { password: 0, mustChangePassword: 0}).sort({ createdAt: -1 });
+}
+
+async function updatePassword(id, hashedPassword, mustChange = false) {
+    return User.findByIdAndUpdate(
+        id,
+        { password: hashedPassword, mustChangePassword: mustChange },
+        { new: true, runValidators: true }
+    );
+}
+
+async function updateUser(id, changes) {
+    return User.findByIdAndUpdate(
+        id,
+        changes,
+        { new: true, runValidators: true }
+    );
+}
+
+
 module.exports = {
     findById,
     findByName,
     createUser,
     deactivateUser,
-    reactivateUser
+    reactivateUser,
+    getAllUsers,
+    updatePassword,
+    updateUser
 };
