@@ -22,9 +22,13 @@ async function deactivateUser(req, res, next) {
     try {
         const { id } = req.params;
 
-        await userService.deactivateUser(id);
+        const deactivated = await userService.deactivateUser(id);
 
-        return res.status(204).end();
+        return res.status(200).json({
+            success: true,
+            message: "Bruger deaktiveret",
+            deactivated,
+        });
     } catch (error) {
         next(error);
     }

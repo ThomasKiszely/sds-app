@@ -33,7 +33,11 @@ async function deleteCustomer(req, res, next) {
     try {
         const customer = await customerService.deleteCustomer(req.params.id);
 
-        res.status(204).end();
+        res.status(200).json({
+            success: true,
+            message: "Kunde arkiveret",
+            customer,
+        });
     } catch (error) {
         next(error);
     }

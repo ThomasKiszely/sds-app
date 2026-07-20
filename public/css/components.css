@@ -1,4 +1,4 @@
-.error-card {
+.error-card, .index-page-nav {
     background: var(--card-bg);
     padding: var(--space-3) var(--space-2);
     width: 100%;            /* fuld bredde */
