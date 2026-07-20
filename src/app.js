@@ -5,6 +5,9 @@ const userRouter = require('./routes/userRoutes');
 const customerRouter = require('./routes/customerRoutes');
 const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
 const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
+const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
+const { requireAdmin } = require('./middlewares/requireAdmin');
+const { requireLogin } = require('./middlewares/requireLogin');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
@@ -30,11 +33,16 @@ app.use(session({
     }
 }));
 
-// Routes
-app.use('/cleaningPlan', cleaningPlanRouter);
-app.use('/cleaningTask', cleaningTaskRouter);
+// adminRoutes
+app.use('/cleaningTaskTemplate', requireAdmin, cleaningTaskTemplateRouter);
+
+// loginRoutes
+app.use('/cleaningPlan', requireLogin, cleaningPlanRouter);
+app.use('/cleaningPlan', requireLogin, cleaningTaskRouter);
+app.use('/customer', requireLogin, customerRouter);
+
+//custom routes
 app.use('/user', userRouter);
-app.use('/customer', customerRouter);
 
 app.use(notFound);
 app.use(errorHandler);

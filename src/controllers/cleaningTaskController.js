@@ -1,14 +1,16 @@
 const cleaningTaskService = require('../services/cleaningTaskService');
 
 async function createCleaningTask(req, res, next) {
-    try{
-        const cleaningTask = req.body;
-        const savedTask = await cleaningTaskService.createCleaningTask(cleaningTask);
+    try {
+        const { planId } = req.params;
+        const data = req.body;
+
+        const savedTask = await cleaningTaskService.createCleaningTask(planId, data);
 
         return res.status(201).json({
             success: true,
-            message: 'Rengøringsopgave oprettet',
-            savedTask
+            message: 'Rengøringsopgave tilføjet til planen',
+            task: savedTask
         });
     } catch (error) {
         next(error);
@@ -16,11 +18,14 @@ async function createCleaningTask(req, res, next) {
 }
 
 async function listCleaningTasks(req, res, next) {
-    try{
-        const cleaningTasks = await cleaningTaskService.listCleaningTasks();
+    try {
+        const { planId } = req.params;
+
+        const tasks = await cleaningTaskService.listCleaningTasks(planId);
+
         return res.status(200).json({
             success: true,
-            cleaningTasks
+            tasks
         });
     } catch (error) {
         next(error);
@@ -28,12 +33,14 @@ async function listCleaningTasks(req, res, next) {
 }
 
 async function findCleaningTaskById(req, res, next) {
-    try{
-        const { id } = req.params;
-        const cleaningTask = cleaningTaskService.findCleaningTaskById(id);
+    try {
+        const { planId, taskId } = req.params;
+
+        const task = await cleaningTaskService.findCleaningTaskById(planId, taskId);
+
         return res.status(200).json({
             success: true,
-            cleaningTask
+            task
         });
     } catch (error) {
         next(error);
@@ -41,10 +48,12 @@ async function findCleaningTaskById(req, res, next) {
 }
 
 async function updateCleaningTask(req, res, next) {
-    try{
-        const { id } = req.params;
+    try {
+        const { planId, taskId } = req.params;
         const update = req.body;
-        const updatedTask = await cleaningTaskService.updateCleaningTask(id, update);
+
+        const updatedTask = await cleaningTaskService.updateCleaningTask(planId, taskId, update);
+
         return res.status(200).json({
             success: true,
             updatedTask
@@ -56,11 +65,13 @@ async function updateCleaningTask(req, res, next) {
 
 async function deleteCleaningTask(req, res, next) {
     try {
-        const { id } = req.params;
-        const deleted = await cleaningTaskService.deleteCleaningTask(id);
+        const { planId, taskId } = req.params;
+
+        await cleaningTaskService.deleteCleaningTask(planId, taskId);
+
         return res.status(200).json({
             success: true,
-            deleted
+            message: 'Rengøringsopgave deaktiveret'
         });
     } catch (error) {
         next(error);
@@ -68,9 +79,11 @@ async function deleteCleaningTask(req, res, next) {
 }
 
 async function reactivateCleaningTask(req, res, next) {
-    try{
-        const { id } = req.params;
-        const reactivated = await cleaningTaskService.reactivateCleaningTask(id);
+    try {
+        const { planId, taskId } = req.params;
+
+        const reactivated = await cleaningTaskService.reactivateCleaningTask(planId, taskId);
+
         return res.status(200).json({
             success: true,
             reactivated
@@ -81,16 +94,30 @@ async function reactivateCleaningTask(req, res, next) {
 }
 
 async function getDeletedCleaningTasks(req, res, next) {
-    try{
-        const deletedCleaningTasks = await cleaningTaskService.getDeletedCleaningTasks();
+    try {
+        const { planId } = req.params;
+
+        const deletedTasks = await cleaningTaskService.getDeletedCleaningTasks(planId);
+
         return res.status(200).json({
             success: true,
-            deletedCleaningTasks
+            deletedTasks
         });
     } catch (error) {
         next(error);
     }
 }
+
+module.exports = {
+    createCleaningTask,
+    listCleaningTasks,
+    findCleaningTaskById,
+    updateCleaningTask,
+    deleteCleaningTask,
+    reactivateCleaningTask,
+    getDeletedCleaningTasks
+};
+
 
 
 module.exports = {
