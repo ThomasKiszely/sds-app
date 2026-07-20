@@ -3,6 +3,8 @@ const app = express();
 const path = require('path');
 const userRouter = require('./routes/userRoutes');
 const customerRouter = require('./routes/customerRoutes');
+const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
+const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
@@ -29,6 +31,8 @@ app.use(session({
 }));
 
 // Routes
+app.use('/cleaningPlan', cleaningPlanRouter);
+app.use('/cleaningTask', cleaningTaskRouter);
 app.use('/user', userRouter);
 app.use('/customer', customerRouter);
 
