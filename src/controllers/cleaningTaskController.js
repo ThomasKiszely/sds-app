@@ -34,9 +34,9 @@ async function listCleaningTasks(req, res, next) {
 
 async function findCleaningTaskById(req, res, next) {
     try {
-        const { planId, taskId } = req.params;
+        const { taskId } = req.params;
 
-        const task = await cleaningTaskService.findCleaningTaskById(planId, taskId);
+        const task = await cleaningTaskService.findCleaningTaskById(taskId);
 
         return res.status(200).json({
             success: true,
@@ -49,10 +49,10 @@ async function findCleaningTaskById(req, res, next) {
 
 async function updateCleaningTask(req, res, next) {
     try {
-        const { planId, taskId } = req.params;
+        const { taskId } = req.params;
         const update = req.body;
 
-        const updatedTask = await cleaningTaskService.updateCleaningTask(planId, taskId, update);
+        const updatedTask = await cleaningTaskService.updateCleaningTask(taskId, update);
 
         return res.status(200).json({
             success: true,
@@ -65,9 +65,9 @@ async function updateCleaningTask(req, res, next) {
 
 async function deleteCleaningTask(req, res, next) {
     try {
-        const { planId, taskId } = req.params;
+        const { taskId } = req.params;
 
-        await cleaningTaskService.deleteCleaningTask(planId, taskId);
+        await cleaningTaskService.deleteCleaningTask(taskId);
 
         return res.status(200).json({
             success: true,
@@ -80,9 +80,9 @@ async function deleteCleaningTask(req, res, next) {
 
 async function reactivateCleaningTask(req, res, next) {
     try {
-        const { planId, taskId } = req.params;
+        const { taskId } = req.params;
 
-        const reactivated = await cleaningTaskService.reactivateCleaningTask(planId, taskId);
+        const reactivated = await cleaningTaskService.reactivateCleaningTask(taskId);
 
         return res.status(200).json({
             success: true,
@@ -117,15 +117,3 @@ module.exports = {
     reactivateCleaningTask,
     getDeletedCleaningTasks
 };
-
-
-
-module.exports = {
-    createCleaningTask,
-    listCleaningTasks,
-    findCleaningTaskById,
-    updateCleaningTask,
-    deleteCleaningTask,
-    reactivateCleaningTask,
-    getDeletedCleaningTasks
-}

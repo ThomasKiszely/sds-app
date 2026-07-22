@@ -1,8 +1,10 @@
+// controllers/cleaningPlanController.js
 const cleaningPlanService = require('../services/cleaningPlanService');
 
 async function createCleaningPlan(req, res, next) {
     try {
         const created = await cleaningPlanService.createCleaningPlan(req.body);
+
         return res.status(201).json({
             status: 'success',
             message: 'Rengøringsplan oprettet',
@@ -16,6 +18,7 @@ async function createCleaningPlan(req, res, next) {
 async function listCleaningPlans(req, res, next) {
     try {
         const cleaningPlans = await cleaningPlanService.listCleaningPlans();
+
         return res.status(200).json({
             status: 'success',
             cleaningPlans
@@ -27,7 +30,10 @@ async function listCleaningPlans(req, res, next) {
 
 async function findCleaningPlanById(req, res, next) {
     try {
-        const cleaningPlan = await cleaningPlanService.findCleaningPlanById(req.params.id);
+        const { planId } = req.params;
+
+        const cleaningPlan = await cleaningPlanService.findCleaningPlanById(planId);
+
         return res.status(200).json({
             status: 'success',
             cleaningPlan
@@ -39,7 +45,10 @@ async function findCleaningPlanById(req, res, next) {
 
 async function updateCleaningPlan(req, res, next) {
     try {
-        const updated = await cleaningPlanService.updateCleaningPlan(req.params.id, req.body);
+        const { planId } = req.params;
+
+        const updated = await cleaningPlanService.updateCleaningPlan(planId, req.body);
+
         return res.status(200).json({
             status: 'success',
             message: 'Rengøringsplan opdateret',
@@ -52,7 +61,10 @@ async function updateCleaningPlan(req, res, next) {
 
 async function deleteCleaningPlan(req, res, next) {
     try {
-        await cleaningPlanService.deleteCleaningPlan(req.params.id);
+        const { planId } = req.params;
+
+        await cleaningPlanService.deleteCleaningPlan(planId);
+
         return res.status(200).json({
             status: 'success',
             message: 'Rengøringsplan deaktiveret'
@@ -64,7 +76,8 @@ async function deleteCleaningPlan(req, res, next) {
 
 async function getDeletedCleaningPlans(req, res, next) {
     try {
-        const deletedPlans = await cleaningPlanService.getDeletedPlans(req.params.id);
+        const deletedPlans = await cleaningPlanService.listDeletedCleaningPlans();
+
         return res.status(200).json({
             status: 'success',
             deletedPlans
@@ -74,9 +87,12 @@ async function getDeletedCleaningPlans(req, res, next) {
     }
 }
 
-async function reActivateCleaningPlan(req, res, next) {
+async function reactivateCleaningPlan(req, res, next) {
     try {
-        const reactivated = await cleaningPlanService.reactivateCleaningPlan(req.params.id);
+        const { planId } = req.params;
+
+        const reactivated = await cleaningPlanService.reactivateCleaningPlan(planId);
+
         return res.status(200).json({
             status: 'success',
             message: 'Rengøringsplan genaktiveret',
@@ -92,7 +108,7 @@ module.exports = {
     listCleaningPlans,
     findCleaningPlanById,
     updateCleaningPlan,
-    getDeletedCleaningPlans,
-    reActivateCleaningPlan,
     deleteCleaningPlan,
+    getDeletedCleaningPlans,
+    reactivateCleaningPlan
 };

@@ -5,7 +5,7 @@ const validateCleaningPlan = require('../middlewares/validateCleaningPlan');
 
 
 router.get('/archived', cleaningPlanController.getDeletedCleaningPlans);
-router.patch('/:id/reactivate', cleaningPlanController.reActivateCleaningPlan);
+router.patch('/:id/reactivate', cleaningPlanController.reactivateCleaningPlan);
 router.put('/:id', validateCleaningPlan, cleaningPlanController.updateCleaningPlan);
 router.delete('/:id', cleaningPlanController.deleteCleaningPlan);
 router.get('/:id', cleaningPlanController.findCleaningPlanById);
