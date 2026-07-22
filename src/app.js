@@ -11,9 +11,25 @@ const { requireLogin } = require('./middlewares/requireLogin');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
+const cron = require('node-cron');
+const { runInflationCatchUp } = require('./cron/inflation');
 const { connectToMongo } = require('./services/db');
 const session = require('express-session');
 connectToMongo();
+(async () => {
+    try {
+        await runInflationCatchUp();
+    } catch (err) {
+        console.error("Inflation catch-up ved serverstart fejlede:", err);
+    }
+})();
+
+
+// Dagligt cron-job kl. 03:00
+cron.schedule('0 3 * * *', () => {
+    console.log("Dagligt inflation catch-up check...");
+    runInflationCatchUp().catch(err => console.error("Cron fejl:", err));
+});
 //npx nodemon server eller npm run dev for at starte nodemon - ctrl-c for at afslutte
 
 // Middleware
