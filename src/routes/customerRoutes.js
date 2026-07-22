@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const customerController = require('../controllers/CustomerController');
+const customerController = require('../controllers/customerController');
 
 router.delete('/:id', customerController.deleteCustomer);
 router.get('/:id', customerController.getCustomer);
