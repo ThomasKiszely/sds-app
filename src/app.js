@@ -26,6 +26,10 @@ connectToMongo();
 
 
 // Dagligt cron-job kl. 03:00
+// til test kan bruges: cron.schedule('* * * * *', () => {
+//    runInflationCatchUp();
+//});
+// for at køre det hvert minut
 cron.schedule('0 3 * * *', () => {
     console.log("Dagligt inflation catch-up check...");
     runInflationCatchUp().catch(err => console.error("Cron fejl:", err));

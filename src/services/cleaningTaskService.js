@@ -2,6 +2,7 @@ const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
 const CleaningPlan = require('../models/CleaningPlan');
 const taskRepo = require('../data/cleaningTaskRepo');
 const { calculateTaskTotalPrice } = require('../utils/priceUtil');
+const { recalculatePlanTotal } = require('./cleaningPlanService');
 
 function ensureExists(entity, message) {
     if (!entity) {
@@ -11,11 +12,6 @@ function ensureExists(entity, message) {
     }
 }
 
-async function recalculatePlanTotal(planId) {
-    const tasks = await taskRepo.findByPlanId(planId);
-    const total = tasks.reduce((sum, t) => sum + (t.totalPrice || 0), 0);
-    await CleaningPlan.findByIdAndUpdate(planId, { totalPrice: total });
-}
 
 async function createCleaningTask(planId, data) {
     const plan = await CleaningPlan.findById(planId);

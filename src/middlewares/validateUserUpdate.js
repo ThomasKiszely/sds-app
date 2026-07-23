@@ -3,7 +3,6 @@ const { userRoles } = require("../utils/userRoles");
 function validateUserUpdate(req, res, next) {
     const { fullName, role } = req.body;
 
-    // --- fullName validation ---
     if (fullName !== undefined) {
         if (typeof fullName !== "string") {
             return next(new Error("Ugyldigt fuldt navn"));
@@ -23,7 +22,6 @@ function validateUserUpdate(req, res, next) {
         }
     }
 
-    // --- role validation ---
     if (role !== undefined) {
         if (typeof role !== "string") {
             return next(new Error("Ugyldig rolle-type"));

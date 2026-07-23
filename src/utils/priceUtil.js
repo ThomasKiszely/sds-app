@@ -2,9 +2,7 @@ const { frequency } = require('./frequencyEnum');
 const { units } = require('./unitEnum');
 const { categoryTypes } = require('./categoryEnum');
 
-/**
- * Frekvens-multipliers baseret på SDS' virkelige logik.
- */
+// Skal måske tilrettes - spørg Jakob
 function getFrequencyMultiplier(freq) {
     switch (freq) {
         case frequency.daily: return 21;
@@ -19,9 +17,7 @@ function getFrequencyMultiplier(freq) {
     }
 }
 
-/**
- * Unit-baseret prislogik.
- */
+
 function calculateUnitPrice({ unit, price, amount = 0, quantity = 0 }) {
     switch (unit) {
         case units.none:
@@ -37,9 +33,7 @@ function calculateUnitPrice({ unit, price, amount = 0, quantity = 0 }) {
     }
 }
 
-/**
- * Kategori-baseret prislogik.
- */
+
 function adjustForCategory({ category, basePrice, frequencyMultiplier }) {
     switch (category) {
         case categoryTypes.windows:
@@ -55,9 +49,7 @@ function adjustForCategory({ category, basePrice, frequencyMultiplier }) {
     }
 }
 
-/**
- * Samlet prisberegning.
- */
+
 function calculateTaskTotalPrice({ unit, category, price, amount, quantity, frequency }) {
     const frequencyMultiplier = getFrequencyMultiplier(frequency);
 

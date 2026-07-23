@@ -1,3 +1,5 @@
+//Obs bliver ikke brugt pt. Kun til fx queries e.l.
+
 function containsMongoOperators(obj) {
     const forbidden = ["$gt", "$lt", "$ne", "$in", "$nin", "$where", "$regex"];
 
@@ -13,3 +15,7 @@ function containsMongoOperators(obj) {
 
     return check(obj);
 }
+
+module.exports = {
+    containsMongoOperators
+};

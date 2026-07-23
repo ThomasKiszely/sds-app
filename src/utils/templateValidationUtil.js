@@ -1,5 +1,3 @@
-// utils/templateValidationUtils.js
-
 function ensureTemplateExists(template) {
     if (!template) {
         const error = new Error("Opgave-skabelon blev ikke fundet.");

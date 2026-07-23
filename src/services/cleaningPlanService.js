@@ -9,9 +9,7 @@ function ensureExists(entity, message) {
     }
 }
 
-/**
- * Recalculate total price for a plan based on active tasks.
- */
+// Til når man opdaterer priser
 async function recalculatePlanTotal(planId) {
     const tasks = await taskRepo.findByPlanId(planId);
     const total = tasks.reduce((sum, t) => sum + (t.totalPrice || 0), 0);
@@ -19,9 +17,7 @@ async function recalculatePlanTotal(planId) {
     await planRepo.updateById(planId, { totalPrice: total });
 }
 
-/**
- * Create a new cleaning plan.
- */
+
 async function createCleaningPlan(data) {
     const plan = await planRepo.create({
         customerId: data.customerId,
@@ -34,32 +30,24 @@ async function createCleaningPlan(data) {
     return plan;
 }
 
-/**
- * List all active cleaning plans.
- */
+
 async function listCleaningPlans() {
     return planRepo.findAllActive();
 }
 
-/**
- * List all deleted (inactive) cleaning plans.
- */
+
 async function listDeletedCleaningPlans() {
     return planRepo.findAllDeleted();
 }
 
-/**
- * Find a plan by ID.
- */
+
 async function findCleaningPlanById(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
     return plan;
 }
 
-/**
- * Update a plan (name, description).
- */
+
 async function updateCleaningPlan(planId, data) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -72,9 +60,7 @@ async function updateCleaningPlan(planId, data) {
     return updated;
 }
 
-/**
- * Soft delete a plan.
- */
+
 async function deleteCleaningPlan(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -83,16 +69,14 @@ async function deleteCleaningPlan(planId) {
     return updated;
 }
 
-/**
- * Reactivate a plan.
- */
+
 async function reactivateCleaningPlan(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
 
     const updated = await planRepo.updateById(planId, { isActive: true });
 
-    // Recalculate total price after reactivation
+    // Regne pris ud igen efter reaktivering
     await recalculatePlanTotal(planId);
 
     return updated;
@@ -105,5 +89,6 @@ module.exports = {
     findCleaningPlanById,
     updateCleaningPlan,
     deleteCleaningPlan,
-    reactivateCleaningPlan
+    reactivateCleaningPlan,
+    recalculatePlanTotal,
 };

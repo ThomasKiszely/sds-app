@@ -3,7 +3,6 @@ const { userRoles } = require("../utils/userRoles");
 function validateCreateUser(req, res, next) {
     const { userName, fullName, role } = req.body;
 
-    // --- userName validation ---
     if (!userName || typeof userName !== "string") {
         return next(new Error("Ugyldigt brugernavn"));
     }
@@ -21,7 +20,6 @@ function validateCreateUser(req, res, next) {
         return next(new Error("Brugernavn indeholder ugyldige tegn"));
     }
 
-    // --- fullName validation ---
     if (!fullName || typeof fullName !== "string") {
         return next(new Error("Ugyldigt fuldt navn"));
     }
@@ -34,13 +32,11 @@ function validateCreateUser(req, res, next) {
         return next(new Error("Fuldt navn er for langt"));
     }
 
-    // fullName må gerne indeholde mellemrum og æøå, men ikke farlige tegn
     const forbiddenName = /[<>\/\\{}$]/;
     if (forbiddenName.test(fullName)) {
         return next(new Error("Fuldt navn indeholder ugyldige tegn"));
     }
 
-    // --- role validation ---
     if (role && !Object.values(userRoles).includes(role)) {
         return next(new Error("Ugyldig rolle"));
     }

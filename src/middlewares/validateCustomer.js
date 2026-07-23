@@ -6,7 +6,6 @@ function validateCustomer(req, res, next) {
     const data = req.body;
 
 
-    // Required fields
     const required = [
         "customerName",
         "phoneNumber",
@@ -22,7 +21,6 @@ function validateCustomer(req, res, next) {
         }
     }
 
-    // Contact person
     if (!data.contactPerson ||
         !data.contactPerson.name ||
         !data.contactPerson.phone ||
@@ -31,7 +29,6 @@ function validateCustomer(req, res, next) {
         return next({ isUserError: true, message: "Kontaktperson mangler felter" });
     }
 
-    // CVR validation
     if (!validateCVR(data.cvr)) {
         return next({ isUserError: true, message: "CVR er ugyldig" });
     }
