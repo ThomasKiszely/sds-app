@@ -132,16 +132,19 @@ async function login(req, res, next) {
 
         const result = await userService.login(userName, password);
 
-        return res.status(200).json({
-            success: true,
-            message: "Login success",
-            user: result.user,
-            mustChangePassword: result.mustChangePassword,
-        });
+        // gem bruger i session
+        req.session.user = result.user;
+
+        // htmx redirect
+        res.setHeader("HX-Redirect", "/");
+        return res.status(200).end();
+
     } catch (error) {
-        next(error);
+        // htmx viser dette i hx-target
+        return res.status(401).send("Forkert brugernavn eller adgangskode");
     }
 }
+
 
 async function logout(req, res, next) {
     try{

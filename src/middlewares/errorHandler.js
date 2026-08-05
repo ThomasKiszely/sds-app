@@ -13,7 +13,9 @@ function errorHandler(error, req, res, next) {
 
     // HTMX
     if (req.headers['hx-request']) {
-        return res.status(status).send(`<p class="error">${safeMessage}</p>`);
+        return res.status(status).render('partials/error', {
+            message: safeMessage
+        });
     }
 
     // API

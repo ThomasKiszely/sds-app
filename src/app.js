@@ -6,6 +6,7 @@ const customerRouter = require('./routes/customerRoutes');
 const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
 const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
 const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
+const viewRouter = require('./routes/viewRoutes');
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
 const { notFound } = require('./middlewares/notFound');
@@ -15,6 +16,11 @@ const cron = require('node-cron');
 const { runInflationCatchUp } = require('./cron/inflation');
 const { connectToMongo } = require('./services/db');
 const session = require('express-session');
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+
 connectToMongo();
 (async () => {
     try {
@@ -38,6 +44,7 @@ cron.schedule('0 3 * * *', () => {
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(log);
 app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html']}));
 app.use(session({
@@ -63,6 +70,9 @@ app.use('/customer', requireLogin, customerRouter);
 
 //custom routes
 app.use('/user', userRouter);
+
+//view routes
+app.use('/', viewRouter);
 
 app.use(notFound);
 app.use(errorHandler);

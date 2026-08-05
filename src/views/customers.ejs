@@ -1,0 +1,61 @@
+<header>
+</header>
+
+
+<article class="standard customers-page">
+    <h1>Kunder</h1>
+
+    <nav>
+        <button hx-get="/customers/create" hx-target="#content">
+            Opret kunde
+        </button>
+    </nav>
+
+    <section>
+        <table class="customers-table">
+            <thead>
+            <tr>
+                <th>Kundenr.</th>
+                <th>Navn</th>
+                <th>Telefon</th>
+                <th>Email</th>
+                <th>Handlinger</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <% customers.forEach(customer => { %>
+                <tr>
+                    <td><%= customer.customerNumber %></td>
+                    <td><%= customer.customerName %></td>
+                    <td><%= customer.phoneNumber %></td>
+                    <td><%= customer.customerEmail %></td>
+
+                    <td>
+                        <button hx-get="/customers/<%= customer._id %>/plans" hx-target="#content">
+                            Vis planer
+                        </button>
+
+                        <button hx-get="/customers/<%= customer._id %>/details" hx-target="#content">
+                            Detaljer
+                        </button>
+
+                        <% if (user.role === 'admin') { %>
+                            <button hx-get="/customers/<%= customer._id %>/edit" hx-target="#content">
+                                Rediger
+                            </button>
+
+                            <button
+                                    hx-delete="/api/customers/<%= customer._id %>"
+                                    hx-target="#content"
+                                    hx-confirm="Vil du slette kunden?">
+                                Slet
+                            </button>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </section>
+</article>

@@ -1,0 +1,16 @@
+<article class="standard index-page-nav">
+    <img class="index-page-nav-logo" src="/images/SDS-logo2.gif" alt="">
+    <h1>SDS prisberegner</h1>
+
+    <nav>
+        <button hx-get="/customers" hx-target="#content">Kunder</button>
+        <button hx-get="/plans" hx-target="#content">Rengøringsplaner</button>
+        <button hx-get="/tasks" hx-target="#content">Opgaver</button>
+
+        <% if (user.role === 'admin') { %>
+            <button hx-get="/admin" hx-target="#content">Admin panel</button>
+        <% } %>
+    </nav>
+
+    <p>Vælg en funktion ovenfor.</p>
+</article>

@@ -1,0 +1,42 @@
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="hamburger"
+                onclick="document.querySelector('.dropdown').classList.toggle('open')">
+            ☰ Menu
+        </button>
+    </div>
+
+    <div class="topbar-right">
+        <span class="username"><%= user.userName %></span>
+        <button hx-post="/user/logout" hx-target="body">Log ud</button>
+    </div>
+
+    <nav class="dropdown">
+        <button hx-get="/indexContent" hx-target="#content"
+                onclick="document.querySelector('.dropdown').classList.remove('open')">
+            Forside
+        </button>
+
+        <button hx-get="/customers" hx-target="#content"
+                onclick="document.querySelector('.dropdown').classList.remove('open')">
+            Kunder
+        </button>
+
+        <button hx-get="/plans" hx-target="#content"
+                onclick="document.querySelector('.dropdown').classList.remove('open')">
+            Planer
+        </button>
+
+        <button hx-get="/tasks" hx-target="#content"
+                onclick="document.querySelector('.dropdown').classList.remove('open')">
+            Opgaver
+        </button>
+
+        <% if (user.role === 'admin') { %>
+            <button hx-get="/admin" hx-target="#content"
+                    onclick="document.querySelector('.dropdown').classList.remove('open')">
+                Admin
+            </button>
+        <% } %>
+    </nav>
+</header>

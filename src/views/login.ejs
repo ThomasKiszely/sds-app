@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – SDS prisberegner</title>
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <script src="/js/htmx.min.js"></script>
+</head>
+
+<body>
+<main>
+    <article class="standard login-page">
+        <img src="/images/SDS-logo2.gif" alt="SDS logo">
+
+        <h1>Log ind</h1>
+
+        <form
+                hx-post="/user/login"
+                hx-target="#login-message"
+                hx-swap="innerHTML"
+        >
+            <label for="userName">Brugernavn</label>
+            <input type="text" id="userName" name="userName" required>
+
+            <label for="password">Adgangskode</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Log ind</button>
+        </form>
+
+        <div id="login-message"></div>
+
+        <p>Du forbliver logget ind i 7 dage.</p>
+    </article>
+</main>
+</body>
+</html>
