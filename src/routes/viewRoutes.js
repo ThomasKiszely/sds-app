@@ -16,6 +16,12 @@ router.get('/', requireLogin, (req, res) => {
     res.render('index', { user: req.session.user });
 });
 
+// Change password
+router.get('/change-password', requireLogin, (req, res) => {
+    res.render('changePassword', { user: req.session.user });
+});
+
+
 router.get('/indexContent', requireLogin, (req, res) => {
     res.render('partials/indexContent', { user: req.session.user });
 });

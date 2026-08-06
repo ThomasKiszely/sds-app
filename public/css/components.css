@@ -120,4 +120,19 @@
     text-decoration: underline;
 }
 
+.index-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3); /* afstand mellem grupper */
+}
+
+.nav-group {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2); /* afstand mellem knapper */
+}
+
+.nav-group-primary {
+    margin-bottom: var(--space-3); /* ekstra afstand til første gruppe */
+}
 

@@ -62,17 +62,20 @@ async function listUsers(req, res, next) {
 }
 
 async function changePassword(req, res, next) {
-    try{
-        const userId = req.user.id;
+    try {
+        const userId = req.session.user.id;
         const { password, repeated } = req.body;
+
         const updated = await userService.updatePassword(userId, password, repeated);
-        return res.status(200).json({
-            success: true,
-            message: "Kodeord ændret",
-            updated
-        });
+
+        req.session.user.mustChangePassword = false;
+
+        return res.redirect('/');
     } catch (error) {
-        next(error);
+        return res.status(400).render('changePassword', {
+            user: req.session.user,
+            error: error.message
+        });
     }
 }
 
@@ -134,6 +137,10 @@ async function login(req, res, next) {
 
         // gem bruger i session
         req.session.user = result.user;
+
+        if (result.user.mustChangePassword) {
+            return res.redirect('/change-password');
+        }
 
         // htmx redirect
         res.setHeader("HX-Redirect", "/");

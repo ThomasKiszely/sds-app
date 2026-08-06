@@ -91,7 +91,7 @@ async function updatePassword(id, password, repeated) {
 
     const hashed = await bcrypt.hash(password, 12);
 
-    const updated = await userRepo.updatePassword(id, hashed);
+    const updated = await userRepo.updatePassword(id, hashed, false);
 
     return {
         id: updated._id,
@@ -205,9 +205,9 @@ async function login(userName, password) {
             userName: user.userName,
             fullName: user.fullName,
             role: user.role,
-            active: user.active
-        },
-        mustChangePassword: user.mustChangePassword
+            active: user.active,
+            mustChangePassword: user.mustChangePassword
+        }
     };
 }
 

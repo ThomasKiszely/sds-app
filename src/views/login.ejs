@@ -18,9 +18,8 @@
         <h1>Log ind</h1>
 
         <form
-                hx-post="/user/login"
-                hx-target="#login-message"
-                hx-swap="innerHTML"
+                action="/user/login"
+                method="POST"
         >
             <label for="userName">Brugernavn</label>
             <input type="text" id="userName" name="userName" required>
@@ -33,7 +32,6 @@
 
         <div id="login-message"></div>
 
-        <p>Du forbliver logget ind i 7 dage.</p>
     </article>
 </main>
 </body>

@@ -9,6 +9,7 @@ const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes'
 const viewRouter = require('./routes/viewRoutes');
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
+const { mustChangePassword } = require('./middlewares/mustChangePassword');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
@@ -72,6 +73,7 @@ app.use('/customer', requireLogin, customerRouter);
 app.use('/user', userRouter);
 
 //view routes
+app.use(mustChangePassword);
 app.use('/', viewRouter);
 
 app.use(notFound);

@@ -12,7 +12,7 @@ const { requireLogin } = require('../middlewares/requireLogin');
 
 router.post('/logout', requireLogin, userController.logout);
 router.post('/login', validateLogin, userController.login);
-router.patch('/me/password', requireLogin, userController.changePassword);
+router.post('/me/password', requireLogin, userController.changePassword);
 router.patch('/:id/reset-password', requireAdmin, validateUserId, userController.resetPassword);
 router.patch('/:id/reactivate', requireAdmin, validateUserId, userController.reactivateUser );
 router.patch('/:id/user', requireAdmin, validateUserId, validateUserUpdate, userController.updateUser);
