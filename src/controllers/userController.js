@@ -72,10 +72,17 @@ async function changePassword(req, res, next) {
 
         return res.redirect('/');
     } catch (error) {
-        return res.status(400).render('changePassword', {
-            user: req.session.user,
-            error: error.message
-        });
+        if (req.headers.referer.includes('/change-password')) {
+            return res.status(400).render('changePassword', {
+                user: req.session.user,
+                error: error.message
+            });
+        }
+
+        // Ellers er det frivillig password-side (/me)
+        req.session.formError = error.message;
+        req.session.loadMe = true;   // ← SIGER INDEX AT DEN SKAL LOADE /me
+        return res.redirect('/');
     }
 }
 
@@ -142,13 +149,12 @@ async function login(req, res, next) {
             return res.redirect('/change-password');
         }
 
-        // htmx redirect
-        res.setHeader("HX-Redirect", "/");
-        return res.status(200).end();
+        return res.redirect('/');
 
     } catch (error) {
-        // htmx viser dette i hx-target
-        return res.status(401).send("Forkert brugernavn eller adgangskode");
+        return res.status(401).render('login', {
+            error: "Forkert brugernavn eller adgangskode"
+        });
     }
 }
 
@@ -161,10 +167,9 @@ async function logout(req, res, next) {
             }
             res.clearCookie('connect.sid');
 
-            return res.status(200).json({
-                success: true,
-                message: "Du er nu logget ud"
-            });
+            // HTMX redirect
+            res.setHeader("HX-Redirect", "/login");
+            return res.status(200).end();
         });
     } catch (error) {
         next(error);

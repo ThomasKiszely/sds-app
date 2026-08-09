@@ -8,18 +8,37 @@ router.get('/login', (req, res) => {
     if (req.session.user) {
         return res.redirect('/');
     }
-    res.render('login');
+    res.render('login', { error: null });
 });
 
 // INDEX
 router.get('/', requireLogin, (req, res) => {
-    res.render('index', { user: req.session.user });
+    const loadMe = req.session.loadMe || false;
+    req.session.loadMe = false; // nulstil
+
+    res.render('index', {
+        user: req.session.user,
+        loadMe
+    });
 });
 
-// Change password
+
+// Change password og user
 router.get('/change-password', requireLogin, (req, res) => {
     res.render('changePassword', { user: req.session.user });
 });
+
+router.get('/me', requireLogin, (req, res) => {
+    const error = req.session.formError || null;
+    req.session.formError = null; // nulstil efter visning
+
+    res.render('me', {
+        user: req.session.user,
+        error
+    });
+});
+
+
 
 
 router.get('/indexContent', requireLogin, (req, res) => {

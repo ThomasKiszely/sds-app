@@ -7,7 +7,14 @@
     </div>
 
     <div class="topbar-right">
-        <span class="username"><%= user.userName %></span>
+        <span class="username"
+              hx-get="/me"
+              hx-target="#content"
+              hx-swap="innerHTML"
+              onclick="document.querySelector('.dropdown').classList.remove('open')">
+            <%= user.userName %>
+        </span>
+
         <button hx-post="/user/logout" hx-target="body">Log ud</button>
     </div>
 

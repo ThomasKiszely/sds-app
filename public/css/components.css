@@ -9,13 +9,13 @@
 }
 
 
-.login-page input {
+.login-page input, .me-page input {
     width: 100%;
     max-width: 300px;
     border-radius: var(--border-radius);
 }
 
-.login-page form {
+.login-page form, .me-page form {
     align-items: center;
 }
 

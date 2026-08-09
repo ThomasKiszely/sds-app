@@ -17,6 +17,14 @@
 
 <main id="content">
     <%- include('partials/indexContent', { user }) %>
+
+    <% if (loadMe) { %>
+        <script>
+            htmx.ajax('GET', '/me', '#content');
+        </script>
+    <% } %>
+
+
 </main>
 
 </body>

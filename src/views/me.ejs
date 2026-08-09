@@ -1,0 +1,23 @@
+<article class="standard me-page">
+    <h1>Min profil</h1>
+
+    <p><strong>Brugernavn:</strong> <%= user.userName %></p>
+    <p><strong>Fulde navn:</strong> <%= user.fullName %></p>
+    <p><strong>Rolle:</strong> <%= user.role %></p>
+
+    <h2>Skift adgangskode</h2>
+
+    <% if (error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+
+    <form action="/user/me/password" method="POST">
+        <label for="password">Nyt kodeord</label>
+        <input type="password" id="password" name="password" required minlength="8">
+
+        <label for="repeated">Gentag kodeord</label>
+        <input type="password" id="repeated" name="repeated" required minlength="8">
+
+        <button type="submit">Gem nyt kodeord</button>
+    </form>
+</article>
