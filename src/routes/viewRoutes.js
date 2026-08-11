@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const Customer = require('../models/Customer');
 const { requireLogin } = require('../middlewares/requireLogin');
 
 // LOGIN (public)
@@ -47,13 +46,19 @@ router.get('/indexContent', requireLogin, (req, res) => {
 
 
 // CUSTOMERS
-router.get('/customers', requireLogin, async (req, res) => {
+/*router.get('/customers', requireLogin, async (req, res) => {
     const customers = await Customer.find({ isDeleted: false });
     res.render('customers', {
         customers,
         user: req.session.user
     });
+});*/
+
+
+router.get('/customers/create', requireLogin, (req, res) => {
+    res.render('customers/create', { user: req.session.user });
 });
+
 
 // PLANS
 router.get('/plans', requireLogin, async (req, res) => {

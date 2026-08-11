@@ -8,6 +8,10 @@ async function findById(id) {
     return CleaningPlan.findById(id);
 }
 
+async function findByCustomerId(customerId) {
+    return CleaningPlan.find({ customerId, isDeleted: false });
+}
+
 async function findAllActive() {
     return CleaningPlan.find({ isActive: true }).sort({ createdAt: -1 });
 }
@@ -25,5 +29,6 @@ module.exports = {
     findById,
     findAllActive,
     findAllDeleted,
-    updateById
+    updateById,
+    findByCustomerId,
 };

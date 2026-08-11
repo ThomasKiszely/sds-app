@@ -6,11 +6,19 @@ const InflationLog = require('../models/InflationLog');
 const taskRepo = require('../data/cleaningTaskRepo');
 const planRepo = require('../data/cleaningPlanRepo');
 const { calculateTaskTotalPrice } = require('../utils/priceUtil');
+const SystemSettings = require('../models/SystemSettings');
 
-const INFLATION_RATE = 0.025; // 2.5%
+async function getInflationRate() {
+    const settings = await SystemSettings.findOne().lean();
+    return settings?.inflationRate ?? 0.025;
+}
+
+
 
 async function runInflationAdjustment() {
     console.log("Inflations-justering startet...");
+
+    const INFLATION_RATE = await getInflationRate();
 
     const tasks = await CleaningTask.find({ isActive: true }).lean();
     console.log(`Antal aktive opgaver: ${tasks.length}`);
@@ -72,5 +80,6 @@ async function runInflationCatchUp() {
 
 module.exports = {
     runInflationAdjustment,
-    runInflationCatchUp
+    runInflationCatchUp,
+    getInflationRate,
 };

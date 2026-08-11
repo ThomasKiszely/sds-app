@@ -1,7 +1,12 @@
+// services/customerService.js
 const customerRepo = require("../data/customerRepo");
+const planRepo = require("../data/cleaningPlanRepo");
 const { validateCVR } = require("../utils/validateCVR");
+const { validateCustomerNumber } = require("../utils/validateCustomerNumber");
 
 async function createCustomer(data) {
+    // Trim
+    data.customerNumber = data.customerNumber?.trim();
     data.customerName = data.customerName.trim();
     data.customerEmail = data.customerEmail.trim();
     data.phoneNumber = data.phoneNumber.trim();
@@ -11,116 +16,78 @@ async function createCustomer(data) {
     data.contactPerson.email = data.contactPerson.email.trim();
     data.contactPerson.phone = data.contactPerson.phone.trim();
 
-    // Unikt kundenummer
-    const existingNumber = await customerRepo.findByCustomerNumber(data.customerNumber);
-    if (existingNumber) {
-        throw new Error("Kundenummer findes allerede");
+    //Kundenummer
+    if (!validateCustomerNumber(data.customerNumber)) {
+        throw { isUserError: true, message: "Kundenummer skal være 8 cifre" };
     }
 
-    // CVR skal være ægte
-    if (!validateCVR(data.cvr)) {
+    // CVR
+    if (data.cvr && !validateCVR(data.cvr)) {
         throw new Error("CVR er ugyldig");
     }
 
-    // Create customer
+    // Create
     const customer = await customerRepo.createCustomer(data);
-
-    return {
-        id: customer._id,
-        customerNumber: customer.customerNumber,
-        customerName: customer.customerName,
-        phoneNumber: customer.phoneNumber,
-        customerEmail: customer.customerEmail,
-        cvr: customer.cvr,
-        contactPerson: customer.contactPerson,
-        billingAddress: customer.billingAddress,
-        customerAddress: customer.customerAddress,
-        createdAt: customer.createdAt
-    };
+    return customer;
 }
 
 async function getCustomerById(id) {
     const customer = await customerRepo.getCustomerById(id);
-
-    if (!customer) {
-        throw new Error("Kunde findes ikke");
-    }
-
-    return {
-        id: customer._id,
-        customerNumber: customer.customerNumber,
-        customerName: customer.customerName,
-        phoneNumber: customer.phoneNumber,
-        customerEmail: customer.customerEmail,
-        cvr: customer.cvr,
-        contactPerson: customer.contactPerson,
-        billingAddress: customer.billingAddress,
-        customerAddress: customer.customerAddress,
-        createdAt: customer.createdAt
-    };
+    if (!customer) throw new Error("Kunde findes ikke");
+    return customer.toObject();
 }
 
 async function updateCustomer(id, data) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) {
-        throw new Error("Kunde findes ikke");
-    }
+    if (!customer) throw new Error("Kunde findes ikke");
 
-    // Trim input
+    // Trim
     if (data.customerName) data.customerName = data.customerName.trim();
     if (data.customerEmail) data.customerEmail = data.customerEmail.trim();
     if (data.phoneNumber) data.phoneNumber = data.phoneNumber.trim();
 
-    // Må cvr ændres??
-    /*if (data.cvr && data.cvr !== customer.cvr) {
-        throw new Error("CVR kan ikke ændres");
-    }*/
-
     const updated = await customerRepo.updateCustomer(id, data);
-
-    return {
-        id: updated._id,
-        customerNumber: updated.customerNumber,
-        customerName: updated.customerName,
-        phoneNumber: updated.phoneNumber,
-        customerEmail: updated.customerEmail,
-        cvr: updated.cvr,
-        contactPerson: updated.contactPerson,
-        billingAddress: updated.billingAddress,
-        customerAddress: updated.customerAddress,
-        createdAt: updated.createdAt
-    };
+    return updated.toObject();
 }
 
 async function deleteCustomer(id) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) {
-        throw new Error("Kunde findes ikke");
-    }
-
-    // Tjek om aktive ordrer??
-    // if (await orderRepo.hasActiveOrders(id)) {
-    //     throw new Error("Kunde har aktive ordrer og kan ikke slettes");
-    // }
+    if (!customer) throw new Error("Kunde findes ikke");
 
     await customerRepo.softDeleteCustomer(id);
 }
 
-async function listCustomers() {
-    const customers = await customerRepo.listCustomers();
+async function listCustomers(filter, search, sort, page, pageSize, city, zip, contact, notes) {
+    const { customers, total } = await customerRepo.listCustomers({
+        filter,
+        search,
+        sort,
+        page,
+        pageSize,
+        city,
+        zip,
+        contact,
+        notes
+    });
 
-    return customers.map(c => ({
-        id: c._id,
-        customerNumber: c.customerNumber,
-        customerName: c.customerName,
-        phoneNumber: c.phoneNumber,
-        customerEmail: c.customerEmail,
-        cvr: c.cvr,
-        contactPerson: c.contactPerson,
-        billingAddress: c.billingAddress,
-        customerAddress: c.customerAddress,
-        createdAt: c.createdAt
-    }));
+    return {
+        customers: customers.map(c => c.toObject()),
+        total
+    };
+}
+
+
+
+
+async function getPlansForCustomer(customerId) {
+    return planRepo.findByCustomerId(customerId);
+}
+
+async function reactivateCustomer(id) {
+    const customer = await customerRepo.getCustomerById(id);
+    if (!customer) throw new Error("Kunde findes ikke");
+
+    return customerRepo.updateCustomer(id, { isDeleted: false });
 }
 
 module.exports = {
@@ -128,5 +95,7 @@ module.exports = {
     getCustomerById,
     updateCustomer,
     deleteCustomer,
-    listCustomers
+    listCustomers,
+    getPlansForCustomer,
+    reactivateCustomer,
 };

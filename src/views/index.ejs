@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Kort beskrivelse til søgemaskiner.">
+<!--    <meta name="description" content="Kort beskrivelse til søgemaskiner.">-->
     <meta name="author" content="Thomas BKJ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SDS price calculator</title>
+    <title>SDS prisberegner</title>
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/components.css">
     <script src="/js/htmx.min.js"></script>
@@ -26,6 +26,33 @@
 
 
 </main>
+
+<div id="toast-container"></div>
+
+<div id="toast-center"></div>
+
+<script>
+    document.body.addEventListener("htmx:responseError", (event) => {
+        showCenterToast(event.detail.xhr.responseText);
+    });
+
+    function showCenterToast(message) {
+        const container = document.getElementById("toast-center");
+
+        const toast = document.createElement("div");
+        toast.className = "toast-center";
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+</script>
+
+
 
 </body>
 </html>

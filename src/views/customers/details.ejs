@@ -1,0 +1,20 @@
+<article class="standard customer-details-page">
+    <h1>Kundedetaljer</h1>
+
+    <p><strong>Kundenummer:</strong> <%= customer.customerNumber %></p>
+    <p><strong>Navn:</strong> <%= customer.customerName %></p>
+    <p><strong>Telefon:</strong> <%= customer.phoneNumber %></p>
+    <p><strong>Email:</strong> <%= customer.customerEmail %></p>
+    <p><strong>CVR:</strong> <%= customer.cvr %></p>
+
+    <h2>Kontaktperson</h2>
+    <p><strong>Navn:</strong> <%= customer.contactPerson.name %></p>
+    <p><strong>Telefon:</strong> <%= customer.contactPerson.phone %></p>
+    <p><strong>Email:</strong> <%= customer.contactPerson.email %></p>
+
+    <h2>Adresser</h2>
+    <p><strong>Kundeadresse:</strong> <%= customer.customerAddress %></p>
+    <p><strong>Faktureringsadresse:</strong> <%= customer.billingAddress %></p>
+
+    <button hx-get="/customers" hx-target="#content">Tilbage</button>
+</article>

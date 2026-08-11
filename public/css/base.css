@@ -62,23 +62,67 @@ button:hover {
 }
 
 /* Formularer */
+/* ⭐ Global form layout */
 form {
     display: flex;
     flex-direction: column;
+    align-items: center; /* ← gør alle forms ens */
     gap: var(--space-2);
-    /*align-items: center;*/
+    width: 100%;
 }
 
-
-label {
-    font-weight: bold;
-}
-
-input, select {
+/* ⭐ Global input style */
+form input,
+form select,
+form textarea {
+    width: 100%;
+    max-width: 300px;
     padding: var(--space-1);
-    border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    font-size: 1rem;
 }
+
+/* ⭐ Global button style */
+form button {
+    width: 100%;
+    max-width: 300px;
+    padding: var(--space-1);
+    border-radius: var(--border-radius);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+form button:hover {
+    background: var(--secondary-color);
+}
+form label {
+    width: 100%;
+    max-width: 300px;
+    text-align: left;
+}
+
+.button-secondary {
+    width: 100%;
+    max-width: 300px;
+    padding: var(--space-1);
+    border-radius: var(--border-radius);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: var(--space-2);
+    text-align: center;
+}
+
+.button-secondary:hover {
+    background: var(--secondary-color);
+}
+
 
 /* Utilities */
 .center-page {

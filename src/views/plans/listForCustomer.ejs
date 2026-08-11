@@ -1,0 +1,16 @@
+<article class="standard plans-page">
+    <h2>Rengøringsplaner for kunde</h2>
+
+    <% if (plans.length === 0) { %>
+        <p>Ingen planer fundet.</p>
+    <% } else { %>
+        <ul>
+            <% plans.forEach(plan => { %>
+                <li>
+                    <strong><%= plan.planName %></strong>
+                    <button hx-get="/plans/<%= plan._id %>" hx-target="#content">Vis</button>
+                </li>
+            <% }) %>
+        </ul>
+    <% } %>
+</article>

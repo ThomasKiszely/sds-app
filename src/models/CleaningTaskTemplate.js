@@ -4,6 +4,7 @@ const { units } = require("../utils/unitEnum");
 
 const cleaningTaskTemplateSchema = new mongoose.Schema({
     name: { type: String, required: true },
+    description: { type: String, default: "" },
 
     category: {
         type: String,

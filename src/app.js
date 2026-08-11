@@ -7,6 +7,7 @@ const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
 const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
 const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
 const viewRouter = require('./routes/viewRoutes');
+const adminRouter = require('./routes/adminRoutes');
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
 const { mustChangePassword } = require('./middlewares/mustChangePassword');
@@ -61,20 +62,21 @@ app.use(session({
     }
 }));
 
-// adminRoutes
-app.use('/cleaningTaskTemplate', requireAdmin, cleaningTaskTemplateRouter);
-
-// loginRoutes
-app.use('/cleaningPlan', requireLogin, cleaningPlanRouter);
-app.use('/cleaningPlan', requireLogin, cleaningTaskRouter);
-app.use('/customer', requireLogin, customerRouter);
-
-//custom routes
-app.use('/user', userRouter);
-
 //view routes
 app.use(mustChangePassword);
 app.use('/', viewRouter);
+// adminRoutes
+app.use('/cleaningTaskTemplates', requireAdmin, cleaningTaskTemplateRouter);
+app.use('/admin', requireAdmin, adminRouter);
+
+// loginRoutes
+app.use('/cleaningPlans', requireLogin, cleaningPlanRouter);
+app.use('/cleaningTasks', requireLogin, cleaningTaskRouter);
+app.use('/customers', requireLogin, customerRouter);
+
+//custom routes
+app.use('/users', userRouter);
+
 
 app.use(notFound);
 app.use(errorHandler);

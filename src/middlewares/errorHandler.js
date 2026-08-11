@@ -3,30 +3,32 @@ const path = require("path");
 function errorHandler(error, req, res, next) {
     console.error(error);
 
+    // ⭐ Sørg for at error ALTID er et Error-objekt
+    if (!(error instanceof Error)) {
+        error = new Error(error?.message || String(error));
+    }
+
     const status = error.status || 500;
 
-    // Kun vis brugerfejl til brugeren
-    // bruges således: throw { isUserError: true, message: "Bruger findes allerede" };
     const safeMessage = error.isUserError
         ? error.message
         : "Noget gik galt – prøv igen";
 
-    // HTMX
+    // HTMX → ren tekst
     if (req.headers['hx-request']) {
-        return res.status(status).render('partials/error', {
-            message: safeMessage
-        });
+        return res.status(status).send(safeMessage);
     }
 
-    // API
+    // API → JSON
     if (req.originalUrl.startsWith("/api") || req.headers.accept?.includes("application/json")) {
         return res.status(status).json({ success: false, error: safeMessage });
     }
 
-    // HTML
+    // HTML fallback
     res.status(status).sendFile(
         path.join(__dirname, '..', '..', 'public', 'errors', '500.html')
     );
 }
+
 
 module.exports = { errorHandler };

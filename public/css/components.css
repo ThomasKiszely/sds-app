@@ -9,15 +9,15 @@
 }
 
 
-.login-page input, .me-page input {
-    width: 100%;
-    max-width: 300px;
-    border-radius: var(--border-radius);
-}
+/*.login-page input, .me-page input, .customer-create-page input {*/
+/*    width: 100%;*/
+/*    max-width: 300px;*/
+/*    border-radius: var(--border-radius);*/
+/*}*/
 
-.login-page form, .me-page form {
-    align-items: center;
-}
+/*.login-page form, .me-page form, .customer-create-page form {*/
+/*    align-items: center;*/
+/*}*/
 
 
 .login-page button {
@@ -134,5 +134,33 @@
 
 .nav-group-primary {
     margin-bottom: var(--space-3); /* ekstra afstand til første gruppe */
+}
+
+#toast-center {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    pointer-events: none; /* så den ikke blokerer klik */
+}
+
+.toast-center {
+    background: #d9534f;
+    color: white;
+    padding: 20px 28px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: scale(1);
+}
+
+.toast-center.hide {
+    opacity: 0;
+    transform: scale(0.9);
 }
 

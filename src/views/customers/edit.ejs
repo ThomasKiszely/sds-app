@@ -1,0 +1,47 @@
+<article class="standard customer-edit-page">
+    <h1>Rediger kunde</h1>
+
+    <form hx-patch="/customers/<%= customer._id %>" hx-target="#content">
+
+        <label for="customerNumber">Kundenummer (8 cifre)</label>
+        <input type="text"
+               id="customerNumber"
+               name="customerNumber"
+               pattern="\d{8}"
+               value="<%= customer.customerNumber %>"
+               required>
+
+        <label>Navn</label>
+        <input type="text" name="customerName" value="<%= customer.customerName %>" required>
+
+        <label>Telefon</label>
+        <input type="text" name="phoneNumber" value="<%= customer.phoneNumber %>" required>
+
+        <label>Email</label>
+        <input type="email" name="customerEmail" value="<%= customer.customerEmail %>" required>
+
+        <label>CVR</label>
+        <input type="number" name="cvr" value="<%= customer.cvr %>">
+
+        <h2>Kontaktperson</h2>
+        <label>Navn</label>
+        <input type="text" name="contactPerson.name" value="<%= customer.contactPerson.name %>" required>
+
+        <label>Telefon</label>
+        <input type="text" name="contactPerson.phone" value="<%= customer.contactPerson.phone %>" required>
+
+        <label>Email</label>
+        <input type="email" name="contactPerson.email" value="<%= customer.contactPerson.email %>" required>
+
+        <h2>Adresser</h2>
+        <label>Kundeadresse</label>
+        <input type="text" name="customerAddress" value="<%= customer.customerAddress %>" required>
+
+        <label>Faktureringsadresse</label>
+        <input type="text" name="billingAddress" value="<%= customer.billingAddress %>" required>
+
+        <button>Gem</button>
+    </form>
+
+    <button hx-get="/customers" hx-target="#content">Tilbage</button>
+</article>
