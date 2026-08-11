@@ -1,54 +1,52 @@
-.standard {
-    background: var(--card-bg);
-    padding: var(--space-3) var(--space-2);
-    width: 100%;            /* fuld bredde */
-    max-width: none;        /* fjern begrænsning */
-    text-align: center;
-    border-radius: var(--border-radius);
-    margin: 0;              /* ingen auto-centering */
+/* --------------------------------------------------
+   CARDS
+-------------------------------------------------- */
+.card {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-
-/*.login-page input, .me-page input, .customer-create-page input {*/
-/*    width: 100%;*/
-/*    max-width: 300px;*/
-/*    border-radius: var(--border-radius);*/
-/*}*/
-
-/*.login-page form, .me-page form, .customer-create-page form {*/
-/*    align-items: center;*/
-/*}*/
-
-
-.login-page button {
+/* --------------------------------------------------
+   INPUTS (search, filters, forms)
+-------------------------------------------------- */
+.search-box input,
+.filter-row select {
     width: 100%;
-    max-width: 300px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    transition: 0.2s;
 }
 
-.error {
-    background: #ffe5e5;
-    border: 1px solid #ff8a8a;
-    padding: var(--space-2);
-    border-radius: var(--border-radius);
-    margin: var(--space-2) 0;
-    color: #b30000;
+.search-box input:focus,
+.filter-row select:focus {
+    background: white;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(0,120,212,0.2);
 }
 
-
-.error-card img {
-    max-width: 200px;
-    margin-bottom: var(--space-2);
+/* --------------------------------------------------
+   CUSTOMER CONTROLS WRAPPER
+-------------------------------------------------- */
+.customer-controls-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
 }
 
-.error-card h1 {
-    font-size: 3rem;
-    color: var(--secondary-color);
+.customer-controls {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-.error-card p {
-    font-size: 1.2rem;
-}
-
+/* --------------------------------------------------
+   TABLES (generic customer table styling)
+-------------------------------------------------- */
 .customers-page table {
     width: 100%;
     border-collapse: collapse;
@@ -67,7 +65,66 @@
     font-weight: bold;
 }
 
+/* --------------------------------------------------
+   TOAST
+-------------------------------------------------- */
+#toast-center {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    pointer-events: none;
+}
 
+.toast-center {
+    background: #d9534f;
+    color: white;
+    padding: 20px 28px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: scale(1);
+}
+
+.toast-center.hide {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+/* --------------------------------------------------
+   ERROR COMPONENTS
+-------------------------------------------------- */
+.error {
+    background: #ffe5e5;
+    border: 1px solid #ff8a8a;
+    padding: var(--space-2);
+    border-radius: var(--border-radius);
+    margin: var(--space-2) 0;
+    color: #b30000;
+}
+
+.error-card img {
+    max-width: 200px;
+    margin-bottom: var(--space-2);
+}
+
+.error-card h1 {
+    font-size: 3rem;
+    color: var(--secondary-color);
+}
+
+.error-card p {
+    font-size: 1.2rem;
+}
+
+/* --------------------------------------------------
+   TOPBAR
+-------------------------------------------------- */
 .topbar {
     background: var(--primary-color);
     color: white;
@@ -120,47 +177,21 @@
     text-decoration: underline;
 }
 
+/* --------------------------------------------------
+   NAVIGATION BUTTON GROUPS
+-------------------------------------------------- */
 .index-nav {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3); /* afstand mellem grupper */
+    gap: var(--space-3);
 }
 
 .nav-group {
     display: flex;
     justify-content: center;
-    gap: var(--space-2); /* afstand mellem knapper */
+    gap: var(--space-2);
 }
 
 .nav-group-primary {
-    margin-bottom: var(--space-3); /* ekstra afstand til første gruppe */
+    margin-bottom: var(--space-3);
 }
-
-#toast-center {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 99999;
-    pointer-events: none; /* så den ikke blokerer klik */
-}
-
-.toast-center {
-    background: #d9534f;
-    color: white;
-    padding: 20px 28px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    opacity: 1;
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    transform: scale(1);
-}
-
-.toast-center.hide {
-    opacity: 0;
-    transform: scale(0.9);
-}
-

@@ -1,0 +1,52 @@
+/* Mobilvenlig tabel */
+.responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Standard desktop */
+.responsive-table th,
+.responsive-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+/* Mobil-stacked rows */
+@media (max-width: 700px) {
+
+    .responsive-table thead {
+        display: none; /* skjul header */
+    }
+
+    .responsive-table tr {
+        display: block;
+        margin-bottom: 15px;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .responsive-table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: none;
+    }
+
+    .responsive-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #555;
+    }
+
+    /* Knapper */
+    .responsive-table td button {
+        margin-top: 8px;
+        width: 100%;
+    }
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+}

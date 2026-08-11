@@ -8,46 +8,48 @@
     </nav>
 
     <!-- Søgning + Filtre + Sortering -->
-    <div class="customer-controls">
+    <div class="customer-controls-wrapper">
+    <div class="customer-controls card">
 
-        <!-- Søgning -->
-        <input type="text"
-               name="search"
-               placeholder="Søg efter navn, adresse, telefon, email..."
-               value="<%= search %>"
-               hx-get="/customers"
-               hx-target="#content"
-               hx-trigger="keyup changed delay:300ms"
-               hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
+        <div class="search-box">
+            <input type="text"
+                   name="search"
+                   placeholder="Søg kunder..."
+                   value="<%= search %>"
+                   hx-get="/customers"
+                   hx-target="#content"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
+        </div>
 
+        <div class="filter-row">
+            <select name="filter"
+                    hx-get="/customers"
+                    hx-target="#content"
+                    hx-trigger="change"
+                    hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
+                <option value="active" <%= filter === "active" ? "selected" : "" %>>Aktive</option>
+                <option value="inactive" <%= filter === "inactive" ? "selected" : "" %>>Inaktive</option>
+                <option value="all" <%= filter === "all" ? "selected" : "" %>>Alle</option>
+            </select>
 
-        <!-- Filter -->
-        <select name="filter"
-                hx-get="/customers"
-                hx-target="#content"
-                hx-trigger="change"
-                hx-include="[name='search'], [name='filter'], [name='sort']">
-            <option value="active" <%= filter === "active" ? "selected" : "" %>>Aktive</option>
-            <option value="inactive" <%= filter === "inactive" ? "selected" : "" %>>Inaktive</option>
-            <option value="all" <%= filter === "all" ? "selected" : "" %>>Alle</option>
-        </select>
+            <select name="sort"
+                    hx-get="/customers"
+                    hx-target="#content"
+                    hx-trigger="change"
+                    hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
+                <option value="name" <%= sort === "name" ? "selected" : "" %>>Navn</option>
+                <option value="number" <%= sort === "number" ? "selected" : "" %>>Kundenummer</option>
+                <option value="address" <%= sort === "address" ? "selected" : "" %>>Adresse</option>
+                <option value="phone" <%= sort === "phone" ? "selected" : "" %>>Telefon</option>
+            </select>
+        </div>
 
-        <!-- Sortering -->
-        <select name="sort"
-                hx-get="/customers"
-                hx-target="#content"
-                hx-trigger="change"
-                hx-include="[name='search'], [name='filter'], [name='sort']">
-            <option value="name" <%= sort === "name" ? "selected" : "" %>>Navn</option>
-            <option value="number" <%= sort === "number" ? "selected" : "" %>>Kundenummer</option>
-            <option value="address" <%= sort === "address" ? "selected" : "" %>>Adresse</option>
-            <option value="phone" <%= sort === "phone" ? "selected" : "" %>>Telefon</option>
-        </select>
-
+    </div>
     </div>
 
     <section>
-        <table class="customers-table">
+        <table class="customers-table responsive-table">
             <thead>
             <tr>
                 <th>Kundenr.</th>
@@ -62,12 +64,11 @@
             <tbody>
             <% customers.forEach(customer => { %>
                 <tr>
-                    <td><%= customer.customerNumber %></td>
-                    <td><%= customer.customerName %></td>
-                    <td><%= customer.phoneNumber %></td>
-                    <td><%= customer.customerEmail %></td>
-
-                    <td>
+                    <td data-label="Kundenr"><%= customer.customerNumber %></td>
+                    <td data-label="Navn"><%= customer.customerName %></td>
+                    <td data-label="Telefon"><%= customer.phoneNumber %></td>
+                    <td data-label="Email"><%= customer.customerEmail %></td>
+                    <td data-label="Status">
                         <% if (!customer.isDeleted) { %>
                             <span class="badge badge-active">Aktiv</span>
                         <% } else { %>
