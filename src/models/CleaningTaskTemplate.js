@@ -18,7 +18,7 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
     unit: {
         type: String,
         enum: Object.values(units),
-        default: "none"
+        default: units.ingen
     },
 
     isActive: { type: Boolean, default: true },

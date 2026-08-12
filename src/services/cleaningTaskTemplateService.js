@@ -1,8 +1,8 @@
-const repo = require('../data/cleaningTaskTemplateRepo');
+const cleaningTaskTemplateRepo = require('../data/cleaningTaskTemplateRepo');
 const { ensureTemplateExists } = require('../utils/templateValidationUtil');
 
 async function createTemplate(data) {
-    return repo.create({
+    return cleaningTaskTemplateRepo.create({
         name: data.name.trim(),
         category: data.category,
         defaultDuration: data.defaultDuration ?? 0,
@@ -13,20 +13,20 @@ async function createTemplate(data) {
 }
 
 async function listTemplates() {
-    return repo.findAllActive();
+    return cleaningTaskTemplateRepo.findAllActive();
 }
 
 async function findTemplateById(id) {
-    const template = await repo.findById(id);
+    const template = await cleaningTaskTemplateRepo.findById(id);
     ensureTemplateExists(template);
     return template;
 }
 
 async function updateTemplate(id, data) {
-    const template = await repo.findById(id);
+    const template = await cleaningTaskTemplateRepo.findById(id);
     ensureTemplateExists(template);
 
-    const updated = await repo.updateById(id, {
+    const updated = await cleaningTaskTemplateRepo.updateById(id, {
         name: data.name?.trim() ?? template.name,
         category: data.category ?? template.category,
         defaultDuration: data.defaultDuration ?? template.defaultDuration,
@@ -38,21 +38,21 @@ async function updateTemplate(id, data) {
 }
 
 async function deleteTemplate(id) {
-    const template = await repo.findById(id);
+    const template = await cleaningTaskTemplateRepo.findById(id);
     ensureTemplateExists(template);
 
-    return repo.updateById(id, { isActive: false });
+    return cleaningTaskTemplateRepo.updateById(id, { isActive: false });
 }
 
 async function reactivateTemplate(id) {
-    const template = await repo.findById(id);
+    const template = await cleaningTaskTemplateRepo.findById(id);
     ensureTemplateExists(template);
 
-    return repo.updateById(id, { isActive: true });
+    return cleaningTaskTemplateRepo.updateById(id, { isActive: true });
 }
 
 async function getDeletedTemplates() {
-    return repo.findAllDeleted();
+    return cleaningTaskTemplateRepo.findAllDeleted();
 }
 
 module.exports = {

@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { requireLogin } = require('../middlewares/requireLogin');
+const { requireAdmin } = require('../middlewares/requireAdmin');
+const { categoryTypes } = require('../utils/categoryEnum');
+const { units } = require('../utils/unitEnum');
+
 
 // LOGIN (public)
 router.get('/login', (req, res) => {
@@ -66,9 +70,31 @@ router.get('/plans', requireLogin, async (req, res) => {
 });
 
 // TASKS
-router.get('/tasks', requireLogin, async (req, res) => {
-    res.render('tasks', { user: req.session.user });
+router.get('/tasks', async (req, res) => {
+    res.render('tasks/list', { user: req.session.user });
 });
+
+
+router.get('/tasks/create', requireAdmin, (req, res) => {
+    res.render('tasks/create', {
+        categoryTypes,
+        units,
+    });
+});
+
+router.get('/tasks/:id/edit', requireAdmin, async (req, res, next) => {
+    try {
+        const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
+        res.render('tasks/edit', {
+            template,
+            categoryTypes,
+            units,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 //logout
 router.get('/logout', (req, res) => {

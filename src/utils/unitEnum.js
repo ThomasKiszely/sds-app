@@ -1,6 +1,6 @@
 module.exports.units = {
     m2: "m2",
-    pcs: "pcs",
+    stk: "stk",
     lbm: "lbm",
-    none: "none",
+    ingen: "ingen",
 }

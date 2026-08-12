@@ -65,11 +65,12 @@ app.use(session({
 //view routes
 app.use(mustChangePassword);
 app.use('/', viewRouter);
+
 // adminRoutes
-app.use('/cleaningTaskTemplates', requireAdmin, cleaningTaskTemplateRouter);
 app.use('/admin', requireAdmin, adminRouter);
 
 // loginRoutes
+app.use('/cleaningTaskTemplates', requireLogin, cleaningTaskTemplateRouter);
 app.use('/cleaningPlans', requireLogin, cleaningPlanRouter);
 app.use('/cleaningTasks', requireLogin, cleaningTaskRouter);
 app.use('/customers', requireLogin, customerRouter);

@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
-const { cleaningTypes } = require("../utils/cleaningTypeEnum");
 const { units } = require("../utils/unitEnum");
-const { days } = require("../utils/dayEnum");
 const { frequency } = require("../utils/frequencyEnum");
 
 
@@ -23,7 +21,7 @@ const cleaningTaskSchema = new mongoose.Schema({
     unit: {
         type: String,
         enum: Object.values(units),
-        default: "none"
+        default: units.ingen,
     },
     duration: { type: Number, default: 0 },
     price: { type: Number, default: 0 },

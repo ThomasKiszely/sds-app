@@ -9,7 +9,7 @@
 }
 
 /* --------------------------------------------------
-   INPUTS (search, filters, forms)
+   SEARCH + FILTER INPUTS
 -------------------------------------------------- */
 .search-box input,
 .filter-row select {
@@ -33,7 +33,7 @@
    CUSTOMER CONTROLS WRAPPER
 -------------------------------------------------- */
 .customer-controls-wrapper {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     text-align: left;
 }
@@ -42,27 +42,6 @@
     display: grid;
     gap: 1rem;
     margin-bottom: 1.5rem;
-}
-
-/* --------------------------------------------------
-   TABLES (generic customer table styling)
--------------------------------------------------- */
-.customers-page table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: var(--space-2);
-}
-
-.customers-page th,
-.customers-page td {
-    padding: var(--space-1);
-    border-bottom: 1px solid var(--border-color);
-    text-align: left;
-}
-
-.customers-page th {
-    background: #eee;
-    font-weight: bold;
 }
 
 /* --------------------------------------------------
@@ -133,6 +112,7 @@
     justify-content: space-between;
     align-items: center;
     position: relative;
+    margin-bottom: var(--space-3);
 }
 
 .hamburger {
@@ -149,6 +129,9 @@
     gap: 15px;
 }
 
+/* --------------------------------------------------
+   DROPDOWN
+-------------------------------------------------- */
 .dropdown {
     display: none;
     flex-direction: column;
@@ -178,8 +161,21 @@
 }
 
 /* --------------------------------------------------
-   NAVIGATION BUTTON GROUPS
+   INDEX PAGE NAVIGATION
 -------------------------------------------------- */
+.index-page-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+}
+
+.index-page-nav-logo {
+    max-width: 180px;
+    margin-bottom: var(--space-2);
+}
+
 .index-nav {
     display: flex;
     flex-direction: column;
@@ -193,5 +189,18 @@
 }
 
 .nav-group-primary {
+    margin-bottom: var(--space-3);
+}
+
+.nav-group button {
+    margin: 0 .25rem; /* lille luft mellem knapper */
+}
+
+
+/* --------------------------------------------------
+   PAGE-SPECIFIC SPACING
+-------------------------------------------------- */
+.tasks-page h1,
+.customers-page h1 {
     margin-bottom: var(--space-3);
 }

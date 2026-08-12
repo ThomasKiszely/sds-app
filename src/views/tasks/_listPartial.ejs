@@ -1,0 +1,35 @@
+<table class="responsive-table">
+    <thead>
+    <tr>
+        <th>Navn</th>
+        <th>Kategori</th>
+        <th>Varighed</th>
+        <th>Pris</th>
+        <th>Enhed</th>
+        <th>Handlinger</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% templates.forEach(t => { %>
+        <tr>
+            <td data-label="Navn"><%= t.name %></td>
+            <td data-label="Kategori"><%= t.category %></td>
+            <td data-label="Varighed"><%= t.defaultDuration %> min</td>
+            <td data-label="Pris"><%= t.defaultPrice %> kr</td>
+            <td data-label="Enhed"><%= t.unit %></td>
+
+            <td data-label="Handlinger">
+                <button hx-get="/tasks/<%= t._id %>/edit" hx-target="#content">Rediger</button>
+
+                <button
+                        hx-delete="/cleaningTaskTemplates/<%= t._id %>"
+                        hx-target="#template-list"
+                        hx-confirm="Vil du arkivere denne skabelon?">
+                    Arkivér
+                </button>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>

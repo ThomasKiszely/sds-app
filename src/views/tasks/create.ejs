@@ -1,0 +1,30 @@
+<article class="standard tasks-page">
+    <h1>Opret opgave-skabelon</h1>
+
+    <form hx-post="/cleaningTaskTemplates" hx-target="#content">
+        <label>Navn</label>
+        <input type="text" name="name" required>
+
+        <label>Kategori</label>
+        <select name="category">
+            <% Object.values(categoryTypes).forEach(c => { %>
+                <option value="<%= c %>"><%= c %></option>
+            <% }) %>
+        </select>
+
+        <label>Standard varighed (min)</label>
+        <input type="number" name="defaultDuration">
+
+        <label>Standard pris (kr)</label>
+        <input type="number" name="defaultPrice">
+
+        <label>Enhed</label>
+        <select name="unit">
+            <% Object.values(units).forEach(u => { %>
+                <option value="<%= u %>"><%= u %></option>
+            <% }) %>
+        </select>
+
+        <button type="submit">Gem</button>
+    </form>
+</article>

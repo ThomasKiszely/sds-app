@@ -1,0 +1,12 @@
+<article class="standard tasks-page">
+    <h1>Opgave-skabeloner</h1>
+
+    <nav>
+        <button hx-get="/tasks/create" hx-target="#content">Opret skabelon</button>
+        <button hx-get="/cleaningTaskTemplates/archived" hx-target="#content">Arkiverede</button>
+    </nav>
+
+    <section hx-get="/cleaningTaskTemplates" hx-trigger="load" hx-target="#template-list">
+        <div id="template-list">Indlæser...</div>
+    </section>
+</article>

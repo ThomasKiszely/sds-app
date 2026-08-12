@@ -1,51 +1,52 @@
-/* Reset */
+/* --------------------------------------------------
+   RESET
+-------------------------------------------------- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Tema: SDS rød/hvid/sort */
+/* --------------------------------------------------
+   THEME VARIABLES
+-------------------------------------------------- */
 :root {
-    --primary-color: #A02121;      /* rød baggrund */
-    --secondary-color: #d40000;    /* rød tekst */
-    --accent-color: #000000;       /* sort */
-    --background-color: #ffffff;   /* hvid */
-    --text-color: #000000;         /* sort tekst */
-    --card-bg: #f8f8f8;            /* lys grå/hvid */
+    --primary-color: #A02121;
+    --secondary-color: #d40000;
+    --accent-color: #000000;
+    --background-color: #ffffff;
+    --text-color: #000000;
+    --card-bg: #f8f8f8;
     --border-color: #e0e0e0;
     --border-radius: 6px;
 
-    /* spacing scale */
     --space-1: .5rem;
     --space-2: 1rem;
     --space-3: 2rem;
 }
 
-/* Basis styling */
+/* --------------------------------------------------
+   GLOBAL BASE STYLING
+-------------------------------------------------- */
 body {
     font-family: Arial, Helvetica, sans-serif;
     background-color: var(--primary-color);
     color: var(--text-color);
     line-height: 1.6;
-    padding: 0;
 }
 
-/* Overskrifter */
+/* --------------------------------------------------
+   HEADINGS
+-------------------------------------------------- */
 h1, h2, h3 {
     text-align: center;
     margin-bottom: var(--space-2);
     color: var(--secondary-color);
 }
 
-/* Lister */
-ul {
-}
-
-li {
-}
-
-/* Knapper */
+/* --------------------------------------------------
+   BUTTONS
+-------------------------------------------------- */
 button {
     background: var(--primary-color);
     color: white;
@@ -61,32 +62,35 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* Formularer */
-/* ⭐ Global form layout */
+/* --------------------------------------------------
+   FORMS
+-------------------------------------------------- */
 form {
     display: flex;
     flex-direction: column;
-    align-items: center; /* ← gør alle forms ens */
     gap: var(--space-2);
     width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
 }
 
-/* ⭐ Global input style */
 form input,
 form select,
 form textarea {
     width: 100%;
-    max-width: 300px;
     padding: var(--space-1);
     border-radius: var(--border-radius);
     border: 2px solid var(--border-color);
     font-size: 1rem;
 }
 
-/* ⭐ Global button style */
+form label {
+    text-align: left;
+    font-weight: bold;
+}
+
 form button {
     width: 100%;
-    max-width: 300px;
     padding: var(--space-1);
     border-radius: var(--border-radius);
     background: var(--primary-color);
@@ -96,18 +100,11 @@ form button {
     font-size: 1rem;
 }
 
-form button:hover {
-    background: var(--secondary-color);
-}
-form label {
-    width: 100%;
-    max-width: 300px;
-    text-align: left;
-}
-
+/* --------------------------------------------------
+   SECONDARY BUTTON
+-------------------------------------------------- */
 .button-secondary {
     width: 100%;
-    max-width: 300px;
     padding: var(--space-1);
     border-radius: var(--border-radius);
     background: var(--primary-color);
@@ -123,18 +120,61 @@ form label {
     background: var(--secondary-color);
 }
 
-
-/* Utilities */
-.center-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 0;
+/* --------------------------------------------------
+   PAGE CONTAINER (.standard)
+-------------------------------------------------- */
+.standard {
+    background: var(--card-bg);
+    padding: var(--space-3);
+    width: 100%;
+    margin: 0 auto;
+    border-radius: var(--border-radius);
 }
 
+/* --------------------------------------------------
+   GLOBAL TABLE STYLING
+-------------------------------------------------- */
+.standard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-2);
+}
 
-/* Breakpoints */
-@media (min-width: 768px) {
+.standard th,
+.standard td {
+    padding: var(--space-1);
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
 
+.standard th {
+    background: #eee;
+    font-weight: bold;
+}
+
+.standard button {
+    display: block;
+    margin: var(--space-1) auto; /* ← centrer + lidt luft */
+}
+
+/* LOGIN PAGE WRAPPER */
+.login-page {
+    max-width: 400px;
+    margin: 4rem auto;
+    background: var(--card-bg);
+    padding: var(--space-3);
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+
+.login-page img {
+    display: block;
+    margin: 0 auto var(--space-2);
+    max-width: 180px;
+}
+
+/* Center error message on login page */
+.login-page .error {
+    text-align: center;
+    margin-bottom: var(--space-2);
 }

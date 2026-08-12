@@ -20,14 +20,12 @@ async function listCleaningTaskTemplates(req, res, next) {
     try {
         const templates = await cleaningTaskTemplateService.listTemplates();
 
-        return res.status(200).json({
-            success: true,
-            templates
-        });
+        return res.render('tasks/_listPartial', { templates });
     } catch (error) {
         next(error);
     }
 }
+
 
 // Hent én template
 async function findCleaningTaskTemplateById(req, res, next) {
