@@ -6,7 +6,9 @@ async function createUser(req, res, next) {
 
         const result = await userService.createUser(userName, fullName, role);
 
-        return res.render('admin/userCreated', {
+        return res.status(201).json({
+            success: true,
+            message: "Bruger oprettet",
             tempPassword: result.tempPassword,
             user: result.user
         });
@@ -50,7 +52,10 @@ async function reactivateUser(req, res, next) {
 async function listUsers(req, res, next) {
     try {
         const users = await userService.getAllUsers();
-        return res.render('admin/users', { users });
+        return res.status(200).json({
+            success: true,
+            users
+        });
     } catch (error) {
         next(error);
     }
@@ -87,10 +92,12 @@ async function resetPassword(req, res, next) {
 
         const result = await userService.resetPassword(id);
 
-        return res.render('admin/resetPasswordResult', {
-            tempPassword: result.tempPassword
+        return res.status(200).json({
+            success: true,
+            message: "Kodeord nulstillet",
+            tempPassword: result.tempPassword,
+            user: result.user
         });
-
     } catch (error) {
         next(error);
     }

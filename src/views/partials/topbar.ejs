@@ -15,7 +15,7 @@
             <%= user.userName %>
         </span>
 
-        <button hx-post="/users/logout" hx-target="body">Log ud</button>
+        <button onclick="htmxBack()">Tilbage</button>
     </div>
 
     <nav class="dropdown">
@@ -45,5 +45,9 @@
                 Admin
             </button>
         <% } %>
+        <button hx-get="/logout" hx-target="#content"
+                onclick="document.querySelector('.dropdown').classList.remove('open')">
+            Log ud
+            </button>
     </nav>
 </header>

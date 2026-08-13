@@ -2,8 +2,10 @@
     <h1>Opgave-skabeloner</h1>
 
     <nav>
+        <div class="nav-group">
         <button hx-get="/tasks/create" hx-target="#content">Opret skabelon</button>
         <button hx-get="/cleaningTaskTemplates/archived" hx-target="#content">Arkiverede</button>
+        </div>
     </nav>
 
     <section hx-get="/cleaningTaskTemplates" hx-trigger="load" hx-target="#template-list">

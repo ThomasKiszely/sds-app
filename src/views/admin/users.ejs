@@ -1,0 +1,58 @@
+<article class="standard admin-users-page">
+    <h1>Brugere</h1>
+
+    <button hx-get="/admin/users/create" hx-target="#content">
+        Opret ny bruger
+    </button>
+
+    <table class="responsive-table">
+        <thead>
+        <tr>
+            <th>Brugernavn</th>
+            <th>Fulde navn</th>
+            <th>Rolle</th>
+            <th>Status</th>
+            <th>Handlinger</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% users.forEach(user => { %>
+            <tr>
+                <td><%= user.userName %></td>
+                <td><%= user.fullName %></td>
+                <td><%= user.role %></td>
+                <td>
+                    <% if (!user.isDeleted) { %>
+                        <span class="badge badge-active">Aktiv</span>
+                    <% } else { %>
+                        <span class="badge badge-inactive">Deaktiveret</span>
+                    <% } %>
+                </td>
+
+                <td>
+                    <button hx-patch="/users/<%= user._id %>/reset-password"
+                            hx-target="#content">
+                        Nulstil kodeord
+                    </button>
+
+                    <% if (!user.isDeleted) { %>
+                        <button hx-delete="/users/<%= user._id %>"
+                                hx-target="#content"
+                                hx-confirm="Deaktivér bruger?">
+                            Deaktivér
+                        </button>
+                    <% } else { %>
+                        <button hx-patch="/users/<%= user._id %>/reactivate"
+                                hx-target="#content">
+                            Aktivér
+                        </button>
+                    <% } %>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+    <button hx-get="/admin" hx-target="#content">Tilbage</button>
+</article>

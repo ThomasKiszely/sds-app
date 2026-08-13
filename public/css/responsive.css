@@ -16,7 +16,7 @@
 @media (max-width: 700px) {
 
     .responsive-table thead {
-        display: none; /* skjul header */
+        display: none;
     }
 
     .responsive-table tr {
@@ -41,12 +41,28 @@
         color: #555;
     }
 
-    /* Knapper */
+    /* Knapper — kun mobil */
     .responsive-table td button {
-        margin-top: 8px;
+        display: block;
         width: 100%;
+        margin-top: 8px;
     }
+
     .filter-row {
         grid-template-columns: 1fr;
+    }
+
+    /* Index mobil */
+    .index-page-nav {
+        padding: var(--space-2);
+    }
+
+    .nav-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .nav-group button {
+        width: 100%;
     }
 }

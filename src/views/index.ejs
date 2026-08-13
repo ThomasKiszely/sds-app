@@ -20,8 +20,12 @@
     <%- include('partials/indexContent', { user }) %>
 
     <% if (loadMe) { %>
+        <!-- Use a hidden HTMX-trigger element so the request is recorded in browser history (hx-push-url) -->
+        <button id="__loadMeBtn" style="display:none"
+                hx-get="/me" hx-target="#content" hx-swap="innerHTML"></button>
         <script>
-            htmx.ajax('GET', '/me', '#content');
+            // Trigger the hidden button so HTMX performs the request and pushes the URL to history
+            document.getElementById('__loadMeBtn').click();
         </script>
     <% } %>
 
@@ -52,6 +56,52 @@
         }, 3000);
     }
 </script>
+
+<script>
+    const contentEl = document.querySelector('#content');
+
+    let htmxHistory = [{
+        html: contentEl.innerHTML,
+        scroll: 0,
+        url: window.location.pathname
+    }];
+
+    document.body.addEventListener('htmx:afterSwap', (evt) => {
+        if (evt.detail.target.id !== "content") return;
+
+        const newEntry = {
+            html: evt.detail.target.innerHTML,
+            scroll: window.scrollY,
+            url: evt.detail.xhr.responseURL   // ⭐ Den rigtige URL
+        };
+
+        const last = htmxHistory[htmxHistory.length - 1];
+
+        // ⭐ Undgå duplikate sider
+        if (last && last.url === newEntry.url) return;
+
+        htmxHistory.push(newEntry);
+    });
+
+    function htmxBack() {
+        if (htmxHistory.length <= 1) return;
+
+        // Fjern nuværende
+        htmxHistory.pop();
+
+        // Kig på forrige uden at fjerne den
+        const prev = htmxHistory[htmxHistory.length - 1];
+
+        contentEl.innerHTML = prev.html;
+        window.scrollTo(0, prev.scroll);
+
+        htmx.process(contentEl);
+    }
+
+</script>
+
+
+
 
 
 

@@ -82,17 +82,12 @@ router.get('/tasks/create', requireAdmin, (req, res) => {
     });
 });
 
-router.get('/tasks/:id/edit', requireAdmin, async (req, res, next) => {
-    try {
-        const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
-        res.render('tasks/edit', {
-            template,
-            categoryTypes,
-            units,
-        });
-    } catch (err) {
-        next(err);
-    }
+router.get('/admin', requireAdmin, (req, res) => {
+    res.render('admin/index', { user: req.session.user });
+});
+
+router.get('/admin/users/create', requireAdmin, (req, res) => {
+    res.render('admin/createUser');
 });
 
 

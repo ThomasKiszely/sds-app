@@ -4,6 +4,7 @@ const { ensureTemplateExists } = require('../utils/templateValidationUtil');
 async function createTemplate(data) {
     return cleaningTaskTemplateRepo.create({
         name: data.name.trim(),
+        description: data.description.trim(),
         category: data.category,
         defaultDuration: data.defaultDuration ?? 0,
         defaultPrice: data.defaultPrice ?? 0,

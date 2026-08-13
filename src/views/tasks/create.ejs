@@ -1,9 +1,12 @@
 <article class="standard tasks-page">
     <h1>Opret opgave-skabelon</h1>
 
-    <form hx-post="/cleaningTaskTemplates" hx-target="#content">
+    <form hx-post="/cleaningTaskTemplates" hx-target="#content" hx-swap="innerHTML">
         <label>Navn</label>
         <input type="text" name="name" required>
+
+        <label>Beskrivelse</label>
+        <textarea name="description"></textarea>
 
         <label>Kategori</label>
         <select name="category">

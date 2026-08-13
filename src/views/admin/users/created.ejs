@@ -1,0 +1,8 @@
+<article class="standard admin-user-created-page">
+    <h1>Bruger oprettet</h1>
+
+    <p>Midlertidig adgangskode:</p>
+    <pre class="temp-password"><%= tempPassword %></pre>
+
+    <button hx-get="/admin/users" hx-target="#content">Tilbage til brugerliste</button>
+</article>

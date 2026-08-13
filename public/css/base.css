@@ -178,3 +178,9 @@ form button {
     text-align: center;
     margin-bottom: var(--space-2);
 }
+
+.me-page-text {
+    margin: 0 auto; /* centrerer containeren */
+    width: fit-content; /* containeren bliver kun så bred som teksten */
+    text-align: left;
+}

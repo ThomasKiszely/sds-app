@@ -3,6 +3,7 @@
     <tr>
         <th>Navn</th>
         <th>Kategori</th>
+        <th>Beskrivelse</th>
         <th>Varighed</th>
         <th>Pris</th>
         <th>Enhed</th>
@@ -15,12 +16,13 @@
         <tr>
             <td data-label="Navn"><%= t.name %></td>
             <td data-label="Kategori"><%= t.category %></td>
+            <td data-label="Beskrivelse"><%= t.description %></td>
             <td data-label="Varighed"><%= t.defaultDuration %> min</td>
             <td data-label="Pris"><%= t.defaultPrice %> kr</td>
             <td data-label="Enhed"><%= t.unit %></td>
 
-            <td data-label="Handlinger">
-                <button hx-get="/tasks/<%= t._id %>/edit" hx-target="#content">Rediger</button>
+            <td>
+                <button hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
 
                 <button
                         hx-delete="/cleaningTaskTemplates/<%= t._id %>"

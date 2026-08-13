@@ -6,6 +6,8 @@ const validateCleaningTaskTemplate = require('../middlewares/validateCleaningTas
 
 router.get('/archived', requireAdmin, cleaningTaskTemplateController.getDeletedCleaningTaskTemplates);
 router.patch('/:id/reactivate', requireAdmin, cleaningTaskTemplateController.reactivateCleaningTaskTemplate);
+router.get('/:id/edit', requireAdmin, cleaningTaskTemplateController.editCleaningTaskTemplate);
+
 
 router.post('/', validateCleaningTaskTemplate, cleaningTaskTemplateController.createCleaningTaskTemplate);
 router.get('/', cleaningTaskTemplateController.listCleaningTaskTemplates);

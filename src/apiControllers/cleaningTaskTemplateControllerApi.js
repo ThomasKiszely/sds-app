@@ -1,7 +1,4 @@
 const cleaningTaskTemplateService = require('../services/cleaningTaskTemplateService');
-const { categoryTypes } = require('../utils/categoryEnum');
-const { units } = require('../utils/unitEnum');
-
 
 // Opret template (master-opgave)
 async function createCleaningTaskTemplate(req, res, next) {
@@ -30,8 +27,13 @@ async function listCleaningTaskTemplates(req, res, next) {
 // Hent én template
 async function findCleaningTaskTemplateById(req, res, next) {
     try {
-        const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
-        return res.render('tasks/edit', { template });
+        const { id } = req.params;
+        const template = await cleaningTaskTemplateService.findTemplateById(id);
+
+        return res.status(200).json({
+            success: true,
+            template
+        });
     } catch (error) {
         next(error);
     }
@@ -43,27 +45,15 @@ async function updateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         const updated = await cleaningTaskTemplateService.updateTemplate(id, req.body);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/_listPartial', { templates });
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function editCleaningTaskTemplate(req, res, next) {
-    try {
-        const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
-
-        return res.render('tasks/edit', {
-            template,
-            categoryTypes,
-            units
+        return res.status(200).json({
+            success: true,
+            message: 'Opgave-skabelon opdateret',
+            updated
         });
     } catch (error) {
         next(error);
     }
 }
-
 
 // Soft delete
 async function deleteCleaningTaskTemplate(req, res, next) {
@@ -71,8 +61,10 @@ async function deleteCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.deleteTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/_listPartial', { templates });
+        return res.status(200).json({
+            success: true,
+            message: 'Opgave-skabelon deaktiveret'
+        });
     } catch (error) {
         next(error);
     }
@@ -84,8 +76,11 @@ async function reactivateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         const reactivated = await cleaningTaskTemplateService.reactivateTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/_listPartial', { templates });
+        return res.status(200).json({
+            success: true,
+            message: 'Opgave-skabelon genaktiveret',
+            reactivated
+        });
     } catch (error) {
         next(error);
     }
@@ -96,7 +91,10 @@ async function getDeletedCleaningTaskTemplates(req, res, next) {
     try {
         const deletedTemplates = await cleaningTaskTemplateService.getDeletedTemplates();
 
-        return res.render('tasks/_listPartialArchived', { templates: deletedTemplates });
+        return res.status(200).json({
+            success: true,
+            deletedTemplates
+        });
     } catch (error) {
         next(error);
     }
@@ -104,7 +102,6 @@ async function getDeletedCleaningTaskTemplates(req, res, next) {
 
 module.exports = {
     createCleaningTaskTemplate,
-    editCleaningTaskTemplate,
     listCleaningTaskTemplates,
     findCleaningTaskTemplateById,
     updateCleaningTaskTemplate,
