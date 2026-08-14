@@ -17,7 +17,7 @@ async function deactivateUser(id) {
     return User.findByIdAndUpdate(
         id,
         { active: false },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
@@ -25,7 +25,7 @@ async function reactivateUser(id) {
     return User.findByIdAndUpdate(
         id,
         { active: true },
-        { new: true, runValidators: true}
+        { returnDocument: 'after', runValidators: true}
     );
 }
 
@@ -37,7 +37,7 @@ async function updatePassword(id, hashedPassword, mustChange = false) {
     return User.findByIdAndUpdate(
         id,
         { password: hashedPassword, mustChangePassword: mustChange },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
@@ -45,7 +45,7 @@ async function updateUser(id, changes) {
     return User.findByIdAndUpdate(
         id,
         changes,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 

@@ -4,20 +4,16 @@ const cleaningTaskTemplateService = require('../services/cleaningTaskTemplateSer
 async function createCleaningTaskTemplate(req, res, next) {
     try {
         const template = await cleaningTaskTemplateService.createTemplate(req.body);
-
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/_listPartial', { templates });
+        return res.status(201).json({ success: true, template });
     } catch (error) {
         next(error);
     }
 }
 
-// List alle aktive templates
 async function listCleaningTaskTemplates(req, res, next) {
     try {
         const templates = await cleaningTaskTemplateService.listTemplates();
-
-        return res.render('tasks/_listPartial', { templates });
+        return res.status(200).json({ success: true, templates });
     } catch (error) {
         next(error);
     }

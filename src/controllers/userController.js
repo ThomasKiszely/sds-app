@@ -1,14 +1,17 @@
 const userService = require("../services/userService");
 
+// -----------------------------------------------------
+// Opret bruger (HTMX)
 async function createUser(req, res, next) {
     try {
         const { userName, fullName, role } = req.body;
 
         const result = await userService.createUser(userName, fullName, role);
 
-        return res.render('admin/userCreated', {
+        return res.render('admin/users/created', {
             tempPassword: result.tempPassword,
-            user: result.user
+            user: result.user,
+            sessionUserId: req.session.user.id
         });
 
     } catch (error) {
@@ -16,46 +19,90 @@ async function createUser(req, res, next) {
     }
 }
 
+// -----------------------------------------------------
+// Deaktivér bruger (HTMX)
 async function deactivateUser(req, res, next) {
     try {
         const { id } = req.params;
 
-        const deactivated = await userService.deactivateUser(id);
+        await userService.deactivateUser(id);
 
-        return res.status(200).json({
-            success: true,
-            message: "Bruger deaktiveret",
-            deactivated,
+        const users = await userService.getAllUsers();
+
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: "Bruger deaktiveret"
+        }));
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
         });
+
     } catch (error) {
-        next(error);
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: error.message
+        }));
+
+        const users = await userService.getAllUsers();
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
     }
 }
 
+// -----------------------------------------------------
+// Genaktivér bruger (HTMX)
 async function reactivateUser(req, res, next) {
     try {
         const { id } = req.params;
-        const user = await userService.reactivateUser(id);
 
-        return res.status(200).json({
-            success: true,
-            message: "Bruger genaktiveret",
-            user
+        await userService.reactivateUser(id);
+
+        const users = await userService.getAllUsers();
+
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: "Bruger genaktiveret"
+        }));
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
         });
+
     } catch (error) {
-        next(error);
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: error.message
+        }));
+
+        const users = await userService.getAllUsers();
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
     }
 }
 
+// -----------------------------------------------------
+// Liste brugere (HTMX)
 async function listUsers(req, res, next) {
     try {
         const users = await userService.getAllUsers();
-        return res.render('admin/users', { users });
+
+        return res.render('admin/users', {
+            users,
+            sessionUserId: req.session.user.id
+        });
+
     } catch (error) {
         next(error);
     }
 }
 
+// -----------------------------------------------------
+// Skift eget password (full page)
 async function changePassword(req, res, next) {
     try {
         const userId = req.session.user.id;
@@ -66,6 +113,7 @@ async function changePassword(req, res, next) {
         req.session.user.mustChangePassword = false;
 
         return res.redirect('/');
+
     } catch (error) {
         if (req.headers.referer.includes('/change-password')) {
             return res.status(400).render('changePassword', {
@@ -74,21 +122,23 @@ async function changePassword(req, res, next) {
             });
         }
 
-        // Ellers er det frivillig password-side (/me)
         req.session.formError = error.message;
-        req.session.loadMe = true;   // ← SIGER INDEX AT DEN SKAL LOADE /me
+        req.session.loadMe = true;
         return res.redirect('/');
     }
 }
 
+// -----------------------------------------------------
+// Nulstil password (HTMX)
 async function resetPassword(req, res, next) {
-    try{
+    try {
         const { id } = req.params;
 
         const result = await userService.resetPassword(id);
 
         return res.render('admin/resetPasswordResult', {
-            tempPassword: result.tempPassword
+            tempPassword: result.tempPassword,
+            sessionUserId: req.session.user.id
         });
 
     } catch (error) {
@@ -96,8 +146,10 @@ async function resetPassword(req, res, next) {
     }
 }
 
+// -----------------------------------------------------
+// Hent bruger (API)
 async function getUserById(req, res, next) {
-    try{
+    try {
         const { id } = req.params;
 
         const user = await userService.getUserById(id);
@@ -106,16 +158,19 @@ async function getUserById(req, res, next) {
             success: true,
             user
         });
+
     } catch (error) {
         next(error);
     }
 }
 
-async function updateUser(req, res, next){
-    try{
+// -----------------------------------------------------
+// Opdater bruger (API)
+async function updateUser(req, res, next) {
+    try {
         const { id } = req.params;
         const { fullName, role } = req.body;
-        const { adminId } = req.user.id;
+        const adminId = req.session.user.id;
 
         const updated = await userService.updateUser(id, { fullName, role }, adminId);
 
@@ -124,18 +179,20 @@ async function updateUser(req, res, next){
             message: "Bruger opdateret",
             user: updated
         });
+
     } catch (error) {
         next(error);
     }
 }
 
+// -----------------------------------------------------
+// Login (full page)
 async function login(req, res, next) {
     try {
         const { userName, password } = req.body;
 
         const result = await userService.login(userName, password);
 
-        // gem bruger i session
         req.session.user = result.user;
 
         if (result.user.mustChangePassword) {
@@ -151,21 +208,57 @@ async function login(req, res, next) {
     }
 }
 
-
+// -----------------------------------------------------
+// Logout (HTMX)
 async function logout(req, res, next) {
-    try{
+    try {
         req.session.destroy(err => {
             if (err) {
                 return next(new Error("Kunne ikke logge ud - prøv igen"));
             }
+
             res.clearCookie('connect.sid');
 
-            // HTMX redirect
             res.setHeader("HX-Redirect", "/login");
             return res.status(200).end();
         });
+
     } catch (error) {
         next(error);
+    }
+}
+
+// -----------------------------------------------------
+// Opdater rolle (HTMX)
+async function updateUserRole(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        await userService.updateUser(id, { role }, req.session.user.id);
+
+        const users = await userService.getAllUsers();
+
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: "Rolle opdateret"
+        }));
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: error.message
+        }));
+
+        const users = await userService.getAllUsers();
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
     }
 }
 
@@ -180,4 +273,5 @@ module.exports = {
     updateUser,
     login,
     logout,
+    updateUserRole
 };

@@ -2,9 +2,9 @@
     <h1>Min profil</h1>
 
     <div class="me-page-text">
-    <p><strong>Brugernavn:</strong> <%= user.userName %></p>
-    <p><strong>Fulde navn:</strong> <%= user.fullName %></p>
-    <p><strong>Rolle:</strong> <%= user.role %></p>
+        <p><strong>Brugernavn:</strong> <%= user.userName %></p>
+        <p><strong>Fulde navn:</strong> <%= user.fullName %></p>
+        <p><strong>Rolle:</strong> <%= user.role %></p>
     </div>
 
     <h2>Skift adgangskode</h2>
@@ -13,14 +13,25 @@
         <div class="error"><%= error %></div>
     <% } %>
 
-    <form action="/user/me/password" method="POST">
+    <form action="/users/me/password" method="POST">
         <label for="password">Nyt kodeord</label>
         <input type="password" id="password" name="password" required minlength="8">
 
         <label for="repeated">Gentag kodeord</label>
         <input type="password" id="repeated" name="repeated" required minlength="8">
 
+        <div class="password-rules">
+            <p><strong>Krav til adgangskode:</strong></p>
+            <ul>
+                <li>Mindst 8 tegn</li>
+                <li>Mindst ét stort bogstav (A‑Z)</li>
+                <li>Mindst ét lille bogstav (a‑z)</li>
+                <li>Mindst ét tal (0‑9)</li>
+                <li>Mindst ét specialtegn (!@#$%^&* osv.)</li>
+                <li>Må ikke indeholde brugernavnet</li>
+            </ul>
+        </div>
+
         <button type="submit">Gem nyt kodeord</button>
     </form>
-</article>
 </div>

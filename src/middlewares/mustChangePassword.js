@@ -6,8 +6,8 @@ function mustChangePassword(req, res, next) {
             return next();
         }
 
-        // Tillad POST til change-password handlingen
-        if (req.path === '/user/change-password') {
+        // Tillad POST til den rigtige password-rute
+        if (req.method === 'POST' && req.path === '/users/me/password') {
             return next();
         }
 
@@ -17,6 +17,7 @@ function mustChangePassword(req, res, next) {
 
     next();
 }
+
 
 module.exports = {
     mustChangePassword

@@ -1,7 +1,7 @@
 <article class="standard admin-users-page">
     <h1>Brugere</h1>
 
-    <button hx-get="/admin/users/create" hx-target="#content">
+    <button hx-get="/users/create" hx-target="#content">
         Opret ny bruger
     </button>
 
@@ -18,12 +18,23 @@
 
         <tbody>
         <% users.forEach(user => { %>
+
+            <% const isSelf = (sessionUserId && user._id.toString() === sessionUserId.toString()); %>
+
             <tr>
                 <td><%= user.userName %></td>
                 <td><%= user.fullName %></td>
-                <td><%= user.role %></td>
+
                 <td>
-                    <% if (!user.isDeleted) { %>
+                    <% if (user.role === "admin") { %>
+                        <span class="badge badge-admin">Admin</span>
+                    <% } else { %>
+                        <span class="badge badge-user">Bruger</span>
+                    <% } %>
+                </td>
+
+                <td>
+                    <% if (user.active) { %>
                         <span class="badge badge-active">Aktiv</span>
                     <% } else { %>
                         <span class="badge badge-inactive">Deaktiveret</span>
@@ -31,27 +42,64 @@
                 </td>
 
                 <td>
-                    <button hx-patch="/users/<%= user._id %>/reset-password"
-                            hx-target="#content">
-                        Nulstil kodeord
-                    </button>
 
-                    <% if (!user.isDeleted) { %>
-                        <button hx-delete="/users/<%= user._id %>"
-                                hx-target="#content"
-                                hx-confirm="Deaktivér bruger?">
-                            Deaktivér
+                    <!-- Nulstil kodeord — skjul for brugeren selv -->
+                    <% if (!isSelf) { %>
+                        <button hx-patch="/users/<%= user._id %>/reset-password"
+                                hx-target="#content">
+                            Nulstil kodeord
                         </button>
+                    <% } %>
+
+                    <!-- Deaktivér / Aktivér -->
+                    <% if (user.active) { %>
+
+                        <% if (!isSelf) { %>
+                            <button hx-delete="/users/<%= user._id %>"
+                                    hx-target="#content"
+                                    hx-confirm="Deaktivér bruger?">
+                                Deaktivér
+                            </button>
+                        <% } else { %>
+                            <span class="badge badge-warning"></span>
+                        <% } %>
+
                     <% } else { %>
                         <button hx-patch="/users/<%= user._id %>/reactivate"
                                 hx-target="#content">
                             Aktivér
                         </button>
                     <% } %>
+
+                    <!-- Rolleændring -->
+                    <% if (!isSelf) { %>
+
+                        <% if (user.role !== "admin") { %>
+                            <button hx-patch="/users/<%= user._id %>/role"
+                                    hx-target="#content"
+                                    hx-vals='{"role": "admin"}'>
+                                Gør til admin
+                            </button>
+                        <% } %>
+
+                        <% if (user.role !== "user") { %>
+                            <button hx-patch="/users/<%= user._id %>/role"
+                                    hx-target="#content"
+                                    hx-vals='{"role": "user"}'>
+                                Gør til bruger
+                            </button>
+                        <% } %>
+
+                    <% } else { %>
+                        <span class="badge badge-info"></span>
+                    <% } %>
+
                 </td>
             </tr>
+
         <% }) %>
         </tbody>
+
     </table>
 
     <button hx-get="/admin" hx-target="#content">Tilbage</button>

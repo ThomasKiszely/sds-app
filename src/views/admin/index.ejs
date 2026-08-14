@@ -3,13 +3,17 @@
 
     <section class="card">
         <h2>Brugere</h2>
-        <p>Opret, nulstil kodeord og administrer roller.</p>
+        <div class="me-page-text">
+            <p>Opret, nulstil kodeord og administrer roller.</p>
+        </div>
         <button hx-get="/users" hx-target="#content">Administrer brugere</button>
     </section>
 
     <section class="card">
         <h2>Systemindstillinger</h2>
-        <p>Inflation og globale parametre.</p>
+        <div class="me-page-text">
+            <p>Inflation og globale parametre.</p>
+        </div>
         <button hx-get="/admin/settings" hx-target="#content">Systemindstillinger</button>
     </section>
 </article>

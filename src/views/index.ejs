@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<!--    <meta name="description" content="Kort beskrivelse til søgemaskiner.">-->
     <meta name="author" content="Thomas BKJ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SDS prisberegner</title>
+
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/responsive.css">
+
     <script src="/js/htmx.min.js"></script>
 </head>
 
@@ -20,27 +21,19 @@
     <%- include('partials/indexContent', { user }) %>
 
     <% if (loadMe) { %>
-        <!-- Use a hidden HTMX-trigger element so the request is recorded in browser history (hx-push-url) -->
         <button id="__loadMeBtn" style="display:none"
                 hx-get="/me" hx-target="#content" hx-swap="innerHTML"></button>
         <script>
-            // Trigger the hidden button so HTMX performs the request and pushes the URL to history
             document.getElementById('__loadMeBtn').click();
         </script>
     <% } %>
-
-
 </main>
 
-<div id="toast-container"></div>
-
+<!-- Toast containers -->
 <div id="toast-center"></div>
 
+<!-- Toast logic -->
 <script>
-    document.body.addEventListener("htmx:responseError", (event) => {
-        showCenterToast(event.detail.xhr.responseText);
-    });
-
     function showCenterToast(message) {
         const container = document.getElementById("toast-center");
 
@@ -55,8 +48,47 @@
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
+
+    // HTMX success toast (HX-Trigger)
+    document.body.addEventListener("toast", (event) => {
+        let message = event.detail;
+
+        // Hvis HTMX pakker teksten ind i et objekt (f.eks. { value: "..." })
+        if (typeof message === "object" && message !== null) {
+            message = message.value || message.message || JSON.stringify(message);
+        }
+
+        showCenterToast(message);
+    });
+
+    // HTMX error toast
+    document.body.addEventListener("htmx:responseError", (event) => {
+        const xhr = event.detail.xhr;
+
+        // 1) Hvis serveren sendte en tekstbesked → vis den
+        if (xhr.responseText && typeof xhr.responseText === "string") {
+            const clean = xhr.responseText.replace(/<[^>]+>/g, "").trim();
+            if (clean.length > 0) {
+                showCenterToast(clean);
+                return;
+            }
+        }
+
+        // 2) Hvis serveren sendte JSON → vis message-feltet
+        try {
+            const json = JSON.parse(xhr.responseText);
+            if (json && json.message) {
+                showCenterToast(json.message);
+                return;
+            }
+        } catch (_) {}
+
+        // 3) Fallback
+        showCenterToast("Der opstod en fejl");
+    });
 </script>
 
+<!-- HTMX History -->
 <script>
     const contentEl = document.querySelector('#content');
 
@@ -72,12 +104,11 @@
         const newEntry = {
             html: evt.detail.target.innerHTML,
             scroll: window.scrollY,
-            url: evt.detail.xhr.responseURL   // ⭐ Den rigtige URL
+            url: evt.detail.xhr.responseURL
         };
 
         const last = htmxHistory[htmxHistory.length - 1];
 
-        // ⭐ Undgå duplikate sider
         if (last && last.url === newEntry.url) return;
 
         htmxHistory.push(newEntry);
@@ -86,10 +117,8 @@
     function htmxBack() {
         if (htmxHistory.length <= 1) return;
 
-        // Fjern nuværende
         htmxHistory.pop();
 
-        // Kig på forrige uden at fjerne den
         const prev = htmxHistory[htmxHistory.length - 1];
 
         contentEl.innerHTML = prev.html;
@@ -97,13 +126,7 @@
 
         htmx.process(contentEl);
     }
-
 </script>
-
-
-
-
-
 
 </body>
 </html>

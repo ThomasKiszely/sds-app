@@ -48,17 +48,6 @@ router.get('/indexContent', requireLogin, (req, res) => {
     res.render('partials/indexContent', { user: req.session.user });
 });
 
-
-// CUSTOMERS
-/*router.get('/customers', requireLogin, async (req, res) => {
-    const customers = await Customer.find({ isDeleted: false });
-    res.render('customers', {
-        customers,
-        user: req.session.user
-    });
-});*/
-
-
 router.get('/customers/create', requireLogin, (req, res) => {
     res.render('customers/create', { user: req.session.user });
 });
@@ -86,8 +75,8 @@ router.get('/admin', requireAdmin, (req, res) => {
     res.render('admin/index', { user: req.session.user });
 });
 
-router.get('/admin/users/create', requireAdmin, (req, res) => {
-    res.render('admin/createUser');
+router.get('/users/create', requireAdmin, (req, res) => {
+    res.render('admin/users/create');
 });
 
 

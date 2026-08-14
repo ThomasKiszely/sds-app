@@ -68,6 +68,10 @@ async function getAllUsers() {
 
 async function updatePassword(id, password, repeated) {
 
+    // Trim whitespace
+    password = (password || "").trim();
+    repeated = (repeated || "").trim();
+
     if (password !== repeated) {
         throw new Error("Kodeordene matcher ikke");
     }
@@ -78,6 +82,22 @@ async function updatePassword(id, password, repeated) {
 
     if (password.length < 8) {
         throw new Error("Kodeord skal være mindst 8 tegn");
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        throw new Error("Kodeord skal indeholde mindst ét stort bogstav");
+    }
+
+    if (!/[a-z]/.test(password)) {
+        throw new Error("Kodeord skal indeholde mindst ét lille bogstav");
+    }
+
+    if (!/[0-9]/.test(password)) {
+        throw new Error("Kodeord skal indeholde mindst ét tal");
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        throw new Error("Kodeord skal indeholde mindst ét specialtegn");
     }
 
     const user = await userRepo.findById(id);
@@ -101,6 +121,7 @@ async function updatePassword(id, password, repeated) {
         active: updated.active
     };
 }
+
 
 async function resetPassword(id){
     const user = await userRepo.findById(id);
