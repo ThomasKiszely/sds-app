@@ -8,6 +8,8 @@ const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
 const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const adminRouter = require('./routes/adminRoutes');
+const newPlanRouter = require('./routes/newPlanRoutes');
+const offerRouter = require('./routes/offerRoutes');
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
 const { mustChangePassword } = require('./middlewares/mustChangePassword');
@@ -65,10 +67,13 @@ app.use(session({
 //view routes
 app.use(mustChangePassword);
 app.use('/', viewRouter);
+app.use('/newPlan', newPlanRouter);
+
+app.use('/offers', offerRouter);
 
 // adminRoutes
-app.use('/admin', requireAdmin, adminRouter);
 
+app.use('/admin', requireAdmin, adminRouter);
 // loginRoutes
 app.use('/cleaningTaskTemplates', requireLogin, cleaningTaskTemplateRouter);
 app.use('/cleaningPlans', requireLogin, cleaningPlanRouter);
@@ -77,6 +82,7 @@ app.use('/customers', requireLogin, customerRouter);
 
 //custom routes
 app.use('/users', userRouter);
+
 
 
 app.use(notFound);

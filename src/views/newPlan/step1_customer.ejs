@@ -1,0 +1,24 @@
+<article class="standard wizard-step">
+    <h1>Ny prisberegning – vælg kunde</h1>
+
+    <section>
+        <button class="button"
+                hx-get="/newPlan/customerList"
+                hx-target="this"
+                hx-swap="outerHTML">
+            Indlæs kunder
+        </button>
+
+        <div id="customerList"></div>
+    </section>
+
+    <hr>
+
+    <section>
+        <button class="button secondary"
+                hx-get="/customers/create?flow=newPlan"
+                hx-target="#content">
+            Opret ny kunde
+        </button>
+    </section>
+</article>

@@ -154,8 +154,13 @@ async function customerPlans(req, res, next) {
 }
 async function createCustomerView(req, res, next) {
     try {
-        await customerService.createCustomer(req.body);
+        const customer = await customerService.createCustomer(req.body);
         const customers = await customerService.listCustomers();
+
+        if ( req.body.flow === "newPlan") {
+            return res.redirect(`/newPlan/plan?customerId=${customer._id}`)
+        }
+
         return res.render("customers/list", { customers, user: req.session.user });
     } catch (error) {
         return res.status(400).send(error.message);

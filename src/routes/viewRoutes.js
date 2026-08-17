@@ -49,7 +49,10 @@ router.get('/indexContent', requireLogin, (req, res) => {
 });
 
 router.get('/customers/create', requireLogin, (req, res) => {
-    res.render('customers/create', { user: req.session.user });
+    res.render('customers/create', {
+        user: req.session.user,
+        flow: req.query.flow || null
+    });
 });
 
 
@@ -57,6 +60,7 @@ router.get('/customers/create', requireLogin, (req, res) => {
 router.get('/plans', requireLogin, async (req, res) => {
     res.render('plans', { user: req.session.user });
 });
+
 
 // TASKS
 router.get('/tasks', async (req, res) => {

@@ -1,0 +1,20 @@
+<section class="standard">
+    <h3>Vælg kunde</h3>
+
+    <% if (customers.length === 0) { %>
+        <p>Der er ingen kunder endnu.</p>
+    <% } else { %>
+        <ul class="list">
+            <% customers.forEach(c => { %>
+                <li>
+                    <button class="button"
+                            hx-get="/newPlan/plan?customerId=<%= c._id %>"
+                            hx-target="#content">
+                        <strong><%= c.customerNumber %></strong><br>
+                        <small><%= c.customerName %></small>
+                    </button>
+                </li>
+            <% }) %>
+        </ul>
+    <% } %>
+</section>

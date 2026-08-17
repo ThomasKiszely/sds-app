@@ -1,0 +1,15 @@
+<article class="wizard-step">
+    <h2>Ny prisberegning – Lav tilbud</h2>
+
+    <form hx-post="/newPlan/offer" hx-target="#content">
+        <input type="hidden" name="planId" value="<%= planId %>">
+
+        <label>Rabat (%)</label>
+        <input type="number" name="discountPercent" value="0">
+
+        <label>Miljøafgift (%)</label>
+        <input type="number" name="environmentalFeePercent" value="1">
+
+        <button type="submit">Generér tilbud</button>
+    </form>
+</article>

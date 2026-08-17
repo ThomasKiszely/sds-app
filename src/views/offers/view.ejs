@@ -1,0 +1,14 @@
+<article class="wizard-step">
+    <h2>Tilbud</h2>
+
+    <p>Subtotal: <%= offer.subtotalBeforeDiscount %> kr</p>
+    <p>Rabat: <%= offer.discountAmount %> kr</p>
+    <p>Miljøafgift: <%= offer.environmentalFeeAmount %> kr</p>
+    <h3>Total: <%= offer.totalPrice %> kr</h3>
+
+    <hr>
+
+    <button hx-post="/offers/<%= offer._id %>/send" hx-target="#content">
+        Send til kunde
+    </button>
+</article>

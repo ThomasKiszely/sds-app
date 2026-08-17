@@ -1,4 +1,3 @@
-// services/customerService.js
 const customerRepo = require("../data/customerRepo");
 const planRepo = require("../data/cleaningPlanRepo");
 const { validateCVR } = require("../utils/validateCVR");

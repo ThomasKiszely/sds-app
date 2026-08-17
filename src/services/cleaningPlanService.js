@@ -82,6 +82,11 @@ async function reactivateCleaningPlan(planId) {
     return updated;
 }
 
+async function getPlansForCustomer(customerId) {
+    const cleaningPlans = await planRepo.findByCustomerId(customerId);
+    return cleaningPlans;
+}
+
 module.exports = {
     createCleaningPlan,
     listCleaningPlans,
@@ -91,4 +96,5 @@ module.exports = {
     deleteCleaningPlan,
     reactivateCleaningPlan,
     recalculatePlanTotal,
+    getPlansForCustomer,
 };

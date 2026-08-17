@@ -1,0 +1,47 @@
+<article class="standard wizard-step">
+    <h1>Ny prisberegning – Tilføj opgaver</h1>
+
+    <section class="task-nav">
+        <button class="button"
+                hx-get="/newPlan/tasks/daily?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Daglig
+        </button>
+
+        <button class="button"
+                hx-get="/newPlan/tasks/extra?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Ekstra
+        </button>
+
+        <button class="button"
+                hx-get="/newPlan/tasks/consumables?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Forbrugsvare
+        </button>
+
+        <button class="button"
+                hx-get="/newPlan/tasks/windows?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Vinduespudsning
+        </button>
+    </section>
+
+    <section id="taskArea" class="task-area"></section>
+
+    <hr>
+
+    <section class="form-actions">
+        <button class="button"
+                hx-get="/newPlan/offer?planId=<%= planId %>"
+                hx-target="#content">
+            Næste
+        </button>
+
+        <button class="button-secondary"
+                hx-get="/newPlan/plan?customerId=<%= customerId %>"
+                hx-target="#content">
+            Tilbage
+        </button>
+    </section>
+</article>

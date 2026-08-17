@@ -5,8 +5,10 @@
           hx-target="#content"
           hx-on:error="alert(event.detail.response)">
 
+        <input type="hidden" name="flow" value="<%= flow || '' %>">
+
         <h2>Grundoplysninger</h2>
-        
+
         <label for="customerNumber">Kundenummer (8 cifre)</label>
         <input type="text" id="customerNumber" name="customerNumber" pattern="\d{8}" required>
 

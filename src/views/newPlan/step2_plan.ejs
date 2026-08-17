@@ -1,0 +1,19 @@
+<article class="standard wizard-step">
+    <h1>Ny prisberegning</h1>
+
+    <form hx-post="/newPlan/plan" hx-target="#content" class="form-standard">
+        <input type="hidden" name="customerId" value="<%= customerId %>">
+
+        <p>Start opgavevalg.</p>
+
+        <section class="form-actions">
+            <button type="submit" class="button">Start</button>
+            <button type="button"
+                    class="button-secondary"
+                    hx-get="/newPlan"
+                    hx-target="#content">
+                Tilbage
+            </button>
+        </section>
+    </form>
+</article>
