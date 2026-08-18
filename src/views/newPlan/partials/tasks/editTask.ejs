@@ -1,0 +1,138 @@
+<article class="standard wizard-step">
+
+    <h1>Rediger opgave</h1>
+
+    <section>
+        <h2><%= task.name %></h2>
+        <p>Kategori: <strong><%= categoryLabels[task.category] %></strong></p>
+    </section>
+
+    <!-- Prisvisning -->
+    <section>
+        <h3>Pris</h3>
+        <p id="taskPrice"><%= task.totalPrice %> kr.</p>
+    </section>
+
+    <form
+            hx-patch="/newPlan/tasks/<%= task._id %>/update"
+            hx-target="#taskArea"
+            hx-swap="innerHTML"
+            class="edit-task-form"
+    >
+
+        <!-- Dage (skjules for forbrugsvare) -->
+        <% if (task.category !== categoryTypes.consumables) { %>
+            <section>
+                <h3>Dage</h3>
+
+                <% Object.keys(days).forEach(key => { %>
+                    <label>
+                        <input
+                                type="checkbox"
+                                name="days"
+                                value="<%= days[key] %>"
+                                <%= task.days.includes(days[key]) ? "checked" : "" %>
+
+                                hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                                hx-trigger="change"
+                                hx-target="#taskPrice"
+                                hx-swap="innerHTML"
+                        >
+                        <%= daysLabels[key] %>
+                    </label><br>
+                <% }) %>
+            </section>
+            <hr>
+        <% } %>
+
+        <!-- Dynamiske felter baseret på unit -->
+        <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
+
+            <section>
+                <h3><%= unitsLabels[task.unit] %></h3>
+                <input
+                        type="number"
+                        name="amount"
+                        value="<%= task.amount %>"
+                        min="0"
+
+                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                        hx-trigger="change"
+                        hx-target="#taskPrice"
+                        hx-swap="innerHTML"
+                >
+            </section>
+            <hr>
+
+        <% } else if (task.unit === units.stk) { %>
+
+            <section>
+                <h3><%= unitsLabels[task.unit] %></h3>
+                <input
+                        type="number"
+                        name="quantity"
+                        value="<%= task.quantity %>"
+                        min="1"
+
+                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                        hx-trigger="change"
+                        hx-target="#taskPrice"
+                        hx-swap="innerHTML"
+                >
+            </section>
+            <hr>
+
+        <% } %>
+
+        <!-- Frekvens (skjules for forbrugsvare) -->
+        <% if (task.category !== categoryTypes.consumables) { %>
+            <section>
+                <h3>Frekvens</h3>
+                <select
+                        name="frequency"
+
+                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                        hx-trigger="change"
+                        hx-target="#taskPrice"
+                        hx-swap="innerHTML"
+                >
+                    <% Object.keys(frequency).forEach(key => { %>
+                        <option
+                                value="<%= frequency[key] %>"
+                                <%= task.frequency === frequency[key] ? "selected" : "" %>
+                        >
+                            <%= frequencyLabels[key] %>
+                        </option>
+                    <% }) %>
+                </select>
+            </section>
+            <hr>
+        <% } %>
+
+        <!-- Actions -->
+        <section class="form-actions">
+
+            <button type="submit" class="button">Gem opgave</button>
+
+            <%
+            const categoryRoute = {
+                daily: "daily",
+                extra: "extra",
+                consumables: "consumables",
+                windows: "windows"
+            }[task.category];
+            %>
+
+            <button
+                    class="button-secondary"
+                    hx-get="/newPlan/tasks/<%= categoryRoute %>?planId=<%= task.planId %>"
+                    hx-target="#taskArea"
+            >
+                Tilbage
+            </button>
+
+        </section>
+
+    </form>
+
+</article>

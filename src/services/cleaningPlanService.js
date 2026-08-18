@@ -87,6 +87,34 @@ async function getPlansForCustomer(customerId) {
     return cleaningPlans;
 }
 
+async function getTasksForPlan(planId) {
+    const tasks = await taskRepo.findByPlanId(planId);
+    return tasks;
+}
+
+async function addTaskFromTemplate(planId, templateId) {
+    // 1. Hent template
+    const template = await cleaningTaskTemplateService.findTemplateById(templateId);
+
+    // 2. Opret task baseret på template
+    const task = await taskRepo.create({
+        planId,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        duration: template.defaultDuration,
+        unit: template.unit,
+        price: template.defaultPrice,
+        totalPrice: template.defaultPrice, // senere: duration * price hvis du vil
+        isActive: true
+    });
+
+    // 3. Opdater plan total
+    await recalculatePlanTotal(planId);
+
+    return task;
+}
+
 module.exports = {
     createCleaningPlan,
     listCleaningPlans,
@@ -97,4 +125,6 @@ module.exports = {
     reactivateCleaningPlan,
     recalculatePlanTotal,
     getPlansForCustomer,
+    getTasksForPlan,
+    addTaskFromTemplate
 };

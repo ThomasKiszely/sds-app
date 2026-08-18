@@ -16,10 +16,23 @@ router.post("/plan", requireLogin, newPlanController.savePlan);
 
 // Step 3: Tilføj opgaver
 router.get("/tasks", requireLogin, newPlanController.step3_tasks);
+router.get("/tasks/daily", requireLogin, newPlanController.tasks_daily);
+router.get("/tasks/extra", requireLogin, newPlanController.tasks_extra);
+router.get("/tasks/consumables", requireLogin, newPlanController.tasks_consumables);
+router.get("/tasks/windows", requireLogin, newPlanController.tasks_windows);
+
+router.post("/tasks/add", requireLogin, newPlanController.tasks_add);
+
+// EDIT TASK
+router.get("/tasks/:taskId/edit", requireLogin, newPlanController.tasks_edit);
+router.post("/tasks/:taskId/preview", requireLogin, newPlanController.tasks_preview);
+
+
+// UPDATE TASK
+router.patch("/tasks/:taskId/update", requireLogin, newPlanController.tasks_update);
 
 // Step 4: Lav tilbud
 router.get("/offer", requireLogin, newPlanController.step4_offer);
 router.post("/offer", requireLogin, newPlanController.saveOffer);
-
 
 module.exports = router;

@@ -1,4 +1,33 @@
 const cleaningTaskService = require('../services/cleaningTaskService');
+const { days, daysLabels } = require("../utils/dayEnum");
+const { frequency, frequencyLabels } = require("../utils/frequencyEnum");
+const { units, unitsLabels } = require("../utils/unitEnum");
+const { categoryLabels } = require("../utils/categoryEnum");
+
+async function editCleaningTask(req, res, next) {
+    try {
+        const { planId, taskId } = req.params;
+
+        const task = await cleaningTaskService.findCleaningTaskById(taskId);
+
+        return res.render("newPlan/partials/tasks/editTask", {
+            planId,
+            task,
+            days,
+            daysLabels,
+            frequency,
+            frequencyLabels,
+            units,
+            unitsLabels,
+            categoryLabels
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+
 
 async function createCleaningTask(req, res, next) {
     try {
@@ -114,6 +143,7 @@ module.exports = {
     findCleaningTaskById,
     updateCleaningTask,
     deleteCleaningTask,
+    editCleaningTask,
     reactivateCleaningTask,
     getDeletedCleaningTasks
 };

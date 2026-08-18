@@ -4,3 +4,10 @@ module.exports.units = {
     lbm: "lbm",
     ingen: "ingen",
 }
+
+module.exports.unitsLabels = {
+    m2: "m²",
+    stk: "stk.",
+    lbm: "lbm.",
+    ingen: "Ingen",
+}

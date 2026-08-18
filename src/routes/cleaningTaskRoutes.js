@@ -6,6 +6,8 @@ const validateCleaningTask = require('../middlewares/validateCleaningTask');
 router.get('/:planId/tasks/archived', cleaningTaskController.getDeletedCleaningTasks);
 router.patch('/:planId/tasks/:taskId/reactivate', cleaningTaskController.reactivateCleaningTask);
 
+router.get('/:planId/tasks/:taskId/edit', cleaningTaskController.editCleaningTask);
+
 router.post('/:planId/tasks', validateCleaningTask, cleaningTaskController.createCleaningTask);
 router.get('/:planId/tasks', cleaningTaskController.listCleaningTasks);
 router.get('/:planId/tasks/:taskId', cleaningTaskController.findCleaningTaskById);

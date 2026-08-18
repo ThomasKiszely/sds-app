@@ -20,10 +20,19 @@ async function updateById(id, data) {
     return CleaningTaskTemplate.findByIdAndUpdate(id, data, { new: true });
 }
 
+async function findByCategory(category) {
+    return CleaningTaskTemplate.find({
+        category,
+        isActive: true
+    });
+}
+
+
 module.exports = {
     create,
     findAllActive,
     findAllDeleted,
     findById,
-    updateById
+    updateById,
+    findByCategory
 };

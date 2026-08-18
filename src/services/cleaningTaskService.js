@@ -1,8 +1,17 @@
 const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
 const CleaningPlan = require('../models/CleaningPlan');
 const taskRepo = require('../data/cleaningTaskRepo');
+
 const { calculateTaskTotalPrice } = require('../utils/priceUtil');
 const { recalculatePlanTotal } = require('./cleaningPlanService');
+
+// Helper
+function normalizeDays(days) {
+    if (!days) return [];
+    if (Array.isArray(days)) return days;
+    return [days]; // hvis kun én dag
+}
+
 
 function ensureExists(entity, message) {
     if (!entity) {
@@ -12,7 +21,7 @@ function ensureExists(entity, message) {
     }
 }
 
-
+// Create a new cleaning task for a specific plan
 async function createCleaningTask(planId, data) {
     const plan = await CleaningPlan.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -20,13 +29,20 @@ async function createCleaningTask(planId, data) {
     const template = await CleaningTaskTemplate.findById(data.templateId);
     ensureExists(template, "Opgave-skabelon blev ikke fundet.");
 
+    // Default værdier ved oprettelse
+    const frequency = data.frequency ?? "weekly";
+    const amount = data.amount ?? 0;
+    const quantity = data.quantity ?? 1;
+    const days = normalizeDays(data.days);
+
     const totalPrice = calculateTaskTotalPrice({
         unit: template.unit,
         category: template.category,
         price: template.defaultPrice,
-        amount: data.amount,
-        quantity: data.quantity,
-        frequency: data.frequency
+        amount,
+        quantity,
+        frequency,
+        days
     });
 
     const task = await taskRepo.create({
@@ -37,9 +53,12 @@ async function createCleaningTask(planId, data) {
         category: template.category,
         price: template.defaultPrice,
         duration: template.defaultDuration,
-        frequency: data.frequency,
-        amount: data.amount,
-        quantity: data.quantity,
+
+        frequency,
+        amount,
+        quantity,
+        days,
+
         totalPrice,
         isActive: true
     });
@@ -48,18 +67,21 @@ async function createCleaningTask(planId, data) {
     return task;
 }
 
+// List all tasks for a specific plan
 async function listCleaningTasks(planId) {
     const plan = await CleaningPlan.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
     return taskRepo.findByPlanId(planId);
 }
 
+// Find task by ID
 async function findCleaningTaskById(taskId) {
     const task = await taskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
     return task;
 }
 
+// Update task
 async function updateCleaningTask(taskId, data) {
     const task = await taskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
@@ -67,6 +89,7 @@ async function updateCleaningTask(taskId, data) {
     const frequency = data.frequency ?? task.frequency;
     const amount = data.amount ?? task.amount;
     const quantity = data.quantity ?? task.quantity;
+    const days = normalizeDays(data.days ?? task.days);
 
     const totalPrice = calculateTaskTotalPrice({
         unit: task.unit,
@@ -74,13 +97,15 @@ async function updateCleaningTask(taskId, data) {
         price: task.price,
         amount,
         quantity,
-        frequency
+        frequency,
+        days
     });
 
     const updated = await taskRepo.updateById(taskId, {
         frequency,
         amount,
         quantity,
+        days,
         totalPrice
     });
 
@@ -88,6 +113,7 @@ async function updateCleaningTask(taskId, data) {
     return updated;
 }
 
+// Delete task (soft delete)
 async function deleteCleaningTask(taskId) {
     const task = await taskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
@@ -97,6 +123,7 @@ async function deleteCleaningTask(taskId) {
     return updated;
 }
 
+// Reactivate a deleted task
 async function reactivateCleaningTask(taskId) {
     const task = await taskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
@@ -106,6 +133,7 @@ async function reactivateCleaningTask(taskId) {
     return updated;
 }
 
+// Get all deleted tasks for a specific plan
 async function getDeletedCleaningTasks(planId) {
     const plan = await CleaningPlan.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");

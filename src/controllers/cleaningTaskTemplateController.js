@@ -1,6 +1,6 @@
 const cleaningTaskTemplateService = require('../services/cleaningTaskTemplateService');
-const { categoryTypes } = require('../utils/categoryEnum');
-const { units } = require('../utils/unitEnum');
+const { categoryTypes, categoryLabels } = require('../utils/categoryEnum');
+const { units, unitsLabels } = require('../utils/unitEnum');
 
 
 // Opret template (master-opgave)
@@ -57,7 +57,9 @@ async function editCleaningTaskTemplate(req, res, next) {
         return res.render('tasks/edit', {
             template,
             categoryTypes,
-            units
+            categoryLabels,
+            units,
+            unitsLabels
         });
     } catch (error) {
         next(error);

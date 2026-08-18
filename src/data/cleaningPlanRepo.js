@@ -21,7 +21,7 @@ async function findAllDeleted() {
 }
 
 async function updateById(id, data) {
-    return CleaningPlan.findByIdAndUpdate(id, data, { new: true });
+    return CleaningPlan.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 }
 
 module.exports = {

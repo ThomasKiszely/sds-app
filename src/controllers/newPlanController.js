@@ -1,100 +1,308 @@
 const cleaningPlanService = require("../services/cleaningPlanService");
 const customerService = require("../services/customerService");
 const offerService = require("../services/offerService");
+const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
+const cleaningTaskService = require("../services/cleaningTaskService");
 
-class NewPlanController {
-
-    // STEP 1: Vælg kunde
-    async step1_customer(req, res) {
-        res.render("newPlan/step1_customer", { user: req.session.user });
-    }
-
-    // Kundeliste (HTMX partial)
-    async customerList(req, res) {
-        const result = await customerService.listCustomers();
-
-        // result.customers er et array
-        res.render("newPlan/partials/customerList", { customers: result.customers });
-    }
-
-    // STEP 2: Opret plan
-    async step2_plan(req, res) {
-        const customerId = req.query.customerId;
-        res.render("newPlan/step2_plan", { customerId });
-    }
-
-    async savePlan(req, res) {
-        try {
-            const customerId = req.body.customerId;
-
-            const customer = await customerService.getCustomerById(customerId);
-            const existingPlans = await cleaningPlanService.getPlansForCustomer(customerId);
-            const count = existingPlans.length + 1;
-
-            const name = `Rengøringsplan – ${customer.customerName} – ${new Date().toLocaleDateString("da-DK")} – #${count}`;
-
-            const plan = await cleaningPlanService.createCleaningPlan({
-                customerId,
-                name,
-                description: ""
-            });
-
-            // ✅ Render partialet direkte til HTMX, som sætter det ind i #content
-            return res.render("newPlan/partials/tasks", {
-                planId: plan._id,
-                customerId: plan.customerId
-            });
-
-        } catch (error) {
-            // Håndter eventuel fejl med en toast
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-            return res.status(500).end();
-        }
-    }
+const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
+const { days, daysLabels } = require("../utils/dayEnum");
+const { frequency, frequencyLabels } = require("../utils/frequencyEnum");
+const { units, unitsLabels } = require("../utils/unitEnum");
+const { calculateTaskTotalPrice } = require("../utils/priceUtil");
 
 
+// ---------------------------------------------------------
+// STEP 1: Vælg kunde
+// ---------------------------------------------------------
+async function step1_customer(req, res) {
+    res.render("newPlan/step1_customer", { user: req.session.user });
+}
 
 
-    // STEP 3: Tilføj opgaver
-    // STEP 3: Tilføj opgaver
-    async step3_tasks(req, res) {
-        const planId = req.query.planId;
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+// Kundeliste (HTMX partial)
+async function customerList(req, res) {
+    const result = await customerService.listCustomers();
+    res.render("newPlan/partials/customerList", { customers: result.customers });
+}
 
-        // Hvis det tilgås direkte fra adresselinjen (eller ved hard refresh)
-        if (!req.headers['hx-request']) {
-            return res.render("index", { // eller din primære ramme-fil
-                user: req.session.user,
-                loadMe: false
-            });
-        }
 
-        // Hvis det er et HTMX kald
-        res.render("newPlan/partials/tasks", {
-            planId,
+// ---------------------------------------------------------
+// STEP 2: Opret plan
+// ---------------------------------------------------------
+async function step2_plan(req, res) {
+    const customerId = req.query.customerId;
+    res.render("newPlan/step2_plan", { customerId });
+}
+
+
+async function savePlan(req, res) {
+    try {
+        const customerId = req.body.customerId;
+
+        const customer = await customerService.getCustomerById(customerId);
+        const existingPlans = await cleaningPlanService.getPlansForCustomer(customerId);
+        const count = existingPlans.length + 1;
+
+        const name = `Rengøringsplan – ${customer.customerName} – ${new Date().toLocaleDateString("da-DK")} – #${count}`;
+
+        const plan = await cleaningPlanService.createCleaningPlan({
+            customerId,
+            name,
+            description: ""
+        });
+
+        return res.render("newPlan/partials/tasks", {
+            planId: plan._id,
             customerId: plan.customerId
         });
-    }
 
-
-
-    // STEP 4: Lav tilbud
-    async step4_offer(req, res) {
-        const planId = req.query.planId;
-        res.render("newPlan/step4_offer", { planId });
-    }
-
-    async saveOffer(req, res) {
-        const offer = await offerService.createOffer(
-            req.body.planId,
-            {
-                discountPercent: Number(req.body.discountPercent),
-                environmentalFeePercent: Number(req.body.environmentalFeePercent)
-            }
-        );
-
-        res.redirect(`/offers/${offer._id}/view`);
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
     }
 }
 
-module.exports = new NewPlanController();
+
+// ---------------------------------------------------------
+// STEP 3: Tilføj opgaver
+// ---------------------------------------------------------
+async function step3_tasks(req, res) {
+    const planId = req.query.planId;
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+    if (!req.headers['hx-request']) {
+        return res.render("index", {
+            user: req.session.user,
+            loadMe: false
+        });
+    }
+
+    res.render("newPlan/partials/tasks", {
+        planId,
+        customerId: plan.customerId
+    });
+}
+
+
+// Daglige opgaver
+async function tasks_daily(req, res) {
+    try {
+        const planId = req.query.planId;
+
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        return res.render("newPlan/partials/tasks/daily", {
+            plan,
+            templates,
+            tasks
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
+// ---------------------------------------------------------
+// TILFØJ OPERATION: Opret task → Redirect til editTask
+// ---------------------------------------------------------
+async function tasks_add(req, res) {
+    try {
+        const planId = req.body.planId;
+        const templateId = req.body.templateId;
+
+        const task = await cleaningTaskService.createCleaningTask(planId, {
+            templateId,
+            frequency: frequency.weekly,
+            amount: 0,
+            quantity: 1
+        });
+
+        // ✅ Render editTask-partial direkte til HTMX
+        return res.render("newPlan/partials/tasks/editTask", {
+            task,
+            days,
+            daysLabels,
+            frequency,
+            frequencyLabels,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
+
+// ---------------------------------------------------------
+// EDIT TASK VIEW
+// ---------------------------------------------------------
+async function tasks_edit(req, res) {
+    try {
+        const { taskId } = req.params;
+
+        const task = await cleaningTaskService.findCleaningTaskById(taskId);
+
+        return res.render("newPlan/partials/tasks/editTask", {
+            task,
+            days,
+            daysLabels,
+            frequency,
+            frequencyLabels,
+            units,
+            unitsLabels,
+            categoryLabels
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
+// ---------------------------------------------------------
+// UPDATE TASK (PATCH)
+// ---------------------------------------------------------
+async function tasks_update(req, res) {
+    try {
+        const { taskId } = req.params;
+
+        const updatedTask = await cleaningTaskService.updateCleaningTask(taskId, req.body);
+
+        // Efter opdatering → hent task-listen igen
+        const tasks = await cleaningPlanService.getTasksForPlan(updatedTask.planId);
+
+        return res.render("newPlan/partials/tasks/taskList", { tasks });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
+// ---------------------------------------------------------
+// STEP 4: Tilbud
+// ---------------------------------------------------------
+async function step4_offer(req, res) {
+    const planId = req.query.planId;
+    res.render("newPlan/step4_offer", { planId });
+}
+
+async function saveOffer(req, res) {
+    const offer = await offerService.createOffer(
+        req.body.planId,
+        {
+            discountPercent: Number(req.body.discountPercent),
+            environmentalFeePercent: Number(req.body.environmentalFeePercent)
+        }
+    );
+
+    res.redirect(`/offers/${offer._id}/view`);
+}
+
+//Preview
+async function tasks_preview(req, res) {
+    try {
+        const { taskId } = req.params;
+
+        const task = await cleaningTaskService.findCleaningTaskById(taskId);
+
+        const frequency = req.body.frequency ?? task.frequency;
+        const amount = req.body.amount ?? task.amount;
+        const quantity = req.body.quantity ?? task.quantity;
+
+        // Normaliser days (vigtigt!)
+        const days = (() => {
+            if (!req.body.days) return task.days;        // ingen ændring
+            if (Array.isArray(req.body.days)) return req.body.days;
+            return [req.body.days];                      // én dag valgt
+        })();
+
+        const totalPrice = calculateTaskTotalPrice({
+            unit: task.unit,
+            category: task.category,
+            price: task.price,
+            amount,
+            quantity,
+            frequency,
+            days
+        });
+
+        return res.send(`${totalPrice} kr.`);
+
+    } catch (error) {
+        console.log("Preview error:", error);
+        return res.send("Fejl");
+    }
+}
+
+async function tasks_extra(req, res) {
+    const planId = req.query.planId;
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.extra);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/extra", {
+        plan,
+        templates,
+        tasks
+    });
+}
+
+async function tasks_consumables(req, res) {
+    const planId = req.query.planId;
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.consumables);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/consumables", {
+        plan,
+        templates,
+        tasks
+    });
+}
+
+async function tasks_windows(req, res) {
+    const planId = req.query.planId;
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.windows);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/windows", {
+        plan,
+        templates,
+        tasks
+    });
+}
+
+
+// ---------------------------------------------------------
+// EXPORT
+// ---------------------------------------------------------
+module.exports = {
+    step1_customer,
+    customerList,
+    step2_plan,
+    savePlan,
+    step3_tasks,
+    tasks_daily,
+    tasks_add,
+    tasks_edit,
+    tasks_update,
+    step4_offer,
+    saveOffer,
+    tasks_preview,
+    tasks_extra,
+    tasks_consumables,
+    tasks_windows
+};

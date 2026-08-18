@@ -1,0 +1,34 @@
+<article class="task-category">
+    <h2>Forbrugsvare</h2>
+
+    <ul class="template-list">
+        <% templates.forEach(t => { %>
+            <li>
+                <strong><%= t.name %></strong>
+                <span><%= t.description %></span>
+
+                <button class="button small"
+                        hx-post="/newPlan/tasks/add"
+                        hx-target="#taskArea"
+                        hx-include="[name=planId]"
+                        hx-vals='{"templateId": "<%= t._id %>"}'>
+                    Tilføj
+                </button>
+            </li>
+        <% }) %>
+    </ul>
+
+    <hr>
+
+    <h3>Valgte opgaver</h3>
+
+    <ul class="task-list">
+        <% tasks.forEach(task => { %>
+            <li>
+                <%= task.name %> – <%= task.totalPrice %> kr.
+            </li>
+        <% }) %>
+    </ul>
+
+    <input type="hidden" name="planId" value="<%= plan._id %>">
+</article>

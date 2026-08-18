@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { requireLogin } = require('../middlewares/requireLogin');
 const { requireAdmin } = require('../middlewares/requireAdmin');
-const { categoryTypes } = require('../utils/categoryEnum');
-const { units } = require('../utils/unitEnum');
+const { categoryTypes, categoryLabels } = require('../utils/categoryEnum');
+const { units, unitsLabels } = require('../utils/unitEnum');
 
 
 // LOGIN (public)
@@ -71,7 +71,9 @@ router.get('/tasks', async (req, res) => {
 router.get('/tasks/create', requireAdmin, (req, res) => {
     res.render('tasks/create', {
         categoryTypes,
+        categoryLabels,
         units,
+        unitsLabels
     });
 });
 

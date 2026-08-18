@@ -7,12 +7,14 @@
 
         <label>Kategori</label>
         <select name="category">
-            <% Object.values(categoryTypes).forEach(c => { %>
-                <option value="<%= c %>" <%= template.category === c ? "selected" : "" %>>
-                    <%= c %>
+            <% Object.keys(categoryTypes).forEach(key => { %>
+                <option value="<%= categoryTypes[key] %>"
+                        <%= template.category === categoryTypes[key] ? "selected" : "" %>>
+                    <%= categoryLabels[key] %>
                 </option>
             <% }) %>
         </select>
+
 
         <label>Standard varighed (min)</label>
         <input type="number" name="defaultDuration" value="<%= template.defaultDuration %>">

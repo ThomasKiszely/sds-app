@@ -10,8 +10,10 @@
 
         <label>Kategori</label>
         <select name="category">
-            <% Object.values(categoryTypes).forEach(c => { %>
-                <option value="<%= c %>"><%= c %></option>
+            <% Object.keys(categoryTypes).forEach(key => { %>
+                <option value="<%= categoryTypes[key] %>">
+                    <%= categoryLabels[key] %>
+                </option>
             <% }) %>
         </select>
 

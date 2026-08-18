@@ -56,6 +56,13 @@ async function getDeletedTemplates() {
     return cleaningTaskTemplateRepo.findAllDeleted();
 }
 
+async function getTemplatesByCategory(category) {
+    const templates = await cleaningTaskTemplateRepo.findByCategory(category);
+    console.log("TEMPLATES: ", templates);
+    return cleaningTaskTemplateRepo.findByCategory(category);
+}
+
+
 module.exports = {
     createTemplate,
     listTemplates,
@@ -63,5 +70,6 @@ module.exports = {
     updateTemplate,
     deleteTemplate,
     reactivateTemplate,
-    getDeletedTemplates
+    getDeletedTemplates,
+    getTemplatesByCategory
 };
