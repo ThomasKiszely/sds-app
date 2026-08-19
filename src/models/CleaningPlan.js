@@ -25,6 +25,27 @@ const cleaningPlanSchema = new mongoose.Schema({
         default: 0
     },
 
+    acceptedOfferId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Offer",
+        default: null
+    },
+
+    acceptedAt: {
+        type: Date,
+        default: null
+    },
+
+    acceptedByName: {
+        type: String,
+        default: null
+    },
+
+    acceptedByEmail: {
+        type: String,
+        default: null
+    },
+
     // Metadata
     isActive: {
         type: Boolean,

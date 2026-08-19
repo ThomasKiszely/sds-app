@@ -25,9 +25,21 @@
                 hx-target="#taskArea">
             Vinduespudsning
         </button>
+
+        <button class="button"
+                hx-get="/newPlan/tasks/list?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Oversigt
+        </button>
     </section>
 
-    <section id="taskArea" class="task-area"></section>
+    <section id="taskArea"
+             hx-get="/newPlan/tasks/list?planId=<%= planId %>"
+             hx-trigger="load"
+             hx-target="#taskArea">
+    </section>
+
+
 
     <hr>
 
@@ -39,9 +51,17 @@
         </button>
 
         <button class="button-secondary"
-                hx-get="/newPlan/plan?customerId=<%= customerId %>"
-                hx-target="#content">
-            Tilbage
+                hx-get="/newPlan/tasks/list?planId=<%= planId %>"
+                hx-target="#taskArea">
+            Tilbage til oversigt
         </button>
+
     </section>
 </article>
+
+
+<script>
+    window.currentPlanId = "<%= planId %>";
+</script>
+
+

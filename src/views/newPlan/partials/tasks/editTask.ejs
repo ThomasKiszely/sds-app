@@ -109,6 +109,21 @@
             <hr>
         <% } %>
 
+        <!-- Beskrivelse -->
+        <section>
+            <h3>Beskrivelse</h3>
+            <textarea
+                    name="description"
+                    rows="3"
+                    hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                    hx-trigger="change"
+                    hx-target="#taskPrice"
+                    hx-swap="innerHTML"
+            ><%= task.description %></textarea>
+        </section>
+
+        <hr>
+
         <!-- Actions -->
         <section class="form-actions">
 

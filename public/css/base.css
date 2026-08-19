@@ -184,3 +184,7 @@ form button {
     width: fit-content; /* containeren bliver kun så bred som teksten */
     text-align: left;
 }
+
+.hidden {
+    display: none;
+}

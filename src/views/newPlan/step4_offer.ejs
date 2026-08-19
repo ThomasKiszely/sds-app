@@ -1,15 +1,83 @@
-<article class="wizard-step">
+<article class="standard wizard-step">
     <h2>Ny prisberegning – Lav tilbud</h2>
 
-    <form hx-post="/newPlan/offer" hx-target="#content">
+    <section class="offer-summary">
+
+        <h3>Opgaver</h3>
+
+        <% const groups = { daily: [], extra: [], consumables: [], windows: [] }; %>
+        <% tasks.forEach(t => groups[t.category].push(t)); %>
+
+        <% if (groups.daily.length) { %>
+            <h4>Daglig</h4>
+            <ul>
+                <% groups.daily.forEach(t => { %>
+                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <% if (groups.extra.length) { %>
+            <h4>Ekstra</h4>
+            <ul>
+                <% groups.extra.forEach(t => { %>
+                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <% if (groups.consumables.length) { %>
+            <h4>Forbrugsvare</h4>
+            <ul>
+                <% groups.consumables.forEach(t => { %>
+                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <% if (groups.windows.length) { %>
+            <h4>Vinduespudsning</h4>
+            <ul>
+                <% groups.windows.forEach(t => { %>
+                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+    </section>
+
+    <hr>
+
+    <!-- Hele formularen -->
+    <form hx-post="/newPlan/offer" hx-target="#content" style="margin-top: 1rem;">
+
         <input type="hidden" name="planId" value="<%= planId %>">
 
-        <label>Rabat (%)</label>
-        <input type="number" name="discountPercent" value="0">
+        <!-- Avanceret knap -->
+        <button class="button"
+                type="button"
+                onclick="document.getElementById('advanced').classList.toggle('hidden')">
+            Avanceret
+        </button>
 
-        <label>Miljøafgift (%)</label>
-        <input type="number" name="environmentalFeePercent" value="1">
+        <!-- Avanceret sektion (nu inde i formen!) -->
+        <div id="advanced" class="hidden" style="margin-top: 1rem;">
+            <label>Rabat (%)</label>
+            <input type="number" name="discountPercent" value="<%= discountPercent || 0 %>">
 
-        <button type="submit">Generér tilbud</button>
+            <label>Miljøafgift (%)</label>
+            <input type="number" name="environmentalFeePercent" value="<%= environmentalFeePercent || 0 %>">
+        </div>
+
+        <button type="submit" class="button" style="margin-top: 1rem;">
+            Generér tilbud
+        </button>
+
     </form>
 </article>
+
+<style>
+    .hidden {
+        display: none;
+    }
+</style>

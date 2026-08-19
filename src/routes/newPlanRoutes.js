@@ -26,6 +26,8 @@ router.post("/tasks/add", requireLogin, newPlanController.tasks_add);
 // EDIT TASK
 router.get("/tasks/:taskId/edit", requireLogin, newPlanController.tasks_edit);
 router.post("/tasks/:taskId/preview", requireLogin, newPlanController.tasks_preview);
+router.delete("/tasks/:taskId/delete", requireLogin, newPlanController.tasks_delete);
+router.get("/tasks/list", requireLogin, newPlanController.tasks_list);
 
 
 // UPDATE TASK

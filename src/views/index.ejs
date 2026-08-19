@@ -88,45 +88,52 @@
     });
 </script>
 
-<!-- HTMX History -->
+<!-- History back button logic -->
 <script>
-    const contentEl = document.querySelector('#content');
-
     let htmxHistory = [{
-        html: contentEl.innerHTML,
-        scroll: 0,
-        url: window.location.pathname
+        targetId: "content",
+        html: document.querySelector('#content').innerHTML,
+        scroll: 0
     }];
 
     document.body.addEventListener('htmx:afterSwap', (evt) => {
-        if (evt.detail.target.id !== "content") return;
+        const target = evt.detail.target;
 
-        const newEntry = {
-            html: evt.detail.target.innerHTML,
-            scroll: window.scrollY,
-            url: evt.detail.xhr.responseURL
+        // Gem KUN content og taskArea
+        if (target.id !== "content" && target.id !== "taskArea") {
+            return;
+        }
+
+        const entry = {
+            targetId: target.id,
+            html: target.innerHTML,
+            scroll: window.scrollY
         };
 
-        const last = htmxHistory[htmxHistory.length - 1];
-
-        if (last && last.url === newEntry.url) return;
-
-        htmxHistory.push(newEntry);
+        htmxHistory.push(entry);
     });
 
     function htmxBack() {
-        if (htmxHistory.length <= 1) return;
+        if (htmxHistory.length <= 1) {
+            return; // ingen steder at gå tilbage til
+        }
 
+        // Fjern nuværende view
         htmxHistory.pop();
 
-        const prev = htmxHistory[htmxHistory.length - 1];
+        // Gå til forrige view
+        const last = htmxHistory[htmxHistory.length - 1];
+        const target = document.getElementById(last.targetId);
 
-        contentEl.innerHTML = prev.html;
-        window.scrollTo(0, prev.scroll);
+        if (!target) return;
 
-        htmx.process(contentEl);
+        target.innerHTML = last.html;
+        window.scrollTo(0, last.scroll);
+
+        htmx.process(target);
     }
 </script>
+
 
 </body>
 </html>

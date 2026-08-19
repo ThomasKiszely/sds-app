@@ -1,4 +1,5 @@
 const customerService = require("../services/customerService");
+const cleaningPlanService = require("../services/cleaningPlanService");
 
 // -----------------------------
 // API ENDPOINTS (JSON)
@@ -146,12 +147,21 @@ async function editCustomerForm(req, res, next) {
 
 async function customerPlans(req, res, next) {
     try {
-        const plans = await customerService.getPlansForCustomer(req.params.id);
-        return res.render("plans/listForCustomer", { plans });
-    } catch (error) {
-        next(error);
+        const customerId = req.params.id;
+
+        const plans = await cleaningPlanService.getPlansForCustomer(customerId);
+
+        return res.render("customers/plans", {
+            customerId,
+            plans,
+            user: req.session.user
+        });
+
+    } catch (err) {
+        next(err);
     }
 }
+
 async function createCustomerView(req, res, next) {
     try {
         const customer = await customerService.createCustomer(req.body);

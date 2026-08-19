@@ -17,13 +17,24 @@ async function findDeletedByPlanId(planId) {
 }
 
 async function updateById(id, data) {
-    return CleaningTask.findByIdAndUpdate(id, data, { new: true });
+    return CleaningTask.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 }
+
+async function deleteById(id) {
+    return CleaningTask.deleteOne({ _id: id });
+}
+
+async function findTasksByIds(ids) {
+    return CleaningTask.find({ _id: { $in: ids } });
+}
+
 
 module.exports = {
     create,
     findById,
     findByPlanId,
     findDeletedByPlanId,
-    updateById
+    updateById,
+    deleteById,
+    findTasksByIds
 };

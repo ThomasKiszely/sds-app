@@ -21,6 +21,8 @@ const cleaningTaskSchema = new mongoose.Schema({
 
     // kopieret fra template
     name: { type: String, required: true },
+    description: { type: String, default: "" },
+
     category: {
         type: String,
         enum: Object.values(categoryTypes),

@@ -1,0 +1,121 @@
+<article class="standard wizard-step">
+
+    <h2>Rengøringsplan</h2>
+
+    <section class="plan-info">
+        <h3><%= plan.name %></h3>
+
+        <% if (plan.description) { %>
+            <p><%= plan.description %></p>
+        <% } %>
+
+        <p><strong>Total pris:</strong> <%= plan.totalPrice %> kr</p>
+
+        <p>
+            <strong>Status:</strong>
+            <% if (plan.isActive) { %>
+                Aktiv
+            <% } else { %>
+                Inaktiv
+            <% } %>
+        </p>
+    </section>
+
+    <hr>
+
+    <!-- ACCEPT INFO -->
+    <% if (plan.acceptedOfferId) { %>
+        <section class="plan-accept-info">
+            <h3>Tilbud accepteret</h3>
+
+            <p><strong>Af:</strong> <%= plan.acceptedByName %> (<%= plan.acceptedByEmail %>)</p>
+            <p><strong>Dato:</strong> <%= plan.acceptedAt.toLocaleDateString("da-DK") %></p>
+
+            <p><strong>Tilbudsnummer:</strong> <%= plan.acceptedOfferId %></p>
+
+            <div class="button-row">
+                <button hx-get="/offers/<%= plan.acceptedOfferId %>/view" hx-target="#content">
+                    Se tilbud
+                </button>
+
+                <button hx-get="/offers/<%= plan.acceptedOfferId %>/pdf" hx-target="#content">
+                    Download PDF
+                </button>
+            </div>
+        </section>
+
+        <hr>
+    <% } %>
+
+    <!-- TASKS -->
+    <section class="plan-tasks">
+        <h3>Opgaver</h3>
+
+        <% if (tasks.length === 0) { %>
+            <p>Ingen opgaver tilføjet endnu.</p>
+        <% } else { %>
+            <ul class="task-list">
+                <% tasks.forEach(task => { %>
+                    <li class="task-item">
+                        <strong><%= task.name %></strong>
+                        <span><%= task.totalPrice %> kr</span>
+
+                        <button
+                                hx-get="/cleaningTasks/<%= plan._id %>/tasks/<%= task._id %>/edit"
+                                hx-target="#content">
+                            Rediger
+                        </button>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <button
+                hx-get="/newPlan/tasks?planId=<%= plan._id %>"
+                hx-target="#content">
+            Tilføj opgave
+        </button>
+
+
+
+    </section>
+
+    <hr>
+
+    <!-- TILBUD -->
+    <section class="plan-offers">
+        <h3>Tilbud</h3>
+
+        <button
+                hx-get="/offers/new?planId=<%= plan._id %>"
+                hx-target="#content">
+            Opret nyt tilbud
+        </button>
+
+        <button
+                hx-get="/offers?planId=<%= plan._id %>"
+                hx-target="#content">
+            Se alle tilbud for planen
+        </button>
+    </section>
+
+    <hr>
+
+    <!-- PLAN STATUS -->
+    <section class="plan-status">
+        <% if (plan.isActive) { %>
+            <button
+                    hx-delete="/cleaningPlans/<%= plan._id %>"
+                    hx-target="#content">
+                Deaktiver plan
+            </button>
+        <% } else { %>
+            <button
+                    hx-patch="/cleaningPlans/<%= plan._id %>/reactivate"
+                    hx-target="#content">
+                Reaktiver plan
+            </button>
+        <% } %>
+    </section>
+
+</article>

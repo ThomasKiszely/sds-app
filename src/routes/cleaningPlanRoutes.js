@@ -8,6 +8,7 @@ router.get('/archived', cleaningPlanController.getDeletedCleaningPlans);
 router.patch('/:id/reactivate', cleaningPlanController.reactivateCleaningPlan);
 router.put('/:id', validateCleaningPlan, cleaningPlanController.updateCleaningPlan);
 router.delete('/:id', cleaningPlanController.deleteCleaningPlan);
+router.get('/:id/view', cleaningPlanController.viewPlan);
 router.get('/:id', cleaningPlanController.findCleaningPlanById);
 router.post('/', validateCleaningPlan, cleaningPlanController.createCleaningPlan);
 router.get('/', cleaningPlanController.listCleaningPlans);

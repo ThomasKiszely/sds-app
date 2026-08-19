@@ -1,0 +1,34 @@
+<article class="standard">
+    <h1>Opgaver i planen</h1>
+
+    <% if (tasks.length === 0) { %>
+        <p>Ingen opgaver tilføjet endnu.</p>
+    <% } else { %>
+        <ul class="task-list">
+            <% tasks.forEach(task => { %>
+                <li>
+                    <strong><%= task.name %></strong>
+                    <span><%= task.totalPrice %> kr</span>
+
+                    <button
+                            hx-get="/cleaningTasks/<%= planId %>/tasks/<%= task._id %>/edit"
+                            hx-target="#content">
+                        Rediger
+                    </button>
+
+                    <button
+                            hx-delete="/cleaningTasks/<%= planId %>/tasks/<%= task._id %>"
+                            hx-target="#content">
+                        Slet
+                    </button>
+                </li>
+            <% }) %>
+        </ul>
+    <% } %>
+
+    <button
+            hx-get="/cleaningTasks/<%= planId %>/tasks/new"
+            hx-target="#content">
+        Tilføj ny opgave
+    </button>
+</article>

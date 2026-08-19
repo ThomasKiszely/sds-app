@@ -49,6 +49,7 @@ async function createCleaningTask(planId, data) {
         planId,
         templateId: template._id,
         name: template.name,
+        description: template.description,
         unit: template.unit,
         category: template.category,
         price: template.defaultPrice,
@@ -90,6 +91,7 @@ async function updateCleaningTask(taskId, data) {
     const amount = data.amount ?? task.amount;
     const quantity = data.quantity ?? task.quantity;
     const days = normalizeDays(data.days ?? task.days);
+    const description = data.description ?? task.description;
 
     const totalPrice = calculateTaskTotalPrice({
         unit: task.unit,
@@ -106,6 +108,7 @@ async function updateCleaningTask(taskId, data) {
         amount,
         quantity,
         days,
+        description,
         totalPrice
     });
 
@@ -114,7 +117,7 @@ async function updateCleaningTask(taskId, data) {
 }
 
 // Delete task (soft delete)
-async function deleteCleaningTask(taskId) {
+async function softDeleteCleaningTask(taskId) {
     const task = await taskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
 
@@ -122,6 +125,17 @@ async function deleteCleaningTask(taskId) {
     await recalculatePlanTotal(task.planId);
     return updated;
 }
+
+async function deleteCleaningTask(taskId) {
+    const task = await taskRepo.findById(taskId);
+    ensureExists(task, "Rengøringsopgave blev ikke fundet.");
+
+    await taskRepo.deleteById(taskId);
+    await recalculatePlanTotal(task.planId);
+
+    return task; // returnér original task for planId
+}
+
 
 // Reactivate a deleted task
 async function reactivateCleaningTask(taskId) {
@@ -140,6 +154,10 @@ async function getDeletedCleaningTasks(planId) {
     return taskRepo.findDeletedByPlanId(planId);
 }
 
+async function findCleaningTasksByIds(ids) {
+    return taskRepo.findTasksByIds(ids);
+}
+
 module.exports = {
     createCleaningTask,
     listCleaningTasks,
@@ -147,5 +165,6 @@ module.exports = {
     updateCleaningTask,
     deleteCleaningTask,
     reactivateCleaningTask,
-    getDeletedCleaningTasks
+    getDeletedCleaningTasks,
+    findCleaningTasksByIds
 };

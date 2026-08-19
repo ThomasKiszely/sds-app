@@ -1,13 +1,34 @@
 const offerService = require("../services/offerService");
-const offerRepo = require("../data/offerRepo");
-const cleaningTaskRepo = require("../data/cleaningTaskRepo");
+const cleaningTaskService = require("../services/cleaningTaskService");
+const pdfService = require("../services/pdfService");
+
+async function pdfOffer(req, res, next) {
+    try {
+        const offer = await offerService.getOfferById(req.params.id);
+        if (!offer) return res.status(404).send("Tilbud ikke fundet");
+
+        const tasks = await cleaningTaskService.findByIds(offer.taskIds);
+
+        const signatureLink =
+            `${req.protocol}://${req.get("host")}/offers/${offer._id}/accept?token=${offer.signatureToken}`;
+
+        const pdfBuffer = await pdfService.generateOfferPdf(offer, tasks, signatureLink);
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", "attachment; filename=tilbud.pdf");
+        res.send(pdfBuffer);
+
+    } catch (err) {
+        next(err);
+    }
+}
 
 async function viewOffer(req, res, next) {
     try {
-        const offer = await offerRepo.findById(req.params.id);
+        const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        const tasks = await cleaningTaskRepo.findByIds(offer.taskIds);
+        const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
 
         return res.render("offers/view", {
             offer,
@@ -34,8 +55,12 @@ async function sendOffer(req, res, next) {
 
 async function acceptView(req, res, next) {
     try {
-        const offer = await offerRepo.findById(req.params.id);
+        const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
+
+        if (offer.signatureToken !== req.query.token) {
+            return res.status(403).send("Ugyldigt eller udløbet link");
+        }
 
         return res.render("offers/accept", { offer });
     } catch (err) {
@@ -63,5 +88,6 @@ module.exports = {
     viewOffer,
     sendOffer,
     acceptView,
-    acceptOffer
+    acceptOffer,
+    pdfOffer
 };

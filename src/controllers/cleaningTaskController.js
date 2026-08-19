@@ -52,8 +52,8 @@ async function listCleaningTasks(req, res, next) {
 
         const tasks = await cleaningTaskService.listCleaningTasks(planId);
 
-        return res.status(200).json({
-            success: true,
+        return res.render("cleaningTasks/list", {
+            planId,
             tasks
         });
     } catch (error) {
@@ -137,6 +137,8 @@ async function getDeletedCleaningTasks(req, res, next) {
     }
 }
 
+
+
 module.exports = {
     createCleaningTask,
     listCleaningTasks,
@@ -145,5 +147,5 @@ module.exports = {
     deleteCleaningTask,
     editCleaningTask,
     reactivateCleaningTask,
-    getDeletedCleaningTasks
+    getDeletedCleaningTasks,
 };

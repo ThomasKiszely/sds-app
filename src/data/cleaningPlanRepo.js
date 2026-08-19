@@ -1,4 +1,5 @@
 const CleaningPlan = require('../models/CleaningPlan');
+const mongoose = require('mongoose');
 
 async function create(data) {
     return CleaningPlan.create(data);
@@ -9,7 +10,10 @@ async function findById(id) {
 }
 
 async function findByCustomerId(customerId) {
-    return CleaningPlan.find({ customerId, isDeleted: false });
+    return CleaningPlan.find({
+        customerId: new mongoose.Types.ObjectId(customerId),
+        isActive: true
+    });
 }
 
 async function findAllActive() {

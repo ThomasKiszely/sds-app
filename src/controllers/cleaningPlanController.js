@@ -103,6 +103,22 @@ async function reactivateCleaningPlan(req, res, next) {
     }
 }
 
+async function viewPlan(req, res, next) {
+    try {
+        const plan = await cleaningPlanService.findCleaningPlanById(req.params.id);
+        const tasks = await cleaningPlanService.getTasksForPlan(req.params.id);
+
+        return res.render('plans/view', {
+            plan,
+            tasks,
+            user: req.session.user
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 module.exports = {
     createCleaningPlan,
     listCleaningPlans,
@@ -110,5 +126,6 @@ module.exports = {
     updateCleaningPlan,
     deleteCleaningPlan,
     getDeletedCleaningPlans,
-    reactivateCleaningPlan
+    reactivateCleaningPlan,
+    viewPlan
 };

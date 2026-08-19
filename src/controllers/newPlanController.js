@@ -31,8 +31,24 @@ async function customerList(req, res) {
 // ---------------------------------------------------------
 async function step2_plan(req, res) {
     const customerId = req.query.customerId;
+    const planId = req.query.planId;
+
+    // Hvis vi kommer fra Step 3, skal vi vise eksisterende plan
+    if (planId) {
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+        return res.render("newPlan/step2_plan", {
+            customerId: plan.customerId,
+            planId: plan._id,
+            planName: plan.name
+        });
+    }
+
+    // Ellers er det en ny plan
     res.render("newPlan/step2_plan", { customerId });
 }
+
+
 
 
 async function savePlan(req, res) {
@@ -96,7 +112,14 @@ async function tasks_daily(req, res) {
         return res.render("newPlan/partials/tasks/daily", {
             plan,
             templates,
-            tasks
+            tasks,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels,
+            customerId: plan.customerId
         });
 
     } catch (error) {
@@ -114,14 +137,17 @@ async function tasks_add(req, res) {
         const planId = req.body.planId;
         const templateId = req.body.templateId;
 
+        const template = await cleaningTaskTemplateService.findTemplateById(templateId);
+
         const task = await cleaningTaskService.createCleaningTask(planId, {
             templateId,
+            name: template.name,
+            description: template.description,   // ← NYT
             frequency: frequency.weekly,
             amount: 0,
             quantity: 1
         });
 
-        // ✅ Render editTask-partial direkte til HTMX
         return res.render("newPlan/partials/tasks/editTask", {
             task,
             days,
@@ -142,6 +168,7 @@ async function tasks_add(req, res) {
 
 
 
+
 // ---------------------------------------------------------
 // EDIT TASK VIEW
 // ---------------------------------------------------------
@@ -159,7 +186,8 @@ async function tasks_edit(req, res) {
             frequencyLabels,
             units,
             unitsLabels,
-            categoryLabels
+            categoryLabels,
+            categoryTypes
         });
 
     } catch (error) {
@@ -180,8 +208,20 @@ async function tasks_update(req, res) {
 
         // Efter opdatering → hent task-listen igen
         const tasks = await cleaningPlanService.getTasksForPlan(updatedTask.planId);
+        const plan = await cleaningPlanService.findCleaningPlanById(updatedTask.planId);
 
-        return res.render("newPlan/partials/tasks/taskList", { tasks });
+        return res.render("newPlan/partials/tasks/taskList", {
+            tasks,
+            planTotal: plan.totalPrice,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels
+        });
+
+
 
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
@@ -195,8 +235,24 @@ async function tasks_update(req, res) {
 // ---------------------------------------------------------
 async function step4_offer(req, res) {
     const planId = req.query.planId;
-    res.render("newPlan/step4_offer", { planId });
+
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    res.render("newPlan/step4_offer", {
+        planId,
+        tasks,
+        categoryLabels,
+        frequencyLabels,
+        unitsLabels,
+        daysLabels,
+        discountPercent: 0,
+        environmentalFeePercent: 1
+    });
 }
+
+
+
 
 async function saveOffer(req, res) {
     const offer = await offerService.createOffer(
@@ -220,6 +276,8 @@ async function tasks_preview(req, res) {
         const frequency = req.body.frequency ?? task.frequency;
         const amount = req.body.amount ?? task.amount;
         const quantity = req.body.quantity ?? task.quantity;
+        const description = req.body.description ?? task.description;
+
 
         // Normaliser days (vigtigt!)
         const days = (() => {
@@ -255,8 +313,16 @@ async function tasks_extra(req, res) {
     return res.render("newPlan/partials/tasks/extra", {
         plan,
         templates,
-        tasks
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
     });
+
 }
 
 async function tasks_consumables(req, res) {
@@ -268,8 +334,16 @@ async function tasks_consumables(req, res) {
     return res.render("newPlan/partials/tasks/consumables", {
         plan,
         templates,
-        tasks
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
     });
+
 }
 
 async function tasks_windows(req, res) {
@@ -281,7 +355,60 @@ async function tasks_windows(req, res) {
     return res.render("newPlan/partials/tasks/windows", {
         plan,
         templates,
-        tasks
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
+    });
+}
+
+async function tasks_delete(req, res) {
+    try {
+        const { taskId } = req.params;
+
+        // Soft delete i service
+        const deletedTask = await cleaningTaskService.deleteCleaningTask(taskId);
+
+        // Hent opdateret task‑liste
+        const tasks = await cleaningPlanService.getTasksForPlan(deletedTask.planId);
+        const plan = await cleaningPlanService.findCleaningPlanById(deletedTask.planId);
+
+        return res.render("newPlan/partials/tasks/taskList", {
+            tasks,
+            planTotal: plan.totalPrice,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels
+        });
+
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+async function tasks_list(req, res) {
+    const planId = req.query.planId;
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/taskList", {
+        tasks,
+        planTotal: plan.totalPrice,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels
     });
 }
 
@@ -304,5 +431,7 @@ module.exports = {
     tasks_preview,
     tasks_extra,
     tasks_consumables,
-    tasks_windows
+    tasks_windows,
+    tasks_delete,
+    tasks_list
 };

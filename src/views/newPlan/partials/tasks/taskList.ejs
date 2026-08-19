@@ -1,7 +1,54 @@
-<ul class="task-list">
-    <% tasks.forEach(task => { %>
-        <li>
-            <%= task.name %> – <%= task.price %> kr.
-        </li>
-    <% }) %>
-</ul>
+<article class="task-list">
+
+        <h3>Samlet pris</h3>
+        <p class="plan-total"><strong><%= planTotal %> kr./år</strong></p>
+
+        <hr>
+
+        <h3>Valgte opgaver</h3>
+
+        <ul>
+                <% tasks.forEach(task => { %>
+                        <li class="task-item">
+
+                                <strong><%= task.name %></strong>
+                                <span>(<%= categoryLabels[task.category] %>)</span>
+
+                                <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
+                                        – <%= task.amount %> <%= unitsLabels[task.unit] %>
+                                <% } else if (task.unit === units.stk) { %>
+                                        – <%= task.quantity %> <%= unitsLabels[task.unit] %>
+                                <% } %>
+
+                                <% if (task.category !== categoryTypes.consumables) { %>
+                                        –
+                                        <% task.days.forEach(d => { %>
+                                                <%= daysLabels[d] %>
+                                        <% }) %>
+
+                                        – <%= frequencyLabels[task.frequency] %>
+                                <% } %>
+
+                                – <%= task.totalPrice %> kr./år
+
+                                <% if (task.description && task.description.trim().length > 0) { %>
+                                        <div class="task-description"><em><%= task.description %></em></div>
+                                <% } %>
+
+                                <button class="button small"
+                                        hx-get="/newPlan/tasks/<%= task._id %>/edit"
+                                        hx-target="#taskArea">
+                                        Rediger
+                                </button>
+
+                                <button class="button small danger"
+                                        hx-delete="/newPlan/tasks/<%= task._id %>/delete"
+                                        hx-target="#taskArea">
+                                        Slet
+                                </button>
+
+                        </li>
+                <% }) %>
+        </ul>
+
+</article>

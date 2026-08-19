@@ -8,8 +8,7 @@
         </div>
 
         <div class="nav-group">
-            <button hx-get="/customers" hx-target="#content">Kunder</button>
-            <button hx-get="/plans" hx-target="#content">Rengøringsplaner</button>
+            <button hx-get="/customers" hx-target="#content">Kunder/planer</button>
             <button hx-get="/tasks" hx-target="#content">Opgaver</button>
 
             <% if (user.role === 'admin') { %>

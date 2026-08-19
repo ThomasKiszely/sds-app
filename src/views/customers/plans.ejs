@@ -1,0 +1,86 @@
+<article class="standard">
+
+    <h1>Rengøringsplaner for kunde</h1>
+
+    <nav class="nav-group">
+        <button hx-get="/customers" hx-target="#content">
+            Tilbage til kunder
+        </button>
+    </nav>
+
+    <% if (plans.length === 0) { %>
+
+        <p>Der er endnu ingen rengøringsplaner for denne kunde.</p>
+
+        <button
+                hx-get="/newPlan?customerId=<%= customerId %>"
+                hx-target="#content">
+            Opret ny rengøringsplan
+        </button>
+
+    <% } else { %>
+
+        <table class="responsive-table">
+            <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Totalpris</th>
+                <th>Status</th>
+                <th>Handlinger</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <% plans.forEach(plan => { %>
+                <tr>
+                    <td data-label="Navn"><%= plan.name %></td>
+
+                    <td data-label="Totalpris">
+                        <%= plan.totalPrice %> kr
+                    </td>
+
+                    <td data-label="Status">
+                        <% if (plan.isActive) { %>
+                            <span class="badge badge-active">Aktiv</span>
+                        <% } else { %>
+                            <span class="badge badge-inactive">Inaktiv</span>
+                        <% } %>
+                    </td>
+
+                    <td data-label="Handlinger">
+                        <button
+                                hx-get="/cleaningPlans/<%= plan._id %>/view"
+                                hx-target="#content">
+                            Se plan
+                        </button>
+
+                        <% if (plan.isActive) { %>
+                            <button
+                                    hx-post="/cleaningPlans/<%= plan._id %>/delete"
+                                    hx-target="#content">
+                                Deaktiver
+                            </button>
+                        <% } else { %>
+                            <button
+                                    hx-post="/cleaningPlans/<%= plan._id %>/reactivate"
+                                    hx-target="#content">
+                                Aktivér
+                            </button>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }) %>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <button
+                hx-get="/newPlan?customerId=<%= customerId %>"
+                hx-target="#content">
+            Opret ny rengøringsplan
+        </button>
+
+    <% } %>
+
+</article>

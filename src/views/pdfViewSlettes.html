@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Tilbud</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1, h2, h3 { margin-bottom: 0.3rem; }
+        .section { margin-bottom: 1.5rem; }
+        .total-box {
+            border-top: 2px solid #000;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+        }
+        .discount { color: green; }
+    </style>
+</head>
+<body>
+
+<h1>Tilbud</h1>
+
+<div class="section">
+    <h2>Opgaver</h2>
+
+    <% const groups = { daily: [], extra: [], consumables: [], windows: [] }; %>
+    <% tasks.forEach(t => groups[t.category].push(t)); %>
+
+    <% if (groups.daily.length) { %>
+    <h3>Daglig</h3>
+    <ul>
+        <% groups.daily.forEach(t => { %>
+        <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+        <% }) %>
+    </ul>
+    <% } %>
+
+    <% if (groups.extra.length) { %>
+    <h3>Ekstra</h3>
+    <ul>
+        <% groups.extra.forEach(t => { %>
+        <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+        <% }) %>
+    </ul>
+    <% } %>
+
+    <% if (groups.consumables.length) { %>
+    <h3>Forbrugsvare</h3>
+    <ul>
+        <% groups.consumables.forEach(t => { %>
+        <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+        <% }) %>
+    </ul>
+    <% } %>
+
+    <% if (groups.windows.length) { %>
+    <h3>Vinduespudsning</h3>
+    <ul>
+        <% groups.windows.forEach(t => { %>
+        <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+        <% }) %>
+    </ul>
+    <% } %>
+</div>
+
+<div class="section total-box">
+    <p>Subtotal: <%= subtotal %> kr.</p>
+
+    <% if (discountPercent > 0) { %>
+    <p class="discount">Rabat (<%= discountPercent %>%): -<%= discountAmount %> kr.</p>
+    <% } %>
+
+    <p>Miljøafgift (<%= environmentalFeePercent %>%): <%= environmentalFeeAmount %> kr.</p>
+
+    <h2>Total: <%= total %> kr.</h2>
+</div>
+
+<div class="section">
+    <h3>Accept af tilbud</h3>
+    <p>Klik her for at acceptere tilbuddet:</p>
+    <p><a href="<%= signatureLink %>"><%= signatureLink %></a></p>
+</div>
+
+</body>
+</html>
