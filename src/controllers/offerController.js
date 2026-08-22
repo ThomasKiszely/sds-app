@@ -7,7 +7,7 @@ async function pdfOffer(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        const tasks = await cleaningTaskService.findByIds(offer.taskIds);
+        const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
 
         const signatureLink =
             `${req.protocol}://${req.get("host")}/offers/${offer._id}/accept?token=${offer.signatureToken}`;

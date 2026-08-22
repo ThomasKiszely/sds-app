@@ -29,6 +29,7 @@ async function updateTemplate(id, data) {
 
     const updated = await cleaningTaskTemplateRepo.updateById(id, {
         name: data.name?.trim() ?? template.name,
+        description: data.description?.trim() ?? template.description,
         category: data.category ?? template.category,
         defaultDuration: data.defaultDuration ?? template.defaultDuration,
         defaultPrice: data.defaultPrice ?? template.defaultPrice,
