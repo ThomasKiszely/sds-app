@@ -15,7 +15,7 @@
     <% templates.forEach(t => { %>
         <tr>
             <td data-label="Navn"><%= t.name %></td>
-            <td data-label="Kategori"><%= t.category %></td>
+            <td data-label="Kategori"><%= categoryLabels[t.category] %></td>
             <td data-label="Beskrivelse"><%= t.description %></td>
             <td data-label="Varighed"><%= t.defaultDuration %> min</td>
             <td data-label="Pris"><%= t.defaultPrice %> kr</td>

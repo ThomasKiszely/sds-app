@@ -9,7 +9,7 @@ async function createCleaningTaskTemplate(req, res, next) {
         const template = await cleaningTaskTemplateService.createTemplate(req.body);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/list', { templates });
+        return res.render('tasks/list', { templates, categoryLabels });
     } catch (error) {
         next(error);
     }
@@ -20,7 +20,7 @@ async function listCleaningTaskTemplates(req, res, next) {
     try {
         const templates = await cleaningTaskTemplateService.listTemplates();
 
-        return res.render('tasks/_listPartial', { templates });
+        return res.render('tasks/_listPartial', { templates, categoryLabels });
     } catch (error) {
         next(error);
     }
