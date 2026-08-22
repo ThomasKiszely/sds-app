@@ -60,11 +60,6 @@
                         <strong><%= task.name %></strong>
                         <span><%= task.totalPrice %> kr</span>
 
-                        <button
-                                hx-get="/cleaningTasks/<%= plan._id %>/tasks/<%= task._id %>/edit"
-                                hx-target="#content">
-                            Rediger
-                        </button>
                     </li>
                 <% }) %>
             </ul>
@@ -73,7 +68,7 @@
         <button
                 hx-get="/newPlan/tasks?planId=<%= plan._id %>"
                 hx-target="#content">
-            Tilføj opgave
+            Tilføj/rediger opgaver
         </button>
 
 
@@ -87,13 +82,13 @@
         <h3>Tilbud</h3>
 
         <button
-                hx-get="/offers/new?planId=<%= plan._id %>"
+                hx-get="/newPlan/offer?planId=<%= plan._id %>"
                 hx-target="#content">
             Opret nyt tilbud
         </button>
 
         <button
-                hx-get="/offers?planId=<%= plan._id %>"
+                hx-get="/offers?planId=<%= plan._id %>/view"
                 hx-target="#content">
             Se alle tilbud for planen
         </button>

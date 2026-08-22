@@ -1,13 +1,6 @@
 const planRepo = require('../data/cleaningPlanRepo');
 const taskRepo = require('../data/cleaningTaskRepo');
-
-function ensureExists(entity, message) {
-    if (!entity) {
-        const err = new Error(message);
-        err.status = 404;
-        throw err;
-    }
-}
+const { ensureExists } = require("../utils/userError");
 
 // Til når man opdaterer priser
 async function recalculatePlanTotal(planId) {

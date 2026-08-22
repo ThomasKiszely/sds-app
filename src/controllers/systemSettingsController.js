@@ -14,7 +14,17 @@ async function updateInflation(req, res) {
     }
 }
 
+async function updateEnvironmentalFee(req, res) {
+    try {
+        await systemSettingsService.updateEnvironmentalFee(req.body.environmentalFee);
+        return res.send("Miljøafgift opdateret");
+    } catch (err) {
+        return res.status(400).send(err.message);
+    }
+}
+
 module.exports = {
     showSettings,
-    updateInflation
+    updateInflation,
+    updateEnvironmentalFee
 };

@@ -13,7 +13,7 @@
         <p>Der er endnu ingen rengøringsplaner for denne kunde.</p>
 
         <button
-                hx-get="/newPlan?customerId=<%= customerId %>"
+                hx-get="/newPlan/plan?customerId=<%= customerId %>"
                 hx-target="#content">
             Opret ny rengøringsplan
         </button>
@@ -76,7 +76,7 @@
         <hr>
 
         <button
-                hx-get="/newPlan?customerId=<%= customerId %>"
+                hx-get="/newPlan/plan?customerId=<%= customerId %>"
                 hx-target="#content">
             Opret ny rengøringsplan
         </button>

@@ -15,7 +15,7 @@ async function generateOfferPdf(offer, tasks, signatureLink) {
         subtotal: offer.subtotalBeforeDiscount,
         discountPercent: offer.discountPercent,
         discountAmount: offer.discountAmount,
-        environmentalFeePercent: offer.environmentalFeePercent,
+        environmentalFee: offer.environmentalFee,
         environmentalFeeAmount: offer.environmentalFeeAmount,
         total: offer.totalPrice,
         signatureLink

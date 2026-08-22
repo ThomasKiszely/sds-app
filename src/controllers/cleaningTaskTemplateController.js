@@ -9,7 +9,7 @@ async function createCleaningTaskTemplate(req, res, next) {
         const template = await cleaningTaskTemplateService.createTemplate(req.body);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('tasks/_listPartial', { templates });
+        return res.render('tasks/list', { templates });
     } catch (error) {
         next(error);
     }

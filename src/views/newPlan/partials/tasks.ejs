@@ -1,5 +1,5 @@
 <article class="standard wizard-step">
-    <h1>Ny prisberegning – Tilføj opgaver</h1>
+    <h1>Prisberegning – Tilføj opgaver</h1>
 
     <section class="task-nav">
         <button class="button"
@@ -51,9 +51,9 @@
         </button>
 
         <button class="button-secondary"
-                hx-get="/newPlan/tasks/list?planId=<%= planId %>"
-                hx-target="#taskArea">
-            Tilbage til oversigt
+                hx-get="/cleaningPlans/<%= planId %>/view"
+                hx-target="#content">
+            Til rengøringsplan
         </button>
 
     </section>

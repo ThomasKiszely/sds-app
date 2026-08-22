@@ -5,7 +5,13 @@ function errorHandler(error, req, res, next) {
 
     // ⭐ Sørg for at error ALTID er et Error-objekt
     if (!(error instanceof Error)) {
-        error = new Error(error?.message || String(error));
+        const err = new Error(error?.message || String(error));
+
+        // Bevar custom felter
+        if (error.status) err.status = error.status;
+        if (error.isUserError) err.isUserError = error.isUserError;
+
+        error = err;
     }
 
     const status = error.status || 500;

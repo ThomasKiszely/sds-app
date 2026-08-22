@@ -6,7 +6,7 @@ async function createOffer(req, res, next) {
             req.body.planId,
             {
                 discountPercent: Number(req.body.discountPercent || 0),
-                environmentalFeePercent: Number(req.body.environmentalFeePercent || 1)
+                environmentalFee: Number(req.body.environmentalFee || 1)
             }
         );
 

@@ -2,6 +2,7 @@ const customerRepo = require("../data/customerRepo");
 const planRepo = require("../data/cleaningPlanRepo");
 const { validateCVR } = require("../utils/validateCVR");
 const { validateCustomerNumber } = require("../utils/validateCustomerNumber");
+const { userError, ensureExists } = require("../utils/userError");
 
 async function createCustomer(data) {
     // Trim
@@ -17,12 +18,12 @@ async function createCustomer(data) {
 
     //Kundenummer
     if (!validateCustomerNumber(data.customerNumber)) {
-        throw { isUserError: true, message: "Kundenummer skal være 8 cifre" };
+        throw userError("Kundenummer skal være 8 cifre", 400);
     }
 
     // CVR
     if (data.cvr && !validateCVR(data.cvr)) {
-        throw new Error("CVR er ugyldig");
+        throw userError("CVR er ugyldig", 400);
     }
 
     // Create
@@ -32,13 +33,13 @@ async function createCustomer(data) {
 
 async function getCustomerById(id) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) throw new Error("Kunde findes ikke");
+    ensureExists(customer, "Kunde findes ikke", 404);
     return customer.toObject();
 }
 
 async function updateCustomer(id, data) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) throw new Error("Kunde findes ikke");
+    ensureExists(customer, "Kunde findes ikke", 404);
 
     // Trim
     if (data.customerName) data.customerName = data.customerName.trim();
@@ -51,7 +52,7 @@ async function updateCustomer(id, data) {
 
 async function deleteCustomer(id) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) throw new Error("Kunde findes ikke");
+    ensureExists(customer, "Kunde findes ikke", 404);
 
     await customerRepo.softDeleteCustomer(id);
 }
@@ -84,7 +85,7 @@ async function getPlansForCustomer(customerId) {
 
 async function reactivateCustomer(id) {
     const customer = await customerRepo.getCustomerById(id);
-    if (!customer) throw new Error("Kunde findes ikke");
+    ensureExists(customer, "Kunde findes ikke", 404);
 
     return customerRepo.updateCustomer(id, { isDeleted: false });
 }

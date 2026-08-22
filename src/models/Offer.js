@@ -24,7 +24,7 @@ const offerSchema = new mongoose.Schema({
     discountPercent: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
 
-    environmentalFeePercent: { type: Number, default: 1 },
+    environmentalFee: { type: Number, default: 1 },
     environmentalFeeAmount: { type: Number, default: 0 },
 
     totalPrice: { type: Number, default: 0 },

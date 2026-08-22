@@ -1,5 +1,5 @@
 <article class="standard wizard-step">
-    <h2>Ny prisberegning – Lav tilbud</h2>
+    <h2>Prisberegning – Lav tilbud</h2>
 
     <section class="offer-summary">
 
@@ -44,12 +44,20 @@
             </ul>
         <% } %>
 
+        <!-- TOTALPRIS (LIVE) -->
+        <div class="offer-total-box" style="margin-top:1rem;">
+            <h3>Totalpris inkl miljøafgift</h3>
+            <div id="offerTotal">
+                <%= total.toFixed(2) %> kr.
+            </div>
+        </div>
+
     </section>
 
     <hr>
 
     <!-- Hele formularen -->
-    <form hx-post="/newPlan/offer" hx-target="#content" style="margin-top: 1rem;">
+    <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
 
         <input type="hidden" name="planId" value="<%= planId %>">
 
@@ -60,13 +68,27 @@
             Avanceret
         </button>
 
-        <!-- Avanceret sektion (nu inde i formen!) -->
+        <!-- Avanceret sektion -->
         <div id="advanced" class="hidden" style="margin-top: 1rem;">
-            <label>Rabat (%)</label>
-            <input type="number" name="discountPercent" value="<%= discountPercent || 0 %>">
+
 
             <label>Miljøafgift (%)</label>
-            <input type="number" name="environmentalFeePercent" value="<%= environmentalFeePercent || 0 %>">
+            <input type="number"
+            name="environmentalFee"
+            value="<%= environmentalFee || 0 %>"
+            hx-post="/newPlan/offer/preview"
+            hx-trigger="change"
+            hx-target="#offerTotal"
+            hx-swap="innerHTML">
+
+            <label>Rabat (%)</label>
+            <input type="number"
+                   name="discountPercent"
+                   value="<%= discountPercent || 0 %>"
+                   hx-post="/newPlan/offer/preview"
+                   hx-trigger="change"
+                   hx-target="#offerTotal"
+                   hx-swap="innerHTML">
         </div>
 
         <button type="submit" class="button" style="margin-top: 1rem;">

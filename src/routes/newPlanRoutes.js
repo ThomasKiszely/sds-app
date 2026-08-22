@@ -35,6 +35,8 @@ router.patch("/tasks/:taskId/update", requireLogin, newPlanController.tasks_upda
 
 // Step 4: Lav tilbud
 router.get("/offer", requireLogin, newPlanController.step4_offer);
-router.post("/offer", requireLogin, newPlanController.saveOffer);
+router.post("/offer/save", requireLogin, newPlanController.saveOffer);
+router.post("/offer/preview", requireLogin, newPlanController.previewOffer);
+
 
 module.exports = router;

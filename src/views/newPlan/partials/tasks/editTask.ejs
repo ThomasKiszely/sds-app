@@ -60,6 +60,7 @@
                         hx-trigger="change"
                         hx-target="#taskPrice"
                         hx-swap="innerHTML"
+                        oninput="updateDuration()"
                 >
             </section>
             <hr>
@@ -78,6 +79,7 @@
                         hx-trigger="change"
                         hx-target="#taskPrice"
                         hx-swap="innerHTML"
+                        oninput="updateDuration()"
                 >
             </section>
             <hr>
@@ -124,6 +126,40 @@
 
         <hr>
 
+        <!-- Varighed -->
+        <section>
+            <h3>Varighed (pr enhed i minutter)</h3>
+            <input
+                    type="number"
+                    name="duration"
+                    value="<%= task.duration %>"
+                    min="0"
+                    oninput="updateDuration()"
+            >
+        </section>
+
+        <hr>
+
+        <!-- Samlet varighed -->
+        <section>
+            <h3>Varighed pr gang</h3>
+            <p id="taskDuration">
+                <%
+                let totalDuration = task.duration;
+
+                if (task.unit === units.stk) {
+                    totalDuration = task.duration * task.quantity;
+                } else if (task.unit === units.m2 || task.unit === units.lbm) {
+                    totalDuration = task.duration * task.amount;
+                }
+                %>
+
+                <%= totalDuration %> min
+            </p>
+        </section>
+
+        <hr>
+
         <!-- Actions -->
         <section class="form-actions">
 
@@ -151,3 +187,21 @@
     </form>
 
 </article>
+
+<script>
+    function updateDuration() {
+        const duration = Number(document.querySelector('[name="duration"]').value) || 0;
+        const amount = Number(document.querySelector('[name="amount"]')?.value) || 0;
+        const quantity = Number(document.querySelector('[name="quantity"]')?.value) || 0;
+
+        let total = duration;
+
+        <% if (task.unit === units.stk) { %>
+        total = duration * quantity;
+        <% } else if (task.unit === units.m2 || task.unit === units.lbm) { %>
+        total = duration * amount;
+        <% } %>
+
+        document.querySelector('#taskDuration').innerText = total + " min";
+    }
+</script>

@@ -1,7 +1,7 @@
 const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
 const CleaningPlan = require('../models/CleaningPlan');
 const taskRepo = require('../data/cleaningTaskRepo');
-
+const { ensureExists } = require("../utils/userError");
 const { calculateTaskTotalPrice } = require('../utils/priceUtil');
 const { recalculatePlanTotal } = require('./cleaningPlanService');
 
@@ -12,14 +12,6 @@ function normalizeDays(days) {
     return [days]; // hvis kun én dag
 }
 
-
-function ensureExists(entity, message) {
-    if (!entity) {
-        const err = new Error(message);
-        err.status = 404;
-        throw err;
-    }
-}
 
 // Create a new cleaning task for a specific plan
 async function createCleaningTask(planId, data) {
@@ -34,6 +26,9 @@ async function createCleaningTask(planId, data) {
     const amount = data.amount ?? 0;
     const quantity = data.quantity ?? 1;
     const days = normalizeDays(data.days);
+    const duration = data.duration ?? template.defaultDuration;
+    const description = data.description ?? template.description;
+
 
     const totalPrice = calculateTaskTotalPrice({
         unit: template.unit,
@@ -49,12 +44,11 @@ async function createCleaningTask(planId, data) {
         planId,
         templateId: template._id,
         name: template.name,
-        description: template.description,
+        description,
         unit: template.unit,
         category: template.category,
         price: template.defaultPrice,
-        duration: template.defaultDuration,
-
+        duration,
         frequency,
         amount,
         quantity,
@@ -92,6 +86,8 @@ async function updateCleaningTask(taskId, data) {
     const quantity = data.quantity ?? task.quantity;
     const days = normalizeDays(data.days ?? task.days);
     const description = data.description ?? task.description;
+    const duration = data.duration ?? task.duration;
+
 
     const totalPrice = calculateTaskTotalPrice({
         unit: task.unit,
@@ -100,7 +96,7 @@ async function updateCleaningTask(taskId, data) {
         amount,
         quantity,
         frequency,
-        days
+        days,
     });
 
     const updated = await taskRepo.updateById(taskId, {
@@ -109,7 +105,8 @@ async function updateCleaningTask(taskId, data) {
         quantity,
         days,
         description,
-        totalPrice
+        totalPrice,
+        duration
     });
 
     await recalculatePlanTotal(task.planId);

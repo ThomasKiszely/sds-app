@@ -3,6 +3,7 @@ const customerService = require("../services/customerService");
 const offerService = require("../services/offerService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 const cleaningTaskService = require("../services/cleaningTaskService");
+const systemSettingsService = require("../services/systemSettingsService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
@@ -238,19 +239,49 @@ async function step4_offer(req, res) {
 
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
+    const systemSettings = await systemSettingsService.getSettings();
+
+    const discountPercent = 0;
+    const environmentalFee = systemSettings.environmentalFee;
+
+    // Brug fælles beregningsmetode
+    const totals = offerService.calculateOfferTotals(
+        tasks,
+        discountPercent,
+        environmentalFee
+    );
 
     res.render("newPlan/step4_offer", {
         planId,
         tasks,
-        categoryLabels,
-        frequencyLabels,
-        unitsLabels,
-        daysLabels,
-        discountPercent: 0,
-        environmentalFeePercent: 1
+
+        discountPercent,
+        environmentalFee,
+
+        subtotal: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        environmentalFeeAmount: totals.environmentalFeeAmount,
+        total: totals.total
     });
 }
 
+
+async function previewOffer(req, res) {
+    const planId = req.body.planId;
+
+    const discountPercent = Number(req.body.discountPercent || 0);
+    const environmentalFee = Number(req.body.environmentalFee || 0);
+
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const totals = offerService.calculateOfferTotals(
+        tasks,
+        discountPercent,
+        environmentalFee
+    );
+
+    return res.send(`${totals.total.toFixed(2)} kr.`);
+}
 
 
 
@@ -259,7 +290,7 @@ async function saveOffer(req, res) {
         req.body.planId,
         {
             discountPercent: Number(req.body.discountPercent),
-            environmentalFeePercent: Number(req.body.environmentalFeePercent)
+            environmentalFee: Number(req.body.environmentalFee)
         }
     );
 
@@ -401,6 +432,7 @@ async function tasks_list(req, res) {
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
 
     return res.render("newPlan/partials/tasks/taskList", {
+        planId,
         tasks,
         planTotal: plan.totalPrice,
         units,
@@ -433,5 +465,6 @@ module.exports = {
     tasks_consumables,
     tasks_windows,
     tasks_delete,
-    tasks_list
+    tasks_list,
+    previewOffer
 };

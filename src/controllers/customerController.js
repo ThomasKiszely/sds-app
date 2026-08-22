@@ -25,12 +25,27 @@ async function getCustomer(req, res, next) {
 
 async function updateCustomer(req, res, next) {
     try {
-        const customer = await customerService.updateCustomer(req.params.id, req.body);
-        return res.status(200).json({ success: true, customer });
+        const updated = await customerService.updateCustomer(req.params.id, req.body);
+
+        // HTMX toast
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: "Kunde opdateret" }));
+
+        // Render kundedetaljer
+        return res.render("customers/details", {
+            customer: updated,
+            user: req.session.user
+        });
+
     } catch (error) {
+        if (error.isUserError) {
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+            return res.status(error.status).end();
+        }
+
         next(error);
     }
 }
+
 
 async function deleteCustomer(req, res, next) {
     try {

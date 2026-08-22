@@ -2,6 +2,7 @@ const userRepo = require('../data/userRepo');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { userRoles } = require('../utils/userRoles');
+const { userError } = require('../utils/userError');
 
 async function createUser(userName, fullName, role) {
     userName = userName.trim();
@@ -10,7 +11,7 @@ async function createUser(userName, fullName, role) {
     // Tjek om brugernavn findes
     const existing = await userRepo.findByName(userName);
     if (existing) {
-        throw new Error("Brugernavnet findes allerede");
+        throw userError("Brugernavnet findes allerede", 400);
     }
 
     // Generér midlertidigt password
@@ -43,10 +44,10 @@ async function createUser(userName, fullName, role) {
 async function deactivateUser(id) {
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
     if (!user.active){
-        throw new Error("Bruger er allerede deaktiveret");
+        throw userError("Bruger er allerede deaktiveret", 400);
     }
     await userRepo.deactivateUser(id);
 }
@@ -54,10 +55,10 @@ async function deactivateUser(id) {
 async function reactivateUser(id) {
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
     if (user.active){
-        throw new Error("Bruger er allerede aktiv");
+        throw userError("Bruger er allerede aktiv", 400);
     }
     return await userRepo.reactivateUser(id);
 }
@@ -73,40 +74,40 @@ async function updatePassword(id, password, repeated) {
     repeated = (repeated || "").trim();
 
     if (password !== repeated) {
-        throw new Error("Kodeordene matcher ikke");
+        throw userError("Kodeordene matcher ikke", 400);
     }
 
     if (!password || typeof password !== "string") {
-        throw new Error("Ugyldigt kodeord");
+        throw userError("Ugyldigt kodeord", 400);
     }
 
     if (password.length < 8) {
-        throw new Error("Kodeord skal være mindst 8 tegn");
+        throw userError("Kodeord skal være mindst 8 tegn", 400);
     }
 
     if (!/[A-Z]/.test(password)) {
-        throw new Error("Kodeord skal indeholde mindst ét stort bogstav");
+        throw userError("Kodeord skal indeholde mindst ét stort bogstav", 400);
     }
 
     if (!/[a-z]/.test(password)) {
-        throw new Error("Kodeord skal indeholde mindst ét lille bogstav");
+        throw userError("Kodeord skal indeholde mindst ét lille bogstav", 400);
     }
 
     if (!/[0-9]/.test(password)) {
-        throw new Error("Kodeord skal indeholde mindst ét tal");
+        throw userError("Kodeord skal indeholde mindst ét tal", 400);
     }
 
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-        throw new Error("Kodeord skal indeholde mindst ét specialtegn");
+        throw userError("Kodeord skal indeholde mindst ét specialtegn", 400);
     }
 
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
 
     if (!user.active) {
-        throw new Error("Bruger er deaktiveret");
+        throw userError("Bruger er deaktiveret", 400);
     }
 
     const hashed = await bcrypt.hash(password, 12);
@@ -126,7 +127,7 @@ async function updatePassword(id, password, repeated) {
 async function resetPassword(id){
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
 
     const tempPassword = crypto.randomBytes(4).toString('hex');
@@ -150,7 +151,7 @@ async function resetPassword(id){
 async function getUserById(id) {
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
     return {
         id: user._id,
@@ -166,11 +167,11 @@ async function updateUser(id, { fullName, role }, adminId) {
 
     const user = await userRepo.findById(id);
     if (!user) {
-        throw new Error("Bruger findes ikke");
+        throw userError("Bruger findes ikke", 404);
     }
 
     if (!user.active) {
-        throw new Error("Bruger er deaktiveret");
+        throw userError("Bruger er deaktiveret", 400);
     }
 
     // --- Business-regler for rolle ---
@@ -178,7 +179,7 @@ async function updateUser(id, { fullName, role }, adminId) {
 
         // Regel 1: Admin må ikke nedgradere sig selv
         if (id === adminId && role !== userRoles.ADMIN) {
-            throw new Error("Du kan ikke nedgradere dig selv fra admin");
+            throw userError("Du kan ikke nedgradere dig selv fra admin", 400);
         }
 
         // Regel 2: Kun admins må gøre andre til admin
@@ -205,12 +206,12 @@ async function login(userName, password) {
     // 1. Find bruger
     const user = await userRepo.findByName(userName);
     if (!user) {
-        throw new Error("Forkert brugernavn eller kodeord");
+        throw userError("Forkert brugernavn eller kodeord", 400);
     }
 
     // 2. Tjek om bruger er aktiv
     if (!user.active) {
-        throw new Error("Bruger er deaktiveret");
+        throw userError("Bruger er deaktiveret", 400);
     }
 
     // 3. Tjek password
