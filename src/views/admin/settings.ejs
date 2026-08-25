@@ -1,10 +1,10 @@
 <article class="standard admin-settings-page">
     <h1>Systemindstillinger</h1>
 
-    <h2>Inflation</h2>
+    <h2>Indeksregulering</h2>
 
     <form hx-post="/admin/settings/inflation" hx-target="#settings-message">
-        <label for="inflationRate">Inflation (%)</label>
+        <label for="inflationRate">Indeksregulering (%)</label>
         <input
                 type="number"
                 step="0.001"
@@ -17,7 +17,7 @@
     </form>
 
     <form hx-post="/admin/settings/environmentalFee" hx-target="#settings-message">
-        <label for="environmentalFee">Miljøafgift (%)</label>
+        <label for="environmentalFee">Drift- og miljøtillæg (%)</label>
         <input type="number" step="0.01" name="environmentalFee" id="environmentalFee" value="<%= settings.environmentalFee %>">
         <button>Gem</button>
     </form>

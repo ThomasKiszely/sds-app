@@ -4,9 +4,17 @@ const userService = require("../services/userService");
 // Opret bruger (HTMX)
 async function createUser(req, res, next) {
     try {
-        const { userName, fullName, role } = req.body;
+        const { userName, fullName, role, position, phoneNumber, email, address } = req.body;
 
-        const result = await userService.createUser(userName, fullName, role);
+        const result = await userService.createUser({
+            userName,
+            fullName,
+            role,
+            position,
+            phoneNumber,
+            email,
+            address
+        });
 
         return res.render('admin/users/created', {
             tempPassword: result.tempPassword,
@@ -18,6 +26,7 @@ async function createUser(req, res, next) {
         next(error);
     }
 }
+
 
 // -----------------------------------------------------
 // Deaktivér bruger (HTMX)
@@ -169,10 +178,14 @@ async function getUserById(req, res, next) {
 async function updateUser(req, res, next) {
     try {
         const { id } = req.params;
-        const { fullName, role } = req.body;
+        const { fullName, role, position, phoneNumber, email, address } = req.body;
         const adminId = req.session.user.id;
 
-        const updated = await userService.updateUser(id, { fullName, role }, adminId);
+        const updated = await userService.updateUser(
+            id,
+            { fullName, role, position, phoneNumber, email, address },
+            adminId
+        );
 
         return res.status(200).json({
             success: true,
@@ -184,6 +197,7 @@ async function updateUser(req, res, next) {
         next(error);
     }
 }
+
 
 // -----------------------------------------------------
 // Login (full page)
@@ -262,6 +276,53 @@ async function updateUserRole(req, res, next) {
     }
 }
 
+async function editUser(req, res, next) {
+    try {
+        const { id } = req.params;
+        const user = await userService.getUserById(id);
+
+        return res.render("admin/users/edit", {
+            user,
+            sessionUserId: req.session.user.id
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function deleteUser(req, res, next) {
+    try {
+        const { id } = req.params;
+
+        await userService.deleteUser(id);
+
+        const users = await userService.getAllUsers();
+
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: "Bruger slettet permanent"
+        }));
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: error.message
+        }));
+
+        const users = await userService.getAllUsers();
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
+    }
+}
+
+
 module.exports = {
     createUser,
     changePassword,
@@ -273,5 +334,7 @@ module.exports = {
     updateUser,
     login,
     logout,
-    updateUserRole
+    updateUserRole,
+    editUser,
+    deleteUser
 };

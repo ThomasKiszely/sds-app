@@ -4,11 +4,11 @@ const { requireLogin } = require("../middlewares/requireLogin");
 
 const newPlanController = require("../controllers/newPlanController");
 
-// Step 1: Vælg kunde
-router.get("/", requireLogin, newPlanController.step1_customer);
-
 // Step 1b: Kundeliste (HTMX partial)
 router.get("/customerList", requireLogin, newPlanController.customerList);
+
+// Step 1c: Vælg lokation (HTMX partial)
+router.get("/locationList", requireLogin, newPlanController.locationList);
 
 // Step 2: Opret plan
 router.get("/plan", requireLogin, newPlanController.step2_plan);
@@ -29,7 +29,6 @@ router.post("/tasks/:taskId/preview", requireLogin, newPlanController.tasks_prev
 router.delete("/tasks/:taskId/delete", requireLogin, newPlanController.tasks_delete);
 router.get("/tasks/list", requireLogin, newPlanController.tasks_list);
 
-
 // UPDATE TASK
 router.patch("/tasks/:taskId/update", requireLogin, newPlanController.tasks_update);
 
@@ -38,5 +37,7 @@ router.get("/offer", requireLogin, newPlanController.step4_offer);
 router.post("/offer/save", requireLogin, newPlanController.saveOffer);
 router.post("/offer/preview", requireLogin, newPlanController.previewOffer);
 
+// Step 1: Vælg kunde (skal ligge til sidst!)
+router.get("/", requireLogin, newPlanController.step1_customer);
 
 module.exports = router;

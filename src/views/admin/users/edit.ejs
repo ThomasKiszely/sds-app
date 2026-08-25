@@ -1,0 +1,31 @@
+<article class="standard admin-user-edit-page">
+    <h1>Rediger bruger</h1>
+
+    <form hx-put="/users/<%= user.id %>" hx-target="#content">
+
+        <label>Fulde navn</label>
+        <input type="text" name="fullName" value="<%= user.fullName %>" required>
+
+        <label>Stilling</label>
+        <input type="text" name="position" value="<%= user.position %>">
+
+        <label>Telefonnummer</label>
+        <input type="text" name="phoneNumber" value="<%= user.phoneNumber %>">
+
+        <label>Email</label>
+        <input type="email" name="email" value="<%= user.email %>">
+
+        <label>Arbejdsadresse</label>
+        <input type="text" name="address" value="<%= user.address %>">
+
+        <label>Rolle</label>
+        <select name="role">
+            <option value="admin" <%= user.role === "admin" ? "selected" : "" %>>Admin</option>
+            <option value="user" <%= user.role === "user" ? "selected" : "" %>>Bruger</option>
+        </select>
+
+        <button>Gem ændringer</button>
+    </form>
+
+    <button hx-get="/users" hx-target="#content">Tilbage</button>
+</article>

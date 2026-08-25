@@ -1,0 +1,32 @@
+<article class="standard location-details-page">
+    <h1>Lokationsdetaljer</h1>
+
+    <p><strong>Navn:</strong> <%= location.name %></p>
+    <p><strong>Adresse:</strong> <%= location.address %></p>
+
+    <h2>Kontaktperson</h2>
+    <p><strong>Navn:</strong> <%= location.contactPerson.name %></p>
+    <p><strong>Telefon:</strong> <%= location.contactPerson.phone %></p>
+    <p><strong>Email:</strong> <%= location.contactPerson.email %></p>
+
+    <nav class="nav-group">
+        <button hx-get="/locations/<%= location._id %>/edit" hx-target="#content">
+            Rediger lokation
+        </button>
+
+        <button
+            hx-delete="/locations/<%= location._id %>"
+            hx-target="#content"
+            hx-confirm="Vil du slette lokationen?"
+        >
+            Slet lokation
+        </button>
+
+        <button
+            hx-get="/customers/<%= location.customerId %>/details"
+            hx-target="#content"
+        >
+            Tilbage til kunde
+        </button>
+    </nav>
+</article>

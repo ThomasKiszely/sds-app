@@ -1,5 +1,6 @@
 const customerService = require("../services/customerService");
 const cleaningPlanService = require("../services/cleaningPlanService");
+const locationService = require("../services/locationService");
 
 // -----------------------------
 // API ENDPOINTS (JSON)
@@ -144,12 +145,21 @@ async function listCustomers(req, res, next) {
 
 async function customerDetails(req, res, next) {
     try {
-        const customer = await customerService.getCustomerById(req.params.id);
-        return res.render("customers/details", { customer });
+        const customerId = req.params.id;
+
+        const customer = await customerService.getCustomerById(customerId);
+        const locations = await locationService.getLocationsForCustomer(customerId);
+
+        return res.render("customers/details", {
+            customer,
+            locations,
+            user: req.session.user
+        });
     } catch (error) {
         next(error);
     }
 }
+
 
 async function editCustomerForm(req, res, next) {
     try {
@@ -164,7 +174,14 @@ async function customerPlans(req, res, next) {
     try {
         const customerId = req.params.id;
 
-        const plans = await cleaningPlanService.getPlansForCustomer(customerId);
+        const locations = await locationService.getLocationsForCustomer(customerId);
+
+        // Hent alle planer for alle lokationer
+        const plans = [];
+        for (const loc of locations) {
+            const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
+            plans.push(...locPlans.map(p => ({ ...p, location: loc })));
+        }
 
         return res.render("customers/plans", {
             customerId,
@@ -176,6 +193,7 @@ async function customerPlans(req, res, next) {
         next(err);
     }
 }
+
 
 async function createCustomerView(req, res, next) {
     try {

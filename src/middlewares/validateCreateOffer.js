@@ -7,7 +7,7 @@ function validateCreateOffer(req, res, next) {
         return res.status(400).send("Rabat skal være mellem 0 og 100");
 
     if (environmentalFee < 0 || environmentalFee > 10)
-        return res.status(400).send("Miljøafgift skal være mellem 0 og 10");
+        return res.status(400).send("Drift- og miljøtillæg skal være mellem 0 og 10");
 
     next();
 }

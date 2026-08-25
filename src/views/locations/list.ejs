@@ -1,0 +1,36 @@
+<article class="standard location-list-page">
+    <h1>Lokationer for kunde</h1>
+
+    <button hx-get="/customers/<%= customerId %>/details"
+            hx-target="#content">
+        Tilbage til kunde
+    </button>
+
+    <button hx-get="/customers/<%= customerId %>/locations/create"
+            hx-target="#content">
+        Tilføj lokation
+    </button>
+
+    <ul class="location-list">
+        <% locations.forEach(loc => { %>
+            <li class="card">
+                <strong><%= loc.name %></strong><br>
+                <%= loc.address %><br>
+
+                <button hx-get="/locations/<%= loc._id %>" hx-target="#content">
+                    Detaljer
+                </button>
+
+                <button hx-get="/locations/<%= loc._id %>/edit" hx-target="#content">
+                    Rediger
+                </button>
+
+                <button hx-delete="/locations/<%= loc._id %>"
+                        hx-target="#content"
+                        hx-confirm="Vil du slette lokationen?">
+                    Slet
+                </button>
+            </li>
+        <% }) %>
+    </ul>
+</article>

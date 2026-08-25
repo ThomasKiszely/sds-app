@@ -4,6 +4,10 @@ const { userRoles } = require('../utils/userRoles');
 const userSchema = new mongoose.Schema({
     userName: { type: String, required: true, unique: true },
     fullName: { type: String, required: true },
+    position: { type: String },
+    phoneNumber: { type: String },
+    email: { type: String },
+    address: { type: String },
     password: { type: String, required: true },
     role: { type: String, enum: Object.values(userRoles), default: userRoles.user, required: true },
     mustChangePassword: { type: Boolean, default: true },

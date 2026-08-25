@@ -8,7 +8,7 @@
             <% customers.forEach(c => { %>
                 <li>
                     <button class="button"
-                            hx-get="/newPlan/plan?customerId=<%= c._id %>"
+                            hx-get="/newPlan/locationList?customerId=<%= c._id %>"
                             hx-target="#content">
                         <strong><%= c.customerNumber %></strong><br>
                         <small><%= c.customerName %></small>

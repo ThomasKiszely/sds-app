@@ -21,7 +21,7 @@ async function updateEnvironmentalFee(rate) {
     const value = Number(rate);
 
     if (isNaN(value) || value < 0 || value > 10) {
-        throw userError("Miljøafgift skal være mellem 0% og 10%.", 400);
+        throw userError("Drift- og miljøtillæg skal være mellem 0% og 10%.", 400);
     }
 
     return systemSettingsRepo.updateEnvironmentalFee(value);

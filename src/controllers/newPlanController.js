@@ -4,6 +4,7 @@ const offerService = require("../services/offerService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 const cleaningTaskService = require("../services/cleaningTaskService");
 const systemSettingsService = require("../services/systemSettingsService");
+const locationService = require("../services/locationService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
@@ -27,50 +28,80 @@ async function customerList(req, res) {
 }
 
 
+// Vælg lokation
+async function locationList(req, res, next) {
+    try {
+        const customerId = req.query.customerId;
+        const locations = await locationService.getLocationsForCustomer(customerId);
+
+        return res.render("newPlan/locationList", {
+            customerId,
+            locations,
+            user: req.session.user
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 // ---------------------------------------------------------
 // STEP 2: Opret plan
 // ---------------------------------------------------------
 async function step2_plan(req, res) {
     const customerId = req.query.customerId;
+    const locationId = req.query.locationId;
     const planId = req.query.planId;
 
-    // Hvis vi kommer fra Step 3, skal vi vise eksisterende plan
+    // Hvis vi kommer fra "rediger plan" eller step3
     if (planId) {
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
         return res.render("newPlan/step2_plan", {
             customerId: plan.customerId,
+            locationId: plan.locationId,
             planId: plan._id,
             planName: plan.name
         });
     }
 
     // Ellers er det en ny plan
-    res.render("newPlan/step2_plan", { customerId });
+    return res.render("newPlan/step2_plan", {
+        customerId,
+        locationId,
+        planId: null,
+        planName: null
+    });
 }
-
-
 
 
 async function savePlan(req, res) {
     try {
         const customerId = req.body.customerId;
+        const locationId = req.body.locationId;
 
+        // Hent kunde (kun for navngivning)
         const customer = await customerService.getCustomerById(customerId);
-        const existingPlans = await cleaningPlanService.getPlansForCustomer(customerId);
+
+        // Hent eksisterende planer for lokationen
+        const existingPlans = await cleaningPlanService.getPlansForLocation(locationId);
         const count = existingPlans.length + 1;
 
+        // Generér navn
         const name = `Rengøringsplan – ${customer.customerName} – ${new Date().toLocaleDateString("da-DK")} – #${count}`;
 
+        // Opret plan
         const plan = await cleaningPlanService.createCleaningPlan({
             customerId,
+            locationId,
             name,
             description: ""
         });
 
+        // Gå direkte til opgavevalg
         return res.render("newPlan/partials/tasks", {
             planId: plan._id,
-            customerId: plan.customerId
+            locationId: plan.locationId
         });
 
     } catch (error) {
@@ -78,6 +109,7 @@ async function savePlan(req, res) {
         return res.status(500).end();
     }
 }
+
 
 
 // ---------------------------------------------------------
@@ -451,6 +483,7 @@ async function tasks_list(req, res) {
 module.exports = {
     step1_customer,
     customerList,
+    locationList,
     step2_plan,
     savePlan,
     step3_tasks,

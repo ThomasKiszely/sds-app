@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { userRoles } = require('../utils/userRoles');
 const { userError } = require('../utils/userError');
 
-async function createUser(userName, fullName, role) {
+async function createUser({ userName, fullName, role, position, phoneNumber, email, address }) {
     userName = userName.trim();
     fullName = fullName.trim();
 
@@ -24,6 +24,10 @@ async function createUser(userName, fullName, role) {
     const user = await userRepo.createUser({
         userName,
         fullName,
+        position,
+        phoneNumber,
+        email,
+        address,
         password: hashedPassword,
         role,
         mustChangePassword: true,
@@ -36,10 +40,15 @@ async function createUser(userName, fullName, role) {
             id: user._id,
             userName: user.userName,
             fullName: user.fullName,
+            position: user.position,
+            phoneNumber: user.phoneNumber,
+            email: user.email,
+            address: user.address,
             role: user.role
         }
     };
 }
+
 
 async function deactivateUser(id) {
     const user = await userRepo.findById(id);
@@ -157,13 +166,17 @@ async function getUserById(id) {
         id: user._id,
         userName: user.userName,
         fullName: user.fullName,
+        position: user.position,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        address: user.address,
         role: user.role,
         active: user.active,
         createdAt: user.createdAt
     };
 }
 
-async function updateUser(id, { fullName, role }, adminId) {
+async function updateUser(id, { fullName, role, position, phoneNumber, email, address }, adminId) {
 
     const user = await userRepo.findById(id);
     if (!user) {
@@ -189,12 +202,16 @@ async function updateUser(id, { fullName, role }, adminId) {
         }
     }
 
-    const updated = await userRepo.updateUser(id, { fullName, role });
+    const updated = await userRepo.updateUser(id, { fullName, role, position, phoneNumber, email, address });
 
     return {
         id: updated._id,
         userName: updated.userName,
         fullName: updated.fullName,
+        position: updated.position,
+        phoneNumber: updated.phoneNumber,
+        email: updated.email,
+        address: updated.address,
         role: updated.role,
         active: updated.active,
         createdAt: updated.createdAt
@@ -226,12 +243,26 @@ async function login(userName, password) {
             id: user._id,
             userName: user.userName,
             fullName: user.fullName,
+            position: user.position,
+            phoneNumber: user.phoneNumber,
+            email: user.email,
+            address: user.address,
             role: user.role,
             active: user.active,
             mustChangePassword: user.mustChangePassword
         }
     };
 }
+
+async function deleteUser(id) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+        throw userError("Bruger findes ikke", 404);
+    }
+
+    return await userRepo.deleteUser(id);
+}
+
 
 module.exports = {
     createUser,
@@ -243,4 +274,5 @@ module.exports = {
     getUserById,
     updateUser,
     login,
+    deleteUser
 };

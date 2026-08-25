@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const cleaningPlanSchema = new mongoose.Schema({
-    // Reference til Customer
-    customerId: {
+    // Reference til Location
+    locationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer",
+        ref: "Location",
         required: true
     },
 

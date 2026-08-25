@@ -1,19 +1,45 @@
 <article class="standard wizard-step">
-    <h1>Prisberegning</h1>
+    <h1>Prisberegning – Opret plan</h1>
 
     <form hx-post="/newPlan/plan" hx-target="#content" class="form-standard">
-        <input type="hidden" name="customerId" value="<%= customerId %>">
 
-        <p>Start opgavevalg.</p>
+        <input type="hidden" name="customerId" value="<%= customerId %>">
+        <input type="hidden" name="locationId" value="<%= locationId %>">
+
+        <% if (planId) { %>
+            <input type="hidden" name="planId" value="<%= planId %>">
+        <% } %>
+
+        <section>
+            <label for="planName">Plan navn</label>
+            <input type="text"
+                   id="planName"
+                   name="name"
+                   value="<%= planName || '' %>"
+                   required>
+        </section>
 
         <section class="form-actions">
-            <button type="submit" class="button">Start</button>
-            <button type="button"
-                    class="button-secondary"
-                    hx-get="/newPlan"
-                    hx-target="#content">
-                Tilbage
+            <button type="submit" class="button">
+                <%= planId ? "Opdater plan" : "Opret plan" %>
             </button>
+
+            <% if (planId) { %>
+                <button type="button"
+                        class="button-secondary"
+                        hx-get="/cleaningPlans/<%= planId %>/view"
+                        hx-target="#content">
+                    Tilbage
+                </button>
+            <% } else { %>
+                <button type="button"
+                        class="button-secondary"
+                        hx-get="/newPlan/locationList?customerId=<%= customerId %>"
+                        hx-target="#content">
+                    Tilbage
+                </button>
+            <% } %>
         </section>
+
     </form>
 </article>

@@ -17,7 +17,7 @@ async function updateInflation(req, res) {
 async function updateEnvironmentalFee(req, res) {
     try {
         await systemSettingsService.updateEnvironmentalFee(req.body.environmentalFee);
-        return res.send("Miljøafgift opdateret");
+        return res.send("Drift- og miljøtillæg opdateret");
     } catch (err) {
         return res.status(400).send(err.message);
     }

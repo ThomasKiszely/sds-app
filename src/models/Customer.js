@@ -18,6 +18,9 @@ const customerSchema = new mongoose.Schema({
     },
     billingAddress: { type: String, required: true },
     customerAddress: { type: String, required: true },
+    paymentTerms: {
+        type: String,
+    },
     isDeleted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
 });

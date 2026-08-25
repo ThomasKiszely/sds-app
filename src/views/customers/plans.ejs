@@ -33,7 +33,11 @@
             <tbody>
             <% plans.forEach(plan => { %>
                 <tr>
-                    <td data-label="Navn"><%= plan.name %></td>
+                    <td data-label="Navn">
+                        <strong><%= plan.location.name %></strong><br>
+                        <%= plan.name %><br>
+                        <small><%= plan.location.address %></small>
+                    </td>
 
                     <td data-label="Totalpris">
                         <%= plan.totalPrice %> kr

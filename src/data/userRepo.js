@@ -49,6 +49,10 @@ async function updateUser(id, changes) {
     );
 }
 
+async function deleteUser(id) {
+    return User.findByIdAndDelete(id);
+}
+
 
 module.exports = {
     findById,
@@ -58,5 +62,6 @@ module.exports = {
     reactivateUser,
     getAllUsers,
     updatePassword,
-    updateUser
+    updateUser,
+    deleteUser
 };

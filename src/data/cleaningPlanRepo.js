@@ -28,6 +28,11 @@ async function updateById(id, data) {
     return CleaningPlan.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 }
 
+async function findByLocationId(locationId) {
+    return CleaningPlan.find({ locationId, isActive: true });
+}
+
+
 module.exports = {
     create,
     findById,
@@ -35,4 +40,5 @@ module.exports = {
     findAllDeleted,
     updateById,
     findByCustomerId,
+    findByLocationId
 };

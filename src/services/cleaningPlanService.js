@@ -1,8 +1,11 @@
 const planRepo = require('../data/cleaningPlanRepo');
 const taskRepo = require('../data/cleaningTaskRepo');
+const cleaningTaskTemplateService = require('./cleaningTaskTemplateService');
 const { ensureExists } = require("../utils/userError");
 
-// Til når man opdaterer priser
+// ---------------------------------------------------------
+// GENBEREGN TOTAL
+// ---------------------------------------------------------
 async function recalculatePlanTotal(planId) {
     const tasks = await taskRepo.findByPlanId(planId);
     const total = tasks.reduce((sum, t) => sum + (t.totalPrice || 0), 0);
@@ -10,10 +13,13 @@ async function recalculatePlanTotal(planId) {
     await planRepo.updateById(planId, { totalPrice: total });
 }
 
-
+// ---------------------------------------------------------
+// OPRET PLAN (nu med locationId)
+// ---------------------------------------------------------
 async function createCleaningPlan(data) {
     const plan = await planRepo.create({
         customerId: data.customerId,
+        locationId: data.locationId,     // ← NYT
         name: data.name.trim(),
         description: data.description ?? "",
         isActive: true,
@@ -23,24 +29,29 @@ async function createCleaningPlan(data) {
     return plan;
 }
 
-
+// ---------------------------------------------------------
+// LISTE
+// ---------------------------------------------------------
 async function listCleaningPlans() {
     return planRepo.findAllActive();
 }
-
 
 async function listDeletedCleaningPlans() {
     return planRepo.findAllDeleted();
 }
 
-
+// ---------------------------------------------------------
+// FIND
+// ---------------------------------------------------------
 async function findCleaningPlanById(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
     return plan;
 }
 
-
+// ---------------------------------------------------------
+// UPDATE
+// ---------------------------------------------------------
 async function updateCleaningPlan(planId, data) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -53,43 +64,47 @@ async function updateCleaningPlan(planId, data) {
     return updated;
 }
 
-
+// ---------------------------------------------------------
+// DELETE / REACTIVATE
+// ---------------------------------------------------------
 async function deleteCleaningPlan(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
 
-    const updated = await planRepo.updateById(planId, { isActive: false });
-    return updated;
+    return planRepo.updateById(planId, { isActive: false });
 }
-
 
 async function reactivateCleaningPlan(planId) {
     const plan = await planRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
 
     const updated = await planRepo.updateById(planId, { isActive: true });
-
-    // Regne pris ud igen efter reaktivering
     await recalculatePlanTotal(planId);
 
     return updated;
 }
 
+// ---------------------------------------------------------
+// GET PLANS (kunde + lokation)
+// ---------------------------------------------------------
 async function getPlansForCustomer(customerId) {
-    const cleaningPlans = await planRepo.findByCustomerId(customerId);
-    return cleaningPlans;
+    return planRepo.findByCustomerId(customerId);
 }
 
+async function getPlansForLocation(locationId) {
+    return planRepo.findByLocationId(locationId);   // ← NYT
+}
+
+// ---------------------------------------------------------
+// TASKS
+// ---------------------------------------------------------
 async function getTasksForPlan(planId) {
-    const tasks = await taskRepo.findByPlanId(planId);
-    return tasks;
+    return taskRepo.findByPlanId(planId);
 }
 
 async function addTaskFromTemplate(planId, templateId) {
-    // 1. Hent template
     const template = await cleaningTaskTemplateService.findTemplateById(templateId);
 
-    // 2. Opret task baseret på template
     const task = await taskRepo.create({
         planId,
         name: template.name,
@@ -98,13 +113,11 @@ async function addTaskFromTemplate(planId, templateId) {
         duration: template.defaultDuration,
         unit: template.unit,
         price: template.defaultPrice,
-        totalPrice: template.defaultPrice, // senere: duration * price hvis du vil
+        totalPrice: template.defaultPrice,
         isActive: true
     });
 
-    // 3. Opdater plan total
     await recalculatePlanTotal(planId);
-
     return task;
 }
 
@@ -118,6 +131,7 @@ module.exports = {
     reactivateCleaningPlan,
     recalculatePlanTotal,
     getPlansForCustomer,
+    getPlansForLocation,
     getTasksForPlan,
     addTaskFromTemplate
 };

@@ -1,0 +1,37 @@
+<article class="standard wizard-step">
+    <h1>Prisberegning – vælg lokation</h1>
+
+    <section>
+        <ul class="location-list">
+            <% locations.forEach(loc => { %>
+                <li class="card">
+                    <strong><%= loc.name %></strong><br>
+                    <%= loc.address %><br>
+
+                    <button
+                            class="button"
+                            hx-get="/newPlan/plan?customerId=<%= customerId %>&locationId=<%= loc._id %>"
+                            hx-target="#content">
+                        Start prisberegning
+                    </button>
+                </li>
+            <% }) %>
+        </ul>
+    </section>
+
+    <hr>
+
+    <section>
+        <button class="button secondary"
+                hx-get="/customers/<%= customerId %>/locations/create"
+                hx-target="#content">
+            Tilføj lokation
+        </button>
+
+        <button class="button-secondary"
+                hx-get="/newPlan"
+                hx-target="#content">
+            Tilbage
+        </button>
+    </section>
+</article>

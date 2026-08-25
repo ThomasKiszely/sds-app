@@ -14,7 +14,7 @@ async function updateCustomer(id, data) {
     return Customer.findOneAndUpdate(
         { _id: id, isDeleted: false },
         data,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
@@ -22,7 +22,7 @@ async function softDeleteCustomer(id) {
     return Customer.findOneAndUpdate(
         { _id: id, isDeleted: false },
         { isDeleted: true },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 }
 
