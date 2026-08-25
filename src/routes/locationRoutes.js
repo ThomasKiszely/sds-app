@@ -3,10 +3,6 @@ const router = express.Router();
 const locationController = require("../controllers/locationController");
 const { validateLocation } = require("../middlewares/validateLocation");
 
-// -----------------------------
-// VIEW ROUTES (HTMX + EJS)
-// -----------------------------
-
 // Liste over lokationer for en kunde
 router.get(
     "/customers/:customerId/locations",
@@ -26,10 +22,6 @@ router.get(
     locationController.locationDetails
 );
 
-
-// -----------------------------
-// API ROUTES (JSON + HTMX)
-// -----------------------------
 
 // Opdater lokation
 router.patch(
