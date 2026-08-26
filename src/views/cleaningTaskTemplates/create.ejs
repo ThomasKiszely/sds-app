@@ -2,6 +2,7 @@
     <h1>Opret opgave-skabelon</h1>
 
     <form hx-post="/cleaningTaskTemplates" hx-target="#content" hx-swap="innerHTML">
+
         <label>Navn</label>
         <input type="text" name="name" required>
 
@@ -17,16 +18,24 @@
             <% }) %>
         </select>
 
-        <label>Standard varighed (min)</label>
-        <input type="number" name="defaultDuration">
-
-        <label>Standard pris (kr)</label>
-        <input type="number" name="defaultPrice">
+        <label>Tid pr. enhed (minutter)</label>
+        <input type="number" step="0.01" name="durationPerUnit" required>
 
         <label>Enhed</label>
         <select name="unit">
-            <% Object.values(units).forEach(u => { %>
-                <option value="<%= u %>"><%= u %></option>
+            <% Object.keys(units).forEach(key => { %>
+                <option value="<%= units[key] %>">
+                    <%= unitsLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label>Frekvens</label>
+        <select name="frequency">
+            <% Object.keys(frequencies).forEach(key => { %>
+                <option value="<%= frequencies[key] %>">
+                    <%= frequencyLabels[key] %>
+                </option>
             <% }) %>
         </select>
 

@@ -1,9 +1,10 @@
 const { categoryTypes } = require("../utils/categoryEnum");
 const { units } = require("../utils/unitEnum");
+const { frequencies } = require("../utils/frequencyEnum");
 
 module.exports = function validateCleaningTaskTemplate(req, res, next) {
     const errors = [];
-    const { name, description, category, defaultDuration, defaultPrice, unit } = req.body;
+    const { name, description, category, durationPerUnit, frequency, unit } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
         errors.push("Navn på opgave-skabelon er påkrævet.");
@@ -17,12 +18,12 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         errors.push(`Kategori skal være en af: ${Object.values(categoryTypes).join(", ")}`);
     }
 
-    if (defaultDuration !== undefined && (isNaN(defaultDuration) || defaultDuration < 0)) {
-        errors.push("defaultDuration skal være et positivt tal.");
+    if (durationPerUnit === undefined || isNaN(durationPerUnit) || durationPerUnit < 0) {
+        errors.push("durationPerUnit skal være et positivt tal.");
     }
 
-    if (defaultPrice !== undefined && (isNaN(defaultPrice) || defaultPrice < 0)) {
-        errors.push("defaultPrice skal være et positivt tal.");
+    if (!frequency || !Object.values(frequencies).includes(frequency)) {
+        errors.push(`Frekvens skal være en af: ${Object.values(frequencies).join(", ")}`);
     }
 
     if (unit && !Object.values(units).includes(unit)) {
@@ -35,8 +36,7 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
 
     req.body.name = name.trim();
     if (description !== undefined) req.body.description = description.trim();
-    if (defaultDuration !== undefined) req.body.defaultDuration = Number(defaultDuration);
-    if (defaultPrice !== undefined) req.body.defaultPrice = Number(defaultPrice);
+    req.body.durationPerUnit = Number(durationPerUnit);
 
     next();
 };

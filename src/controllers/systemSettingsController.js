@@ -23,8 +23,19 @@ async function updateEnvironmentalFee(req, res) {
     }
 }
 
+async function updateHourlyRate(req, res) {
+    try {
+        await systemSettingsService.updateHourlyRate(req.body.hourlyRate);
+        return res.send("Timepris opdateret");
+    } catch (err) {
+        return res.status(400).send(err.message);
+    }
+}
+
+
 module.exports = {
     showSettings,
     updateInflation,
-    updateEnvironmentalFee
+    updateEnvironmentalFee,
+    updateHourlyRate
 };

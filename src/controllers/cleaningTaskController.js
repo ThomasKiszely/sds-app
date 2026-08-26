@@ -1,6 +1,6 @@
 const cleaningTaskService = require('../services/cleaningTaskService');
 const { days, daysLabels } = require("../utils/dayEnum");
-const { frequency, frequencyLabels } = require("../utils/frequencyEnum");
+const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
 const { categoryLabels } = require("../utils/categoryEnum");
 
@@ -9,13 +9,15 @@ async function editCleaningTask(req, res, next) {
         const { planId, taskId } = req.params;
 
         const task = await cleaningTaskService.findCleaningTaskById(taskId);
+        const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(planId);
 
         return res.render("newPlan/partials/tasks/editTask", {
             planId,
             task,
+            hourlyRate,
             days,
             daysLabels,
-            frequency,
+            frequencies,
             frequencyLabels,
             units,
             unitsLabels,
@@ -26,8 +28,6 @@ async function editCleaningTask(req, res, next) {
         next(error);
     }
 }
-
-
 
 async function createCleaningTask(req, res, next) {
     try {
@@ -54,7 +54,10 @@ async function listCleaningTasks(req, res, next) {
 
         return res.render("cleaningTasks/list", {
             planId,
-            tasks
+            tasks,
+            frequencyLabels,
+            unitsLabels,
+            categoryLabels
         });
     } catch (error) {
         next(error);
@@ -136,8 +139,6 @@ async function getDeletedCleaningTasks(req, res, next) {
         next(error);
     }
 }
-
-
 
 module.exports = {
     createCleaningTask,

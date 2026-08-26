@@ -9,7 +9,7 @@
 
         <div class="nav-group">
             <button hx-get="/customers" hx-target="#content">Kunder/planer</button>
-            <button hx-get="/tasks" hx-target="#content">Opgaver</button>
+            <button hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
 
             <% if (user.role === 'admin') { %>
                 <button hx-get="/admin" hx-target="#content">Admin panel</button>

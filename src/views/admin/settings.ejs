@@ -22,6 +22,19 @@
         <button>Gem</button>
     </form>
 
+    <h2>Timepris</h2>
+
+    <form hx-post="/admin/settings/hourlyRate" hx-target="#settings-message">
+        <label for="hourlyRate">Timepris (kr/time)</label>
+        <input
+                type="number"
+                step="1"
+                name="hourlyRate"
+                id="hourlyRate"
+                value="<%= settings.hourlyRate %>"
+        >
+        <button>Gem</button>
+    </form>
 
     <div id="settings-message"></div>
 </article>

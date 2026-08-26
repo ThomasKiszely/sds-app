@@ -1,0 +1,47 @@
+<article class="standard tasks-page">
+    <h1>Rediger opgave-skabelon</h1>
+
+    <form hx-patch="/cleaningTaskTemplates/<%= template._id %>" hx-target="#content">
+
+        <label>Navn</label>
+        <input type="text" name="name" value="<%= template.name %>" required>
+
+        <label>Beskrivelse</label>
+        <textarea name="description"><%= template.description %></textarea>
+
+        <label>Kategori</label>
+        <select name="category">
+            <% Object.keys(categoryTypes).forEach(key => { %>
+                <option value="<%= categoryTypes[key] %>"
+                        <%= template.category === categoryTypes[key] ? "selected" : "" %>>
+                    <%= categoryLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label>Tid pr. enhed (minutter)</label>
+        <input type="number" step="0.01" name="durationPerUnit" value="<%= template.durationPerUnit %>" required>
+
+        <label>Enhed</label>
+        <select name="unit">
+            <% Object.keys(units).forEach(key => { %>
+                <option value="<%= units[key] %>"
+                        <%= template.unit === units[key] ? "selected" : "" %>>
+                    <%= unitsLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label>Frekvens</label>
+        <select name="frequency">
+            <% Object.keys(frequencies).forEach(key => { %>
+                <option value="<%= frequencies[key] %>"
+                        <%= template.frequency === frequencies[key] ? "selected" : "" %>>
+                    <%= frequencyLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
+        <button type="submit">Gem ændringer</button>
+    </form>
+</article>

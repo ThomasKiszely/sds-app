@@ -42,8 +42,23 @@ async function updateEnvironmentalFee(value) {
     return settings.save();
 }
 
+async function updateHourlyRate(value) {
+    const settings = await SystemSettings.findOne();
+
+    if (!settings) {
+        return SystemSettings.create({ hourlyRate: value });
+    }
+
+    // Admin må IKKE ændre lastUpdated
+    settings.hourlyRate = value;
+
+    return settings.save();
+}
+
+
 module.exports = {
     getSettings,
     updateSettings,
-    updateEnvironmentalFee
+    updateEnvironmentalFee,
+    updateHourlyRate
 };

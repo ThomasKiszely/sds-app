@@ -27,9 +27,20 @@ async function updateEnvironmentalFee(rate) {
     return systemSettingsRepo.updateEnvironmentalFee(value);
 }
 
+async function updateHourlyRate(rate) {
+    const value = Number(rate);
+
+    if (isNaN(value) || value < 0 || value > 2000) {
+        throw userError("Timepris skal være mellem 0 og 2000 kr.", 400);
+    }
+
+    return systemSettingsRepo.updateHourlyRate(value);
+}
+
 
 module.exports = {
     getSettings,
     updateInflationRate,
-    updateEnvironmentalFee
+    updateEnvironmentalFee,
+    updateHourlyRate
 };

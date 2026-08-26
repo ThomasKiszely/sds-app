@@ -5,5 +5,7 @@ const systemSettingsController = require("../controllers/systemSettingsControlle
 router.get("/settings", systemSettingsController.showSettings);
 router.post("/settings/inflation", systemSettingsController.updateInflation);
 router.post("/settings/environmentalFee", systemSettingsController.updateEnvironmentalFee);
+router.post("/settings/hourlyRate", systemSettingsController.updateHourlyRate);
+
 
 module.exports = router;

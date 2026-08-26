@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { units } = require("../utils/unitEnum");
+const { frequencies } = require("../utils/frequencyEnum");
 
 const cleaningTaskTemplateSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -12,9 +13,17 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
         required: true
     },
 
-    defaultDuration: { type: Number, default: 0 }, // minutter
-    defaultPrice: { type: Number, default: 0 },    // pris pr. gang
+    // NYT: tid pr. enhed (minutter)
+    durationPerUnit: { type: Number, default: 0 },
 
+    // NYT: frekvens
+    frequency: {
+        type: String,
+        enum: Object.values(frequencies),
+        required: true
+    },
+
+    // Enhed (m2, stk, rum)
     unit: {
         type: String,
         enum: Object.values(units),

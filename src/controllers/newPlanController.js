@@ -8,14 +8,11 @@ const locationService = require("../services/locationService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
-const { frequency, frequencyLabels } = require("../utils/frequencyEnum");
+const { frequencies, frequencyMultipliers, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
 const { calculateTaskTotalPrice } = require("../utils/priceUtil");
 
 
-// ---------------------------------------------------------
-// STEP 1: Vælg kunde
-// ---------------------------------------------------------
 async function step1_customer(req, res) {
     res.render("newPlan/step1_customer", { user: req.session.user });
 }
@@ -44,10 +41,6 @@ async function locationList(req, res, next) {
     }
 }
 
-
-// ---------------------------------------------------------
-// STEP 2: Opret plan
-// ---------------------------------------------------------
 async function step2_plan(req, res) {
     const customerId = req.query.customerId;
     const locationId = req.query.locationId;
@@ -65,6 +58,15 @@ async function step2_plan(req, res) {
         });
     }
 
+    // Hvis vi kommer fra "opret kunde" og der ikke er valgt lokation endnu
+    if (!locationId) {
+        return res.render("newPlan/locationList", {
+            customerId,
+            locations: await locationService.getLocationsForCustomer(customerId),
+            user: req.session.user
+        });
+    }
+
     // Ellers er det en ny plan
     return res.render("newPlan/step2_plan", {
         customerId,
@@ -75,27 +77,48 @@ async function step2_plan(req, res) {
 }
 
 
+
 async function savePlan(req, res) {
     try {
         const customerId = req.body.customerId;
         const locationId = req.body.locationId;
 
-        // Hent kunde (kun for navngivning)
+        // Hent kunde og lokation
         const customer = await customerService.getCustomerById(customerId);
+        const location = await locationService.getLocationById(locationId);
 
-        // Hent eksisterende planer for lokationen
+        const userName = req.body.name?.trim();          // Navn fra UI
+        const locationName = location?.name?.trim();     // Lokationsnavn (valgfri)
+
+        // Hent eksisterende planer for lokationen (til løbenummer)
         const existingPlans = await cleaningPlanService.getPlansForLocation(locationId);
         const count = existingPlans.length + 1;
 
-        // Generér navn
-        const name = `Rengøringsplan – ${customer.customerName} – ${new Date().toLocaleDateString("da-DK")} – #${count}`;
+        // Auto-navn hvis brugeren ikke skriver noget
+        const defaultName = locationName
+            ? `${customer.customerName} – ${locationName} – Rengøringsplan – #${count}`
+            : `${customer.customerName} – Rengøringsplan – #${count}`;
+
+        // Kombineret navn (professionelt)
+        const name = userName
+            ? (locationName
+                ? `${customer.customerName} – ${locationName} – ${userName} – #${count}`
+                : `${customer.customerName} – ${userName} – #${count}`)
+            : defaultName;
+
+        // Beskrivelse fra UI
+        const description = req.body.description?.trim() || "";
+
+        // Hent systemets timepris
+        const systemSettings = await systemSettingsService.getSettings();
 
         // Opret plan
         const plan = await cleaningPlanService.createCleaningPlan({
             customerId,
             locationId,
             name,
-            description: ""
+            description,
+            hourlyRate: systemSettings.hourlyRate
         });
 
         // Gå direkte til opgavevalg
@@ -111,10 +134,6 @@ async function savePlan(req, res) {
 }
 
 
-
-// ---------------------------------------------------------
-// STEP 3: Tilføj opgaver
-// ---------------------------------------------------------
 async function step3_tasks(req, res) {
     const planId = req.query.planId;
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
@@ -161,10 +180,6 @@ async function tasks_daily(req, res) {
     }
 }
 
-
-// ---------------------------------------------------------
-// TILFØJ OPERATION: Opret task → Redirect til editTask
-// ---------------------------------------------------------
 async function tasks_add(req, res) {
     try {
         const planId = req.body.planId;
@@ -176,7 +191,7 @@ async function tasks_add(req, res) {
             templateId,
             name: template.name,
             description: template.description,   // ← NYT
-            frequency: frequency.weekly,
+            frequency: frequencies.weekly,
             amount: 0,
             quantity: 1
         });
@@ -185,7 +200,7 @@ async function tasks_add(req, res) {
             task,
             days,
             daysLabels,
-            frequency,
+            frequencies,
             frequencyLabels,
             units,
             unitsLabels,
@@ -199,12 +214,6 @@ async function tasks_add(req, res) {
     }
 }
 
-
-
-
-// ---------------------------------------------------------
-// EDIT TASK VIEW
-// ---------------------------------------------------------
 async function tasks_edit(req, res) {
     try {
         const { taskId } = req.params;
@@ -215,7 +224,7 @@ async function tasks_edit(req, res) {
             task,
             days,
             daysLabels,
-            frequency,
+            frequencies,
             frequencyLabels,
             units,
             unitsLabels,
@@ -229,32 +238,43 @@ async function tasks_edit(req, res) {
     }
 }
 
-
-// ---------------------------------------------------------
-// UPDATE TASK (PATCH)
-// ---------------------------------------------------------
 async function tasks_update(req, res) {
     try {
         const { taskId } = req.params;
 
+        // Opdater opgaven
         const updatedTask = await cleaningTaskService.updateCleaningTask(taskId, req.body);
 
-        // Efter opdatering → hent task-listen igen
-        const tasks = await cleaningPlanService.getTasksForPlan(updatedTask.planId);
+        // Hent plan og tasks
         const plan = await cleaningPlanService.findCleaningPlanById(updatedTask.planId);
+        const tasks = await cleaningTaskService.listCleaningTasks(updatedTask.planId);
 
+        const hourlyRate = plan.hourlyRate;
+
+        // Enrich tasks med pris, varighed, mængde osv.
+        const enrichedTasks = tasks.map(t => {
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
+            return { ...t, ...prices };
+        });
+
+        // Beregn totaler
+        const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+        const yearlyTotal = monthlyTotal * 12;
+
+        // Render taskList
         return res.render("newPlan/partials/tasks/taskList", {
-            tasks,
-            planTotal: plan.totalPrice,
+            planId: updatedTask.planId,
+            tasks: enrichedTasks,
+            monthlyTotal,
+            yearlyTotal,
             units,
             unitsLabels,
             categoryLabels,
             categoryTypes,
             daysLabels,
-            frequencyLabels
+            frequencyLabels,
+            frequencyMultipliers
         });
-
-
 
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
@@ -263,9 +283,6 @@ async function tasks_update(req, res) {
 }
 
 
-// ---------------------------------------------------------
-// STEP 4: Tilbud
-// ---------------------------------------------------------
 async function step4_offer(req, res) {
     const planId = req.query.planId;
 
@@ -316,7 +333,6 @@ async function previewOffer(req, res) {
 }
 
 
-
 async function saveOffer(req, res) {
     const offer = await offerService.createOffer(
         req.body.planId,
@@ -336,36 +352,47 @@ async function tasks_preview(req, res) {
 
         const task = await cleaningTaskService.findCleaningTaskById(taskId);
 
+        const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(task.planId);
+
         const frequency = req.body.frequency ?? task.frequency;
-        const amount = req.body.amount ?? task.amount;
-        const quantity = req.body.quantity ?? task.quantity;
+        const amount = Number(req.body.amount ?? task.amount);
+        const quantity = Number(req.body.quantity ?? task.quantity);
         const description = req.body.description ?? task.description;
 
-
-        // Normaliser days (vigtigt!)
+        // Normaliser days
         const days = (() => {
-            if (!req.body.days) return task.days;        // ingen ændring
+            if (!req.body.days) return task.days;
             if (Array.isArray(req.body.days)) return req.body.days;
-            return [req.body.days];                      // én dag valgt
+            return [req.body.days];
         })();
 
-        const totalPrice = calculateTaskTotalPrice({
-            unit: task.unit,
-            category: task.category,
-            price: task.price,
-            amount,
-            quantity,
-            frequency,
-            days
-        });
+        // NYT: durationPerUnit
+        const durationPerUnit = Number(req.body.durationPerUnit ?? task.durationPerUnit);
 
-        return res.send(`${totalPrice} kr.`);
+        // Beregn varighed pr gang
+        let totalDuration = durationPerUnit;
+
+        if (task.unit === "stk") {
+            totalDuration = durationPerUnit * quantity;
+        } else if (task.unit === "m2" || task.unit === "lbm") {
+            totalDuration = durationPerUnit * amount;
+        }
+
+        // Pris pr gang
+        const pricePerTime = (totalDuration / 60) * hourlyRate;
+
+        // Pris pr måned
+        const multiplier = frequencyMultipliers[frequency] ?? 1;
+        const totalPrice = pricePerTime * multiplier;
+
+        return res.send(`${Math.round(totalPrice)} kr.`);
 
     } catch (error) {
         console.log("Preview error:", error);
         return res.send("Fejl");
     }
 }
+
 
 async function tasks_extra(req, res) {
     const planId = req.query.planId;
@@ -433,24 +460,39 @@ async function tasks_delete(req, res) {
     try {
         const { taskId } = req.params;
 
-        // Soft delete i service
+        // Soft delete
         const deletedTask = await cleaningTaskService.deleteCleaningTask(taskId);
 
-        // Hent opdateret task‑liste
-        const tasks = await cleaningPlanService.getTasksForPlan(deletedTask.planId);
+        // Hent plan og tasks
         const plan = await cleaningPlanService.findCleaningPlanById(deletedTask.planId);
+        const tasks = await cleaningTaskService.listCleaningTasks(deletedTask.planId);
 
+        const hourlyRate = plan.hourlyRate;
+
+        // Enrich tasks
+        const enrichedTasks = tasks.map(t => {
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
+            return { ...t, ...prices };
+        });
+
+        // Beregn totaler
+        const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+        const yearlyTotal = monthlyTotal * 12;
+
+        // Render taskList
         return res.render("newPlan/partials/tasks/taskList", {
-            tasks,
-            planTotal: plan.totalPrice,
+            planId: deletedTask.planId,
+            tasks: enrichedTasks,
+            monthlyTotal,
+            yearlyTotal,
             units,
             unitsLabels,
             categoryLabels,
             categoryTypes,
             daysLabels,
-            frequencyLabels
+            frequencyLabels,
+            frequencyMultipliers
         });
-
 
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
@@ -458,28 +500,43 @@ async function tasks_delete(req, res) {
     }
 }
 
+
+
 async function tasks_list(req, res) {
     const planId = req.query.planId;
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
 
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const tasks = await cleaningTaskService.listCleaningTasks(planId);
+
+    const hourlyRate = plan.hourlyRate;
+
+    // Enrich tasks
+    const enrichedTasks = tasks.map(t => {
+        const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
+        return { ...t, ...prices };
+    });
+
+    // Beregn totaler
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+    const yearlyTotal = monthlyTotal * 12;
+
+    // Render taskList
     return res.render("newPlan/partials/tasks/taskList", {
         planId,
-        tasks,
-        planTotal: plan.totalPrice,
+        tasks: enrichedTasks,
+        monthlyTotal,
+        yearlyTotal,
         units,
         unitsLabels,
         categoryLabels,
         categoryTypes,
         daysLabels,
-        frequencyLabels
+        frequencyLabels,
+        frequencyMultipliers
     });
 }
 
 
-// ---------------------------------------------------------
-// EXPORT
-// ---------------------------------------------------------
 module.exports = {
     step1_customer,
     customerList,

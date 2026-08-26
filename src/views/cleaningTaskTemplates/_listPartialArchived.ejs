@@ -4,8 +4,8 @@
         <th>Navn</th>
         <th>Kategori</th>
         <th>Beskrivelse</th>
-        <th>Varighed</th>
-        <th>Pris</th>
+        <th>Tid pr. enhed</th>
+        <th>Frekvens</th>
         <th>Enhed</th>
         <th>Handlinger</th>
     </tr>
@@ -17,18 +17,16 @@
             <td data-label="Navn"><%= t.name %></td>
             <td data-label="Kategori"><%= categoryLabels[t.category] %></td>
             <td data-label="Beskrivelse"><%= t.description %></td>
-            <td data-label="Varighed"><%= t.defaultDuration %> min</td>
-            <td data-label="Pris"><%= t.defaultPrice %> kr</td>
-            <td data-label="Enhed"><%= t.unit %></td>
+            <td data-label="Tid pr. enhed"><%= t.durationPerUnit %> min</td>
+            <td data-label="Frekvens"><%= frequencyLabels[t.frequency] %></td>
+            <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
 
             <td>
-                <button hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
-
                 <button
-                        hx-delete="/cleaningTaskTemplates/<%= t._id %>"
-                        hx-target="#template-list"
-                        hx-confirm="Vil du arkivere denne skabelon?">
-                    Arkivér
+                        hx-post="/cleaningTaskTemplates/<%= t._id %>/reactivate"
+                        hx-target="#content"
+                        hx-confirm="Vil du genaktivere denne skabelon?">
+                    Genaktiver
                 </button>
             </td>
         </tr>

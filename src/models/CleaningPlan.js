@@ -25,6 +25,11 @@ const cleaningPlanSchema = new mongoose.Schema({
         default: 0
     },
 
+    hourlyRate: {
+        type: Number,
+        required: true
+    },
+
     acceptedOfferId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Offer",

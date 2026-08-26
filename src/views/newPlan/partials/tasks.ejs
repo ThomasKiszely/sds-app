@@ -39,7 +39,8 @@
              hx-target="#taskArea">
     </section>
 
-
+    <!-- ⭐ DETTE ER DET VIGTIGE -->
+    <input type="hidden" name="planId" value="<%= planId %>">
 
     <hr>
 
@@ -55,13 +56,5 @@
                 hx-target="#content">
             Til rengøringsplan
         </button>
-
     </section>
 </article>
-
-
-<script>
-    window.currentPlanId = "<%= planId %>";
-</script>
-
-

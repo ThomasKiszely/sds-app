@@ -1,60 +1,58 @@
-const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
-const CleaningPlan = require('../models/CleaningPlan');
-const taskRepo = require('../data/cleaningTaskRepo');
+const cleaningTaskRepo = require('../data/cleaningTaskRepo');
+const cleaningTaskTemplateRepo = require('../data/cleaningTaskTemplateRepo');
+const cleaningPlanRepo = require('../data/cleaningPlanRepo');
+
 const { ensureExists } = require("../utils/userError");
-const { calculateTaskTotalPrice } = require('../utils/priceUtil');
+const { frequencyMultipliers } = require("../utils/frequencyEnum");
 const { recalculatePlanTotal } = require('./cleaningPlanService');
 
 // Helper
 function normalizeDays(days) {
     if (!days) return [];
     if (Array.isArray(days)) return days;
-    return [days]; // hvis kun én dag
+    return [days];
 }
 
+// Hent kundens timepris via planRepo
+async function getHourlyRateForPlan(planId) {
+    const plan = await cleaningPlanRepo.findById(planId);
+    ensureExists(plan, "Plan ikke fundet.");
+    return plan.hourlyRate;
+}
 
-// Create a new cleaning task for a specific plan
+// Create
 async function createCleaningTask(planId, data) {
-    const plan = await CleaningPlan.findById(planId);
+    const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
 
-    const template = await CleaningTaskTemplate.findById(data.templateId);
+    const template = await cleaningTaskTemplateRepo.findTemplateById(data.templateId);
     ensureExists(template, "Opgave-skabelon blev ikke fundet.");
 
-    // Default værdier ved oprettelse
+    const quantity = Number(data.quantity ?? 1);
     const frequency = data.frequency ?? "weekly";
-    const amount = data.amount ?? 0;
-    const quantity = data.quantity ?? 1;
-    const days = normalizeDays(data.days);
-    const duration = data.duration ?? template.defaultDuration;
-    const description = data.description ?? template.description;
+    const days = normalizeDays(data.days ?? []);
+    const customPrice = data.customPrice ? Number(data.customPrice) : null;
 
-
-    const totalPrice = calculateTaskTotalPrice({
-        unit: template.unit,
-        category: template.category,
-        price: template.defaultPrice,
-        amount,
-        quantity,
-        frequency,
-        days
-    });
-
-    const task = await taskRepo.create({
+    const task = await cleaningTaskRepo.create({
         planId,
         templateId: template._id,
-        name: template.name,
-        description,
-        unit: template.unit,
-        category: template.category,
-        price: template.defaultPrice,
-        duration,
-        frequency,
-        amount,
-        quantity,
-        days,
 
-        totalPrice,
+        // kopieret fra template
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        unit: template.unit,
+
+        // NYT — disse SKAL gemmes
+        durationPerUnit: Number(data.durationPerUnit ?? template.durationPerUnit),
+        amount: Number(data.amount ?? 0),
+
+        // brugerens valg
+        quantity,
+        frequency,
+        days,
+        customPrice,
+
         isActive: true
     });
 
@@ -62,106 +60,102 @@ async function createCleaningTask(planId, data) {
     return task;
 }
 
-// List all tasks for a specific plan
-async function listCleaningTasks(planId) {
-    const plan = await CleaningPlan.findById(planId);
-    ensureExists(plan, "Rengøringsplan blev ikke fundet.");
-    return taskRepo.findByPlanId(planId);
+// Update
+async function updateCleaningTask(taskId, data) {
+    const task = await cleaningTaskRepo.findById(taskId);
+    ensureExists(task, "Rengøringsopgave blev ikke fundet.");
+
+    const quantity = Number(data.quantity ?? task.quantity);
+    const frequency = data.frequency ?? task.frequency;
+    const days = normalizeDays(data.days ?? task.days);
+    const customPrice = data.customPrice ? Number(data.customPrice) : task.customPrice;
+
+    const updated = await cleaningTaskRepo.updateById(taskId, {
+
+        // NYT — disse SKAL gemmes
+        amount: Number(data.amount ?? task.amount),
+        durationPerUnit: Number(data.durationPerUnit ?? task.durationPerUnit),
+
+        quantity,
+        frequency,
+        days,
+        customPrice
+    });
+
+    await recalculatePlanTotal(task.planId);
+    return updated;
 }
 
-// Find task by ID
-async function findCleaningTaskById(taskId) {
-    const task = await taskRepo.findById(taskId);
+// Delete (soft)
+async function deleteCleaningTask(taskId) {
+    const task = await cleaningTaskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
+
+    await cleaningTaskRepo.updateById(taskId, { isActive: false });
+    await recalculatePlanTotal(task.planId);
+
     return task;
 }
 
-// Update task
-async function updateCleaningTask(taskId, data) {
-    const task = await taskRepo.findById(taskId);
-    ensureExists(task, "Rengøringsopgave blev ikke fundet.");
-
-    const frequency = data.frequency ?? task.frequency;
-    const amount = data.amount ?? task.amount;
-    const quantity = data.quantity ?? task.quantity;
-    const days = normalizeDays(data.days ?? task.days);
-    const description = data.description ?? task.description;
-    const duration = data.duration ?? task.duration;
-
-
-    const totalPrice = calculateTaskTotalPrice({
-        unit: task.unit,
-        category: task.category,
-        price: task.price,
-        amount,
-        quantity,
-        frequency,
-        days,
-    });
-
-    const updated = await taskRepo.updateById(taskId, {
-        frequency,
-        amount,
-        quantity,
-        days,
-        description,
-        totalPrice,
-        duration
-    });
-
-    await recalculatePlanTotal(task.planId);
-    return updated;
-}
-
-// Delete task (soft delete)
-async function softDeleteCleaningTask(taskId) {
-    const task = await taskRepo.findById(taskId);
-    ensureExists(task, "Rengøringsopgave blev ikke fundet.");
-
-    const updated = await taskRepo.updateById(taskId, { isActive: false });
-    await recalculatePlanTotal(task.planId);
-    return updated;
-}
-
-async function deleteCleaningTask(taskId) {
-    const task = await taskRepo.findById(taskId);
-    ensureExists(task, "Rengøringsopgave blev ikke fundet.");
-
-    await taskRepo.deleteById(taskId);
-    await recalculatePlanTotal(task.planId);
-
-    return task; // returnér original task for planId
-}
-
-
-// Reactivate a deleted task
+// Reactivate
 async function reactivateCleaningTask(taskId) {
-    const task = await taskRepo.findById(taskId);
+    const task = await cleaningTaskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
 
-    const updated = await taskRepo.updateById(taskId, { isActive: true });
+    const updated = await cleaningTaskRepo.updateById(taskId, { isActive: true });
     await recalculatePlanTotal(task.planId);
+
     return updated;
 }
 
-// Get all deleted tasks for a specific plan
+// Deleted list
 async function getDeletedCleaningTasks(planId) {
-    const plan = await CleaningPlan.findById(planId);
+    const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
-    return taskRepo.findDeletedByPlanId(planId);
+
+    return cleaningTaskRepo.findDeletedByPlanId(planId);
 }
 
-async function findCleaningTasksByIds(ids) {
-    return taskRepo.findTasksByIds(ids);
+// Dynamisk prisberegning til visning
+function calculateCleaningTaskPrices(task, hourlyRate) {
+    const quantity = Number(task.quantity ?? 1);
+    const amount = Number(task.amount ?? 0);
+
+    // Varighed pr gang
+    let duration = task.durationPerUnit;
+    if (task.unit === "stk") duration *= quantity;
+    if (task.unit === "m2" || task.unit === "lbm") duration *= amount;
+
+    // Pris pr gang
+    const pricePerTime = task.customPrice != null
+        ? Number(task.customPrice)
+        : (duration / 60) * hourlyRate;
+
+    // Dage
+    const dayCount = Array.isArray(task.days) ? task.days.length : 0;
+
+    // Frekvens
+    const freqMultiplier = frequencyMultipliers[task.frequency] ?? 1;
+
+    // Pris pr måned
+    const monthlyPrice = pricePerTime * freqMultiplier * dayCount;
+
+    return {
+        durationPerTask: duration,
+        pricePerTime,
+        monthlyPrice
+    };
 }
+
 
 module.exports = {
     createCleaningTask,
-    listCleaningTasks,
-    findCleaningTaskById,
     updateCleaningTask,
     deleteCleaningTask,
     reactivateCleaningTask,
     getDeletedCleaningTasks,
-    findCleaningTasksByIds
+    findCleaningTaskById: cleaningTaskRepo.findById,
+    listCleaningTasks: cleaningTaskRepo.findByPlanId,
+    getHourlyRateForPlan,
+    calculateCleaningTaskPrices
 };

@@ -86,7 +86,7 @@
 
         <% } %>
 
-        <!-- Frekvens (skjules for forbrugsvare) -->
+        <!-- Frekvens -->
         <% if (task.category !== categoryTypes.consumables) { %>
             <section>
                 <h3>Frekvens</h3>
@@ -98,10 +98,10 @@
                         hx-target="#taskPrice"
                         hx-swap="innerHTML"
                 >
-                    <% Object.keys(frequency).forEach(key => { %>
+                    <% Object.keys(frequencies).forEach(key => { %>
                         <option
-                                value="<%= frequency[key] %>"
-                                <%= task.frequency === frequency[key] ? "selected" : "" %>
+                                value="<%= frequencies[key] %>"
+                                <%= task.frequency === frequencies[key] ? "selected" : "" %>
                         >
                             <%= frequencyLabels[key] %>
                         </option>
@@ -126,13 +126,14 @@
 
         <hr>
 
-        <!-- Varighed -->
+        <!-- Varighed pr enhed -->
         <section>
             <h3>Varighed (pr enhed i minutter)</h3>
             <input
                     type="number"
-                    name="duration"
-                    value="<%= task.duration %>"
+                    name="durationPerUnit"
+                    value="<%= task.durationPerUnit %>"
+                    step="0.01"
                     min="0"
                     oninput="updateDuration()"
             >
@@ -145,12 +146,12 @@
             <h3>Varighed pr gang</h3>
             <p id="taskDuration">
                 <%
-                let totalDuration = task.duration;
+                let totalDuration = task.durationPerUnit;
 
                 if (task.unit === units.stk) {
-                    totalDuration = task.duration * task.quantity;
+                    totalDuration = task.durationPerUnit * task.quantity;
                 } else if (task.unit === units.m2 || task.unit === units.lbm) {
-                    totalDuration = task.duration * task.amount;
+                    totalDuration = task.durationPerUnit * task.amount;
                 }
                 %>
 
@@ -163,7 +164,11 @@
         <!-- Actions -->
         <section class="form-actions">
 
-            <button type="submit" class="button">Gem opgave</button>
+            <button type="submit"
+                    class="button"
+                    hx-include="[name=planId]">
+                Gem opgave
+            </button>
 
             <%
             const categoryRoute = {
@@ -177,8 +182,7 @@
             <button
                     class="button-secondary"
                     hx-get="/newPlan/tasks/<%= categoryRoute %>?planId=<%= task.planId %>"
-                    hx-target="#taskArea"
-            >
+                    hx-target="#taskArea">
                 Tilbage
             </button>
 
@@ -190,7 +194,7 @@
 
 <script>
     function updateDuration() {
-        const duration = Number(document.querySelector('[name="duration"]').value) || 0;
+        const duration = Number(document.querySelector('[name="durationPerUnit"]').value) || 0;
         const amount = Number(document.querySelector('[name="amount"]')?.value) || 0;
         const quantity = Number(document.querySelector('[name="quantity"]')?.value) || 0;
 

@@ -1,7 +1,7 @@
 <article class="task-list">
 
-        <h3>Samlet pris</h3>
-        <p class="plan-total"><strong><%= planTotal %> kr./år</strong></p>
+        <h3>Samlet månedlig pris</h3>
+        <p class="plan-total"><strong><%= monthlyTotal %> kr./måned</strong></p>
 
         <hr>
 
@@ -11,30 +11,50 @@
                 <% tasks.forEach(task => { %>
                         <li class="task-item">
 
-                                <strong><%= task.name %></strong>
+                                <!-- Navn + kategori -->
+                                <strong><%= task.name || "Ukendt opgave" %></strong>
                                 <span>(<%= categoryLabels[task.category] %>)</span>
 
+                                <!-- Mængde -->
                                 <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
                                         – <%= task.amount %> <%= unitsLabels[task.unit] %>
                                 <% } else if (task.unit === units.stk) { %>
                                         – <%= task.quantity %> <%= unitsLabels[task.unit] %>
                                 <% } %>
 
+                                <!-- Dage + frekvens (kun hvis ikke consumables) -->
                                 <% if (task.category !== categoryTypes.consumables) { %>
                                         –
-                                        <% task.days.forEach(d => { %>
+                                        <% (task.days || []).forEach(d => { %>
                                                 <%= daysLabels[d] %>
                                         <% }) %>
 
                                         – <%= frequencyLabels[task.frequency] %>
                                 <% } %>
 
-                                – <%= task.totalPrice %> kr./år
+                                <!-- Varighed og pris -->
+                                <div class="task-meta">
+                                        <div>Varighed pr gang: <strong><%= task.durationPerTask %> min</strong></div>
 
+                                        <% if (task.customPrice != null) { %>
+                                                <div>Pris pr gang (fast pris): <strong><%= task.customPrice %> kr.</strong></div>
+                                        <% } else { %>
+                                                <div>Pris pr gang: <strong><%= task.pricePerTime %> kr.</strong></div>
+                                        <% } %>
+
+                                        <% if (frequencyMultipliers[task.frequency] > 0) { %>
+                                                <div>Pris pr måned: <strong><%= task.monthlyPrice %> kr.</strong></div>
+                                        <% } else { %>
+                                                <div>Pris pr gang: <strong><%= task.pricePerTime %> kr.</strong></div>
+                                        <% } %>
+                                </div>
+
+                                <!-- Beskrivelse -->
                                 <% if (task.description && task.description.trim().length > 0) { %>
                                         <div class="task-description"><em><%= task.description %></em></div>
                                 <% } %>
 
+                                <!-- Knapper -->
                                 <button class="button small"
                                         hx-get="/newPlan/tasks/<%= task._id %>/edit"
                                         hx-target="#taskArea">

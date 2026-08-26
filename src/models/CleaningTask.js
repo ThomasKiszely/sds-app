@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
 const { units } = require("../utils/unitEnum");
-const { frequency } = require("../utils/frequencyEnum");
+const { frequencies } = require("../utils/frequencyEnum");
 const { days } = require("../utils/dayEnum");
 const { categoryTypes } = require("../utils/categoryEnum");
-
-
 
 const cleaningTaskSchema = new mongoose.Schema({
     planId: {
@@ -28,34 +26,38 @@ const cleaningTaskSchema = new mongoose.Schema({
         enum: Object.values(categoryTypes),
         required: true
     },
+
     unit: {
         type: String,
         enum: Object.values(units),
-        default: units.ingen,
+        required: true
     },
-    duration: { type: Number, default: 0 },
-    price: { type: Number, default: 0 },
+
+    // NYT: kopieres fra template
+    durationPerUnit: { type: Number, required: true },
+
+    // ⭐ NYT: mængde (m2, lbm, stk)
+    amount: { type: Number, default: 0 },
 
     // brugerens valg
+    quantity: { type: Number, default: 1 },
+
+    frequency: {
+        type: String,
+        enum: Object.values(frequencies),
+        required: true
+    },
+
     days: {
         type: [String],
         enum: Object.values(days),
         default: []
     },
 
-    frequency: {
-        type: String,
-        enum: Object.values(frequency),
-        required: true
-    },
+    // specialpris pr. gang (underleverandør, særpris, fast pris)
+    customPrice: { type: Number, default: null },
 
-    quantity: { type: Number, default: 1 },
-
-    amount: { type: Number, default: 0 }, // m2, lbm, stk
-
-    // beregnet pris for denne opgave (amount * price * frequency)
-    totalPrice: { type: Number, default: 0 },
-
+    // systemfelter
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
