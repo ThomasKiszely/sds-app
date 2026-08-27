@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
+const { paymentTerms } = require("../utils/paymentTerms");
 
 const cleaningPlanSchema = new mongoose.Schema({
+
     // Reference til Location
     locationId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -8,64 +10,68 @@ const cleaningPlanSchema = new mongoose.Schema({
         required: true
     },
 
-    // Navn på planen (fx "Daglig rengøring", "Vinduespudsning", "Total rengøringsplan")
+    // Reference til Customer (du bruger det i newPlanController)
+    customerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer",
+        required: true
+    },
+
+    // Navn på planen
     name: {
         type: String,
         required: true
     },
 
-    // Beskrivelse (valgfri)
-    description: {
-        type: String
-    },
+    description: String,
 
-    // Total pris for hele planen (beregnes ud fra CleaningTasks)
-    totalPrice: {
-        type: Number,
-        default: 0
-    },
-
+    // Timepris (fra systemSettings)
     hourlyRate: {
         type: Number,
         required: true
     },
 
+    // ⭐ Tasks er separate dokumenter (CleaningTask)
+    // Du må IKKE embedde tasks her
+    taskIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CleaningTask"
+    }],
+
+    // ⭐ Prisberegning (beregnes ud fra CleaningTasks)
+    subtotalBeforeDiscount: { type: Number, default: 0 },
+    discountPercent: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+
+    environmentalFeePercent: { type: Number, default: 4 },
+    environmentalFeeAmount: { type: Number, default: 0 },
+
+    indexRegulationPercent: { type: Number, default: 2.5 },
+
+    totalMonthlyPrice: { type: Number, default: 0 },
+
+    // ⭐ Betalingsbetingelser (dropdown)
+    paymentTerms: {
+        type: String,
+        enum: Object.keys(paymentTerms),
+        required: false // du kan sætte til true når UI er klar
+    },
+
+    // ⭐ Tilbud der er accepteret
     acceptedOfferId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Offer",
         default: null
     },
 
-    acceptedAt: {
-        type: Date,
-        default: null
-    },
+    acceptedAt: Date,
+    acceptedByName: String,
+    acceptedByEmail: String,
 
-    acceptedByName: {
-        type: String,
-        default: null
-    },
+    isActive: { type: Boolean, default: true },
 
-    acceptedByEmail: {
-        type: String,
-        default: null
-    },
-
-    // Metadata
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model("CleaningPlan", cleaningPlanSchema);

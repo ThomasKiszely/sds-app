@@ -32,21 +32,14 @@
                                         – <%= frequencyLabels[task.frequency] %>
                                 <% } %>
 
-                                <!-- Varighed og pris -->
+                                <!-- Pris pr måned -->
                                 <div class="task-meta">
-                                        <div>Varighed pr gang: <strong><%= task.durationPerTask %> min</strong></div>
 
                                         <% if (task.customPrice != null) { %>
-                                                <div>Pris pr gang (fast pris): <strong><%= task.customPrice %> kr.</strong></div>
-                                        <% } else { %>
-                                                <div>Pris pr gang: <strong><%= task.pricePerTime %> kr.</strong></div>
+                                                <div>Fast pris pr gang: <strong><%= task.customPrice %> kr.</strong></div>
                                         <% } %>
 
-                                        <% if (frequencyMultipliers[task.frequency] > 0) { %>
-                                                <div>Pris pr måned: <strong><%= task.monthlyPrice %> kr.</strong></div>
-                                        <% } else { %>
-                                                <div>Pris pr gang: <strong><%= task.pricePerTime %> kr.</strong></div>
-                                        <% } %>
+                                        <div>Pris pr måned: <strong><%= task.monthlyPrice %> kr.</strong></div>
                                 </div>
 
                                 <!-- Beskrivelse -->
@@ -72,3 +65,4 @@
         </ul>
 
 </article>
+

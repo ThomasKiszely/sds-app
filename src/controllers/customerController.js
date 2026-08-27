@@ -176,11 +176,16 @@ async function customerPlans(req, res, next) {
 
         const locations = await locationService.getLocationsForCustomer(customerId);
 
-        // Hent alle planer for alle lokationer
         const plans = [];
+
         for (const loc of locations) {
             const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
-            plans.push(...locPlans.map(p => ({ ...p, location: loc })));
+
+            // Brug toObject() så du ikke ødelægger Mongoose-dokumentet
+            plans.push(...locPlans.map(p => ({
+                ...p.toObject(),
+                location: loc
+            })));
         }
 
         return res.render("customers/plans", {
@@ -193,6 +198,7 @@ async function customerPlans(req, res, next) {
         next(err);
     }
 }
+
 
 
 async function createCustomerView(req, res, next) {

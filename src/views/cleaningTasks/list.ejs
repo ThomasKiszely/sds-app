@@ -8,7 +8,7 @@
             <% tasks.forEach(task => { %>
                 <li>
                     <strong><%= task.name %></strong>
-                    <span><%= task.totalPrice %> kr</span>
+                    <span><%= task.monthlyPrice %> kr</span>
 
                     <button
                             hx-get="/cleaningTasks/<%= planId %>/tasks/<%= task._id %>/edit"

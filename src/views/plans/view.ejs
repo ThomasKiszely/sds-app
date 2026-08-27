@@ -9,7 +9,7 @@
             <p><%= plan.description %></p>
         <% } %>
 
-        <p><strong>Total pris:</strong> <%= plan.totalPrice %> kr</p>
+        <p><strong>Total pris:</strong> <%= plan.totalMonthlyPrice %> kr</p>
 
         <p>
             <strong>Status:</strong>
@@ -58,7 +58,7 @@
                 <% tasks.forEach(task => { %>
                     <li class="task-item">
                         <strong><%= task.name %></strong>
-                        <span><%= task.totalPrice %> kr</span>
+                        <span><%= task.monthlyPrice %> kr</span>
 
                     </li>
                 <% }) %>

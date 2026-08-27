@@ -1,31 +1,33 @@
+const newPlanService = require("../services/newPlanService");
+
 const cleaningPlanService = require("../services/cleaningPlanService");
 const customerService = require("../services/customerService");
-const offerService = require("../services/offerService");
-const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
-const cleaningTaskService = require("../services/cleaningTaskService");
-const systemSettingsService = require("../services/systemSettingsService");
 const locationService = require("../services/locationService");
+const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
-const { frequencies, frequencyMultipliers, frequencyLabels } = require("../utils/frequencyEnum");
+const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
-const { calculateTaskTotalPrice } = require("../utils/priceUtil");
+const { frequencyMultipliers } = require("../utils/frequencyEnum");
 
 
+// ------------------------------------------------------------
+// STEP 1: Vælg kunde
+// ------------------------------------------------------------
 async function step1_customer(req, res) {
     res.render("newPlan/step1_customer", { user: req.session.user });
 }
 
-
-// Kundeliste (HTMX partial)
 async function customerList(req, res) {
     const result = await customerService.listCustomers();
     res.render("newPlan/partials/customerList", { customers: result.customers });
 }
 
 
-// Vælg lokation
+// ------------------------------------------------------------
+// STEP 2: Vælg lokation / opret plan
+// ------------------------------------------------------------
 async function locationList(req, res, next) {
     try {
         const customerId = req.query.customerId;
@@ -46,7 +48,6 @@ async function step2_plan(req, res) {
     const locationId = req.query.locationId;
     const planId = req.query.planId;
 
-    // Hvis vi kommer fra "rediger plan" eller step3
     if (planId) {
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
@@ -58,7 +59,6 @@ async function step2_plan(req, res) {
         });
     }
 
-    // Hvis vi kommer fra "opret kunde" og der ikke er valgt lokation endnu
     if (!locationId) {
         return res.render("newPlan/locationList", {
             customerId,
@@ -67,7 +67,6 @@ async function step2_plan(req, res) {
         });
     }
 
-    // Ellers er det en ny plan
     return res.render("newPlan/step2_plan", {
         customerId,
         locationId,
@@ -76,52 +75,15 @@ async function step2_plan(req, res) {
     });
 }
 
-
-
 async function savePlan(req, res) {
     try {
-        const customerId = req.body.customerId;
-        const locationId = req.body.locationId;
-
-        // Hent kunde og lokation
-        const customer = await customerService.getCustomerById(customerId);
-        const location = await locationService.getLocationById(locationId);
-
-        const userName = req.body.name?.trim();          // Navn fra UI
-        const locationName = location?.name?.trim();     // Lokationsnavn (valgfri)
-
-        // Hent eksisterende planer for lokationen (til løbenummer)
-        const existingPlans = await cleaningPlanService.getPlansForLocation(locationId);
-        const count = existingPlans.length + 1;
-
-        // Auto-navn hvis brugeren ikke skriver noget
-        const defaultName = locationName
-            ? `${customer.customerName} – ${locationName} – Rengøringsplan – #${count}`
-            : `${customer.customerName} – Rengøringsplan – #${count}`;
-
-        // Kombineret navn (professionelt)
-        const name = userName
-            ? (locationName
-                ? `${customer.customerName} – ${locationName} – ${userName} – #${count}`
-                : `${customer.customerName} – ${userName} – #${count}`)
-            : defaultName;
-
-        // Beskrivelse fra UI
-        const description = req.body.description?.trim() || "";
-
-        // Hent systemets timepris
-        const systemSettings = await systemSettingsService.getSettings();
-
-        // Opret plan
-        const plan = await cleaningPlanService.createCleaningPlan({
-            customerId,
-            locationId,
-            name,
-            description,
-            hourlyRate: systemSettings.hourlyRate
+        const plan = await newPlanService.createPlan({
+            customerId: req.body.customerId,
+            locationId: req.body.locationId,
+            nameFromUI: req.body.name,
+            description: req.body.description
         });
 
-        // Gå direkte til opgavevalg
         return res.render("newPlan/partials/tasks", {
             planId: plan._id,
             locationId: plan.locationId
@@ -134,6 +96,9 @@ async function savePlan(req, res) {
 }
 
 
+// ------------------------------------------------------------
+// STEP 3: Opgaver
+// ------------------------------------------------------------
 async function step3_tasks(req, res) {
     const planId = req.query.planId;
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
@@ -152,49 +117,103 @@ async function step3_tasks(req, res) {
 }
 
 
-// Daglige opgaver
+// ------------------------------------------------------------
+// TASKS: Daglig / Extra / Consumables / Windows
+// ------------------------------------------------------------
 async function tasks_daily(req, res) {
-    try {
-        const planId = req.query.planId;
+    const planId = req.query.planId;
 
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
 
-        return res.render("newPlan/partials/tasks/daily", {
-            plan,
-            templates,
-            tasks,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            customerId: plan.customerId
-        });
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
-    }
+    return res.render("newPlan/partials/tasks/daily", {
+        plan,
+        templates,
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
+    });
 }
 
+async function tasks_extra(req, res) {
+    const planId = req.query.planId;
+
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.extra);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/extra", {
+        plan,
+        templates,
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
+    });
+}
+
+async function tasks_consumables(req, res) {
+    const planId = req.query.planId;
+
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.consumables);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/consumables", {
+        plan,
+        templates,
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
+    });
+}
+
+async function tasks_windows(req, res) {
+    const planId = req.query.planId;
+
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.windows);
+    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    return res.render("newPlan/partials/tasks/windows", {
+        plan,
+        templates,
+        tasks,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        customerId: plan.customerId
+    });
+}
+
+
+// ------------------------------------------------------------
+// TASKS: Add / Edit / Update / Delete / Preview / List
+// ------------------------------------------------------------
 async function tasks_add(req, res) {
     try {
-        const planId = req.body.planId;
-        const templateId = req.body.templateId;
-
-        const template = await cleaningTaskTemplateService.findTemplateById(templateId);
-
-        const task = await cleaningTaskService.createCleaningTask(planId, {
-            templateId,
-            name: template.name,
-            description: template.description,   // ← NYT
-            frequency: frequencies.weekly,
-            amount: 0,
-            quantity: 1
-        });
+        const task = await newPlanService.addTaskFromTemplate(
+            req.body.planId,
+            req.body.templateId
+        );
 
         return res.render("newPlan/partials/tasks/editTask", {
             task,
@@ -216,9 +235,7 @@ async function tasks_add(req, res) {
 
 async function tasks_edit(req, res) {
     try {
-        const { taskId } = req.params;
-
-        const task = await cleaningTaskService.findCleaningTaskById(taskId);
+        const task = await newPlanService.getEditTaskViewModel(req.params.taskId);
 
         return res.render("newPlan/partials/tasks/editTask", {
             task,
@@ -240,33 +257,10 @@ async function tasks_edit(req, res) {
 
 async function tasks_update(req, res) {
     try {
-        const { taskId } = req.params;
+        const vm = await newPlanService.updateTask(req.params.taskId, req.body);
 
-        // Opdater opgaven
-        const updatedTask = await cleaningTaskService.updateCleaningTask(taskId, req.body);
-
-        // Hent plan og tasks
-        const plan = await cleaningPlanService.findCleaningPlanById(updatedTask.planId);
-        const tasks = await cleaningTaskService.listCleaningTasks(updatedTask.planId);
-
-        const hourlyRate = plan.hourlyRate;
-
-        // Enrich tasks med pris, varighed, mængde osv.
-        const enrichedTasks = tasks.map(t => {
-            const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
-            return { ...t, ...prices };
-        });
-
-        // Beregn totaler
-        const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
-        const yearlyTotal = monthlyTotal * 12;
-
-        // Render taskList
         return res.render("newPlan/partials/tasks/taskList", {
-            planId: updatedTask.planId,
-            tasks: enrichedTasks,
-            monthlyTotal,
-            yearlyTotal,
+            ...vm,
             units,
             unitsLabels,
             categoryLabels,
@@ -282,209 +276,21 @@ async function tasks_update(req, res) {
     }
 }
 
-
-async function step4_offer(req, res) {
-    const planId = req.query.planId;
-
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
-    const systemSettings = await systemSettingsService.getSettings();
-
-    const discountPercent = 0;
-    const environmentalFee = systemSettings.environmentalFee;
-
-    // Brug fælles beregningsmetode
-    const totals = offerService.calculateOfferTotals(
-        tasks,
-        discountPercent,
-        environmentalFee
-    );
-
-    res.render("newPlan/step4_offer", {
-        planId,
-        tasks,
-
-        discountPercent,
-        environmentalFee,
-
-        subtotal: totals.subtotal,
-        discountAmount: totals.discountAmount,
-        environmentalFeeAmount: totals.environmentalFeeAmount,
-        total: totals.total
-    });
-}
-
-
-async function previewOffer(req, res) {
-    const planId = req.body.planId;
-
-    const discountPercent = Number(req.body.discountPercent || 0);
-    const environmentalFee = Number(req.body.environmentalFee || 0);
-
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-    const totals = offerService.calculateOfferTotals(
-        tasks,
-        discountPercent,
-        environmentalFee
-    );
-
-    return res.send(`${totals.total.toFixed(2)} kr.`);
-}
-
-
-async function saveOffer(req, res) {
-    const offer = await offerService.createOffer(
-        req.body.planId,
-        {
-            discountPercent: Number(req.body.discountPercent),
-            environmentalFee: Number(req.body.environmentalFee)
-        }
-    );
-
-    res.redirect(`/offers/${offer._id}/view`);
-}
-
-//Preview
 async function tasks_preview(req, res) {
     try {
-        const { taskId } = req.params;
-
-        const task = await cleaningTaskService.findCleaningTaskById(taskId);
-
-        const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(task.planId);
-
-        const frequency = req.body.frequency ?? task.frequency;
-        const amount = Number(req.body.amount ?? task.amount);
-        const quantity = Number(req.body.quantity ?? task.quantity);
-        const description = req.body.description ?? task.description;
-
-        // Normaliser days
-        const days = (() => {
-            if (!req.body.days) return task.days;
-            if (Array.isArray(req.body.days)) return req.body.days;
-            return [req.body.days];
-        })();
-
-        // NYT: durationPerUnit
-        const durationPerUnit = Number(req.body.durationPerUnit ?? task.durationPerUnit);
-
-        // Beregn varighed pr gang
-        let totalDuration = durationPerUnit;
-
-        if (task.unit === "stk") {
-            totalDuration = durationPerUnit * quantity;
-        } else if (task.unit === "m2" || task.unit === "lbm") {
-            totalDuration = durationPerUnit * amount;
-        }
-
-        // Pris pr gang
-        const pricePerTime = (totalDuration / 60) * hourlyRate;
-
-        // Pris pr måned
-        const multiplier = frequencyMultipliers[frequency] ?? 1;
-        const totalPrice = pricePerTime * multiplier;
-
-        return res.send(`${Math.round(totalPrice)} kr.`);
-
+        const price = await newPlanService.previewTaskPrice(req.params.taskId, req.body);
+        return res.send(`${price} kr.`);
     } catch (error) {
-        console.log("Preview error:", error);
         return res.send("Fejl");
     }
 }
 
-
-async function tasks_extra(req, res) {
-    const planId = req.query.planId;
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.extra);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-    return res.render("newPlan/partials/tasks/extra", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-
-}
-
-async function tasks_consumables(req, res) {
-    const planId = req.query.planId;
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.consumables);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-    return res.render("newPlan/partials/tasks/consumables", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-
-}
-
-async function tasks_windows(req, res) {
-    const planId = req.query.planId;
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.windows);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-    return res.render("newPlan/partials/tasks/windows", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-}
-
 async function tasks_delete(req, res) {
     try {
-        const { taskId } = req.params;
+        const vm = await newPlanService.deleteTask(req.params.taskId);
 
-        // Soft delete
-        const deletedTask = await cleaningTaskService.deleteCleaningTask(taskId);
-
-        // Hent plan og tasks
-        const plan = await cleaningPlanService.findCleaningPlanById(deletedTask.planId);
-        const tasks = await cleaningTaskService.listCleaningTasks(deletedTask.planId);
-
-        const hourlyRate = plan.hourlyRate;
-
-        // Enrich tasks
-        const enrichedTasks = tasks.map(t => {
-            const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
-            return { ...t, ...prices };
-        });
-
-        // Beregn totaler
-        const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
-        const yearlyTotal = monthlyTotal * 12;
-
-        // Render taskList
         return res.render("newPlan/partials/tasks/taskList", {
-            planId: deletedTask.planId,
-            tasks: enrichedTasks,
-            monthlyTotal,
-            yearlyTotal,
+            ...vm,
             units,
             unitsLabels,
             categoryLabels,
@@ -500,32 +306,11 @@ async function tasks_delete(req, res) {
     }
 }
 
-
-
 async function tasks_list(req, res) {
-    const planId = req.query.planId;
+    const vm = await newPlanService.listTasks(req.query.planId);
 
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const tasks = await cleaningTaskService.listCleaningTasks(planId);
-
-    const hourlyRate = plan.hourlyRate;
-
-    // Enrich tasks
-    const enrichedTasks = tasks.map(t => {
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(t, hourlyRate);
-        return { ...t, ...prices };
-    });
-
-    // Beregn totaler
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
-    const yearlyTotal = monthlyTotal * 12;
-
-    // Render taskList
     return res.render("newPlan/partials/tasks/taskList", {
-        planId,
-        tasks: enrichedTasks,
-        monthlyTotal,
-        yearlyTotal,
+        ...vm,
         units,
         unitsLabels,
         categoryLabels,
@@ -534,6 +319,37 @@ async function tasks_list(req, res) {
         frequencyLabels,
         frequencyMultipliers
     });
+}
+
+
+// ------------------------------------------------------------
+// STEP 4: Tilbud
+// ------------------------------------------------------------
+async function step4_offer(req, res) {
+    const vm = await newPlanService.getOfferStep4ViewModel(req.query.planId);
+    res.render("newPlan/step4_offer", vm);
+}
+
+async function previewOffer(req, res) {
+    const total = await newPlanService.getOfferPreview(
+        req.body.planId,
+        Number(req.body.discountPercent || 0),
+        Number(req.body.environmentalFee || 0)
+    );
+
+    return res.send(`${total.toFixed(2)} kr.`);
+}
+
+async function saveOffer(req, res) {
+    const offer = await offerService.createOffer(
+        req.body.planId,
+        {
+            discountPercent: Number(req.body.discountPercent),
+            environmentalFeePercent: Number(req.body.environmentalFee)
+        }
+    );
+
+    res.redirect(`/offers/${offer._id}/view`);
 }
 
 

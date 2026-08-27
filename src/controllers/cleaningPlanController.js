@@ -1,5 +1,5 @@
-// controllers/cleaningPlanController.js
 const cleaningPlanService = require('../services/cleaningPlanService');
+const cleaningTaskService = require('../services/cleaningTaskService');
 
 async function createCleaningPlan(req, res, next) {
     try {
@@ -105,12 +105,24 @@ async function reactivateCleaningPlan(req, res, next) {
 
 async function viewPlan(req, res, next) {
     try {
-        const plan = await cleaningPlanService.findCleaningPlanById(req.params.id);
-        const tasks = await cleaningPlanService.getTasksForPlan(req.params.id);
+        const { planId } = req.params;
+
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        const hourlyRate = plan.hourlyRate;
+
+        console.log("LOGGER HER: ", plan, tasks, hourlyRate);
+        // Tilføj priser til tasks
+        const enrichedTasks = tasks.map(t => {
+            const plain = t.toObject();
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            return { ...plain, ...prices };
+        });
 
         return res.render('plans/view', {
             plan,
-            tasks,
+            tasks: enrichedTasks,
             user: req.session.user
         });
     } catch (err) {

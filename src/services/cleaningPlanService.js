@@ -1,9 +1,11 @@
 const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const { ensureExists, userError } = require("../utils/userError");
-const { frequencyMultipliers } = require("../utils/frequencyEnum");
+const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 
-// Genberegn totalPrice for en plan baseret på dens opgaver
+// ------------------------------------------------------------
+// GENBEREGN TOTALPRIS FOR PLAN
+// ------------------------------------------------------------
 async function recalculatePlanTotal(planId) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -11,42 +13,47 @@ async function recalculatePlanTotal(planId) {
     const tasks = await cleaningTaskRepo.findByPlanId(planId);
     const hourlyRate = plan.hourlyRate;
 
-    let total = 0;
+    let subtotal = 0;
 
     for (const t of tasks) {
-        // Pris pr. gang
-        let price;
-
-        if (t.customPrice !== null && t.customPrice !== undefined) {
-            price = Number(t.customPrice);
-        } else {
-            const duration = t.quantity * t.durationPerUnit; // minutter
-            price = (duration / 60) * hourlyRate;
-        }
-
-        // Pris pr. måned
-        const multiplier = frequencyMultipliers[t.frequency] ?? 1;
-        const monthlyPrice = price * multiplier;
-
-        total += monthlyPrice;
+        const { monthlyPrice } = calculateTaskMonthlyPrice(t, hourlyRate);
+        subtotal += monthlyPrice;
     }
 
-    await cleaningPlanRepo.updateById(planId, { totalPrice: total });
+    // Rabat
+    const discountPercent = plan.discountPercent || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const afterDiscount = subtotal - discountAmount;
+
+    // Miljøtillæg
+    const environmentalFeePercent = plan.environmentalFeePercent || 4;
+    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
+
+    // Total pr måned
+    const totalMonthlyPrice = afterDiscount + environmentalFeeAmount;
+
+    await cleaningPlanRepo.updateById(planId, {
+        subtotalBeforeDiscount: subtotal,
+        discountAmount,
+        environmentalFeeAmount,
+        totalMonthlyPrice
+    });
 }
-// Opret rengøringsplan
+
+
+// ------------------------------------------------------------
+// OPRET PLAN
+// ------------------------------------------------------------
 async function createCleaningPlan(data) {
 
-    // Mangler helt
     if (data.hourlyRate === undefined || data.hourlyRate === null) {
         throw new userError("Timeprisen mangler ved oprettelse af plan.");
     }
 
-    // Tom string eller whitespace
     if (typeof data.hourlyRate === "string" && data.hourlyRate.trim() === "") {
         throw new userError("Timeprisen må ikke være tom.");
     }
 
-    // Ikke et tal
     if (isNaN(Number(data.hourlyRate))) {
         throw new userError("Timeprisen skal være et tal.");
     }
@@ -56,16 +63,20 @@ async function createCleaningPlan(data) {
         locationId: data.locationId,
         name: data.name?.trim() || "Ukendt plan",
         description: data.description?.trim() || "",
-        hourlyRate: Number(data.hourlyRate),   // aldrig fallback til 0
-        isActive: true,
-        totalPrice: 0
+        hourlyRate: Number(data.hourlyRate),
+        isActive: false,
+        totalMonthlyPrice: 0,
+        discountPercent: 0,
+        environmentalFeePercent: 4
     });
 
     return plan;
 }
 
 
-
+// ------------------------------------------------------------
+// LIST / FIND
+// ------------------------------------------------------------
 async function listCleaningPlans() {
     return cleaningPlanRepo.findAllActive();
 }
@@ -80,6 +91,10 @@ async function findCleaningPlanById(planId) {
     return plan;
 }
 
+
+// ------------------------------------------------------------
+// OPDATER PLAN
+// ------------------------------------------------------------
 async function updateCleaningPlan(planId, data) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -87,15 +102,20 @@ async function updateCleaningPlan(planId, data) {
     const updated = await cleaningPlanRepo.updateById(planId, {
         name: data.name?.trim() ?? plan.name,
         description: data.description ?? plan.description,
-        hourlyRate: data.hourlyRate ?? plan.hourlyRate
+        hourlyRate: data.hourlyRate ?? plan.hourlyRate,
+        discountPercent: data.discountPercent ?? plan.discountPercent,
+        environmentalFeePercent: data.environmentalFeePercent ?? plan.environmentalFeePercent
     });
 
-    // Hvis timepris ændres → genberegn total
     await recalculatePlanTotal(planId);
 
     return updated;
 }
 
+
+// ------------------------------------------------------------
+// DEAKTIVER / GENAKTIVER
+// ------------------------------------------------------------
 async function deleteCleaningPlan(planId) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -113,6 +133,10 @@ async function reactivateCleaningPlan(planId) {
     return updated;
 }
 
+
+// ------------------------------------------------------------
+// HENT PLANER FOR KUNDE / LOKATION
+// ------------------------------------------------------------
 async function getPlansForCustomer(customerId) {
     return cleaningPlanRepo.findByCustomerId(customerId);
 }
@@ -121,9 +145,14 @@ async function getPlansForLocation(locationId) {
     return cleaningPlanRepo.findByLocationId(locationId);
 }
 
+
+// ------------------------------------------------------------
+// HENT TASKS FOR PLAN
+// ------------------------------------------------------------
 async function getTasksForPlan(planId) {
     return cleaningTaskRepo.findByPlanId(planId);
 }
+
 
 module.exports = {
     createCleaningPlan,

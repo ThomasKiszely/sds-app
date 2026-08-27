@@ -48,6 +48,16 @@
         margin-top: 8px;
     }
 
+    .responsive-table td.actions {
+        display: block;
+        padding: 6px 0;
+    }
+
+    .responsive-table td.actions button {
+        width: 100%;
+        margin-top: 8px;
+    }
+
     .filter-row {
         grid-template-columns: 1fr;
     }

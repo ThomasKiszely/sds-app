@@ -39,8 +39,9 @@
                         <small><%= plan.location.address %></small>
                     </td>
 
+
                     <td data-label="Totalpris">
-                        <%= plan.totalPrice %> kr
+                        <%= plan.totalMonthlyPrice %> kr
                     </td>
 
                     <td data-label="Status">
@@ -52,25 +53,29 @@
                     </td>
 
                     <td data-label="Handlinger">
+
+                        <!-- SE PLAN -->
                         <button
                                 hx-get="/cleaningPlans/<%= plan._id %>/view"
                                 hx-target="#content">
                             Se plan
                         </button>
 
+                        <!-- DEAKTIVER / AKTIVÉR -->
                         <% if (plan.isActive) { %>
                             <button
-                                    hx-post="/cleaningPlans/<%= plan._id %>/delete"
+                                    hx-delete="/cleaningPlans/<%= plan._id %>"
                                     hx-target="#content">
                                 Deaktiver
                             </button>
                         <% } else { %>
                             <button
-                                    hx-post="/cleaningPlans/<%= plan._id %>/reactivate"
+                                    hx-patch="/cleaningPlans/<%= plan._id %>/reactivate"
                                     hx-target="#content">
                                 Aktivér
                             </button>
                         <% } %>
+
                     </td>
                 </tr>
             <% }) %>

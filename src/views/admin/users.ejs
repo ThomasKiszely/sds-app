@@ -19,14 +19,14 @@
         <% const isSelf = (sessionUserId && user._id.toString() === sessionUserId.toString()); %>
 
         <tr>
-            <td><%= user.userName %></td>
-            <td><%= user.fullName %></td>
-            <td><%= user.position || "-" %></td>
-            <td><%= user.phoneNumber || "-" %></td>
-            <td><%= user.email || "-" %></td>
-            <td><%= user.address || "-" %></td>
+            <td data-label="Brugernavn"><%= user.userName %></td>
+            <td data-label="Fulde navn"><%= user.fullName %></td>
+            <td data-label="Stilling"><%= user.position || "-" %></td>
+            <td data-label="Telefon"><%= user.phoneNumber || "-" %></td>
+            <td data-label="Email"><%= user.email || "-" %></td>
+            <td data-label="Adresse"><%= user.address || "-" %></td>
 
-            <td>
+            <td data-label="Rolle">
                 <% if (user.role === "admin") { %>
                     <span class="badge badge-admin">Admin</span>
                 <% } else { %>
@@ -34,13 +34,15 @@
                 <% } %>
             </td>
 
-            <td>
+            <td data-label="Status">
                 <% if (user.active) { %>
                     <span class="badge badge-active">Aktiv</span>
                 <% } else { %>
                     <span class="badge badge-inactive">Deaktiveret</span>
                 <% } %>
             </td>
+
+            <td class="actions">
 
             <td>
                 <!-- Rediger bruger -->
@@ -67,7 +69,7 @@
                             Deaktivér
                         </button>
                     <% } else { %>
-                        <span class="badge badge-warning">Din egen konto</span>
+                        <span class="badge badge-warning"></span>
                     <% } %>
 
                 <% } else { %>
@@ -97,7 +99,7 @@
                     <% } %>
 
                 <% } else { %>
-                    <span class="badge badge-info">Din egen rolle</span>
+                    <span class="badge badge-info"></span>
                 <% } %>
 
                 <!-- Slet permanent — skjul for brugeren selv -->

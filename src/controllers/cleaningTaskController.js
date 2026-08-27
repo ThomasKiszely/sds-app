@@ -1,4 +1,5 @@
 const cleaningTaskService = require('../services/cleaningTaskService');
+const cleaningPlanService = require('../services/cleaningPlanService');
 const { days, daysLabels } = require("../utils/dayEnum");
 const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
@@ -50,11 +51,20 @@ async function listCleaningTasks(req, res, next) {
     try {
         const { planId } = req.params;
 
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const hourlyRate = plan.hourlyRate;
+
         const tasks = await cleaningTaskService.listCleaningTasks(planId);
+
+        const enrichedTasks = tasks.map(t => {
+            const plain = t.toObject();
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            return { ...plain, ...prices };
+        });
 
         return res.render("cleaningTasks/list", {
             planId,
-            tasks,
+            tasks: enrichedTasks,
             frequencyLabels,
             unitsLabels,
             categoryLabels
@@ -63,6 +73,7 @@ async function listCleaningTasks(req, res, next) {
         next(error);
     }
 }
+
 
 async function findCleaningTaskById(req, res, next) {
     try {

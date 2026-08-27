@@ -15,9 +15,9 @@ async function generateOfferPdf(offer, tasks, signatureLink) {
         subtotal: offer.subtotalBeforeDiscount,
         discountPercent: offer.discountPercent,
         discountAmount: offer.discountAmount,
-        environmentalFee: offer.environmentalFee,
+        environmentalFeePercent: offer.environmentalFeePercent,
         environmentalFeeAmount: offer.environmentalFeeAmount,
-        total: offer.totalPrice,
+        total: offer.totalMonthlyPrice,
         signatureLink
     });
 
@@ -35,6 +35,5 @@ async function generateOfferPdf(offer, tasks, signatureLink) {
 
     return pdfBuffer;
 }
-
 
 module.exports = { generateOfferPdf };

@@ -5,6 +5,7 @@ const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const { ensureExists } = require("../utils/userError");
 const { frequencyMultipliers } = require("../utils/frequencyEnum");
 const { recalculatePlanTotal } = require('./cleaningPlanService');
+const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 
 // Helper
 function normalizeDays(days) {
@@ -118,34 +119,9 @@ async function getDeletedCleaningTasks(planId) {
 
 // Dynamisk prisberegning til visning
 function calculateCleaningTaskPrices(task, hourlyRate) {
-    const quantity = Number(task.quantity ?? 1);
-    const amount = Number(task.amount ?? 0);
-
-    // Varighed pr gang
-    let duration = task.durationPerUnit;
-    if (task.unit === "stk") duration *= quantity;
-    if (task.unit === "m2" || task.unit === "lbm") duration *= amount;
-
-    // Pris pr gang
-    const pricePerTime = task.customPrice != null
-        ? Number(task.customPrice)
-        : (duration / 60) * hourlyRate;
-
-    // Dage
-    const dayCount = Array.isArray(task.days) ? task.days.length : 0;
-
-    // Frekvens
-    const freqMultiplier = frequencyMultipliers[task.frequency] ?? 1;
-
-    // Pris pr måned
-    const monthlyPrice = pricePerTime * freqMultiplier * dayCount;
-
-    return {
-        durationPerTask: duration,
-        pricePerTime,
-        monthlyPrice
-    };
+    return calculateTaskMonthlyPrice(task, hourlyRate);
 }
+
 
 
 module.exports = {

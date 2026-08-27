@@ -3,14 +3,28 @@ const router = express.Router();
 const cleaningPlanController = require('../controllers/cleaningPlanController');
 const validateCleaningPlan = require('../middlewares/validateCleaningPlan');
 
-
+// Arkiverede planer
 router.get('/archived', cleaningPlanController.getDeletedCleaningPlans);
-router.patch('/:id/reactivate', cleaningPlanController.reactivateCleaningPlan);
-router.put('/:id', validateCleaningPlan, cleaningPlanController.updateCleaningPlan);
-router.delete('/:id', cleaningPlanController.deleteCleaningPlan);
-router.get('/:id/view', cleaningPlanController.viewPlan);
-router.get('/:id', cleaningPlanController.findCleaningPlanById);
+
+// Genaktiver plan
+router.patch('/:planId/reactivate', cleaningPlanController.reactivateCleaningPlan);
+
+// Opdater plan
+router.put('/:planId', validateCleaningPlan, cleaningPlanController.updateCleaningPlan);
+
+// Deaktiver plan
+router.delete('/:planId', cleaningPlanController.deleteCleaningPlan);
+
+// Se plan (VIEW)
+router.get('/:planId/view', cleaningPlanController.viewPlan);
+
+// Find plan (JSON)
+router.get('/:planId', cleaningPlanController.findCleaningPlanById);
+
+// Opret plan
 router.post('/', validateCleaningPlan, cleaningPlanController.createCleaningPlan);
+
+// List alle planer
 router.get('/', cleaningPlanController.listCleaningPlans);
 
 module.exports = router;

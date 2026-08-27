@@ -13,8 +13,10 @@ async function findByCustomerId(customerId) {
     return CleaningPlan.find({
         customerId: new mongoose.Types.ObjectId(customerId),
         isActive: true
-    });
+    }).populate("locationId");
 }
+
+
 
 async function findAllActive() {
     return CleaningPlan.find({ isActive: true }).sort({ createdAt: -1 });

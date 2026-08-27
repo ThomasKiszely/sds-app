@@ -3,12 +3,13 @@ const cleaningTaskRepo = require("../data/cleaningTaskRepo");
 const cleaningPlanRepo = require("../data/cleaningPlanRepo");
 const { userError } = require("../utils/userError");
 const crypto = require("crypto");
+const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 
 async function getOfferById(id) {
     return await offerRepo.findById(id);
 }
 
-async function createOffer(planId, { discountPercent = 0, environmentalFee = 1 }) {
+async function createOffer(planId, { discountPercent = 0, environmentalFeePercent = 4 }) {
 
     const plan = await cleaningPlanRepo.findById(planId);
     if (!plan) throw userError("Rengøringsplanen findes ikke");
@@ -18,32 +19,64 @@ async function createOffer(planId, { discountPercent = 0, environmentalFee = 1 }
         throw userError("Rengøringsplanen har ingen opgaver");
     }
 
-    // Brug fælles beregning
-    const totals = calculateOfferTotals(tasks, discountPercent, environmentalFee);
+    const totals = calculateOfferTotals(tasks, discountPercent, environmentalFeePercent);
+
+    const snapshot = {
+        plan: {
+            name: plan.name,
+            description: plan.description,
+            hourlyRate: plan.hourlyRate,
+
+            subtotalBeforeDiscount: totals.subtotal,
+            discountPercent,
+            discountAmount: totals.discountAmount,
+
+            environmentalFeePercent,
+            environmentalFeeAmount: totals.environmentalFeeAmount,
+
+            indexRegulationPercent: plan.indexRegulationPercent,
+            totalMonthlyPrice: totals.total,
+
+            paymentTerms: plan.paymentTerms
+        },
+
+        tasks: tasks.map(t => {
+            const { monthlyPrice, pricePerTime, duration } =
+                calculateTaskMonthlyPrice(t, plan.hourlyRate);
+
+            return {
+                name: t.name,
+                category: t.category,
+                unit: t.unit,
+                amount: t.amount,
+                quantity: t.quantity,
+
+                durationPerUnit: t.durationPerUnit,
+                durationPerTask: duration,
+
+                frequency: t.frequency,
+                days: t.days,
+
+                pricePerTime,
+                monthlyPrice,
+
+                description: t.description
+            };
+        })
+    };
 
     const signatureToken = crypto.randomBytes(32).toString("hex");
 
     const offer = await offerRepo.create({
         customerId: plan.customerId,
         planId,
-        taskIds: tasks.map(t => t._id),
-
-        subtotalBeforeDiscount: totals.subtotal,
-        discountPercent,
-        discountAmount: totals.discountAmount,
-
-        environmentalFee,
-        environmentalFeeAmount: totals.environmentalFeeAmount,
-
-        totalPrice: totals.total,
-
-        status: "draft",
+        snapshot,
+        status: "sent",
         signatureToken
     });
 
     return offer;
 }
-
 
 async function sendOffer(offerId) {
     const offer = await offerRepo.findById(offerId);
@@ -67,7 +100,6 @@ async function acceptOffer(offerId, { name, email }) {
         throw userError("Kun sendte tilbud kan accepteres");
     }
 
-    // Opdater tilbud
     offer.status = "accepted";
     offer.acceptedByName = name;
     offer.acceptedByEmail = email;
@@ -75,7 +107,6 @@ async function acceptOffer(offerId, { name, email }) {
 
     await offerRepo.update(offerId, offer);
 
-    // Opdater CleaningPlan med accept-info
     await cleaningPlanRepo.updateById(offer.planId, {
         acceptedOfferId: offerId,
         acceptedAt: offer.acceptedAt,
@@ -94,17 +125,21 @@ async function listOffersForPlan(planId) {
     return await offerRepo.findByPlanId(planId);
 }
 
-function calculateOfferTotals(tasks, discountPercent, environmentalFee) {
-    const subtotal = tasks.reduce((sum, t) => sum + t.totalPrice, 0);
+function calculateOfferTotals(tasks, discountPercent, environmentalFeePercent) {
 
-    // 1) Miljøafgift først
-    const environmentalFeeAmount = subtotal * (environmentalFee / 100);
+    const subtotal = tasks.reduce((sum, t) => {
+        const hourlyRate = t.hourlyRate || t.planHourlyRate || t._doc?.hourlyRate;
+        const rate = hourlyRate ?? 0;
+
+        const { monthlyPrice } = calculateTaskMonthlyPrice(t, rate);
+        return sum + monthlyPrice;
+    }, 0);
+
+    const environmentalFeeAmount = subtotal * (environmentalFeePercent / 100);
     const subtotalWithFee = subtotal + environmentalFeeAmount;
 
-    // 2) Rabat på subtotal + miljøafgift
     const discountAmount = subtotalWithFee * (discountPercent / 100);
 
-    // 3) Total
     const total = subtotalWithFee - discountAmount;
 
     return {
@@ -114,7 +149,6 @@ function calculateOfferTotals(tasks, discountPercent, environmentalFee) {
         total
     };
 }
-
 
 module.exports = {
     getOfferById,
