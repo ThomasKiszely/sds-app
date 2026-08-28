@@ -100,13 +100,13 @@
     <section class="plan-status">
         <% if (plan.isActive) { %>
             <button
-                    hx-delete="/cleaningPlans/<%= plan._id %>"
+                    hx-delete="/cleaningPlans/<%= plan._id %>?context=planView"
                     hx-target="#content">
                 Deaktiver plan
             </button>
         <% } else { %>
             <button
-                    hx-patch="/cleaningPlans/<%= plan._id %>/reactivate"
+                    hx-patch="/cleaningPlans/<%= plan._id %>?context=planView/reactivate"
                     hx-target="#content">
                 Reaktiver plan
             </button>

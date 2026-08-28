@@ -15,6 +15,13 @@
                                 <strong><%= task.name || "Ukendt opgave" %></strong>
                                 <span>(<%= categoryLabels[task.category] %>)</span>
 
+                                <!-- ⭐ Lokale + programkode -->
+                                <div class="task-room">
+                                        <strong>Lokale:</strong> <%= task.roomName %>
+                                        – <strong>Kode:</strong> <%= task.programCode %>
+                                </div>
+
+
                                 <!-- Mængde -->
                                 <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
                                         – <%= task.amount %> <%= unitsLabels[task.unit] %>

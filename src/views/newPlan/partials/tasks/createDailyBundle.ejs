@@ -1,0 +1,135 @@
+<article class="task-category">
+
+    <h2>Opret daglig opgave (bundle)</h2>
+
+    <form
+            hx-post="/newPlan/tasks/dailyBundle/save"
+            hx-target="#taskArea"
+            hx-swap="innerHTML"
+    >
+
+        <input type="hidden" name="planId" value="<%= plan._id %>">
+
+        <!-- ⭐ FÆLLES FELTER -->
+        <section>
+            <h3>Fælles</h3>
+
+            <label>Lokale</label>
+            <input type="text" name="roomName" required>
+
+            <label>Areal (m²)</label>
+            <input type="number" name="amount" min="0" step="0.01" required>
+        </section>
+
+        <hr>
+
+        <!-- ⭐ INDIVIDUEL OPERATION: SOIGNERING -->
+        <section>
+            <h3>Soignering</h3>
+
+            <input type="hidden" name="template_soignering" value="<%= soigneringTemplate._id %>">
+
+            <label>Varighed pr enhed (min)</label>
+            <input type="number" name="duration_soignering" value="<%= soigneringTemplate.durationPerUnit %>" step="0.01">
+
+            <label>Fast pris (valgfrit)</label>
+            <input type="number" name="custom_soignering" min="0">
+
+            <label>Dage</label>
+            <% Object.keys(days).forEach(key => { %>
+                <label>
+                    <input type="checkbox" name="days_soignering" value="<%= days[key] %>">
+                    <%= daysLabels[key] %>
+                </label>
+            <% }) %>
+
+            <label>Frekvens</label>
+            <select name="frequency_soignering">
+                <% Object.keys(frequencies).forEach(key => { %>
+                    <option value="<%= frequencies[key] %>"><%= frequencyLabels[key] %></option>
+                <% }) %>
+            </select>
+
+            <label>Beskrivelse</label>
+            <textarea name="description_soignering"><%= soigneringTemplate.description %></textarea>
+        </section>
+
+        <hr>
+
+        <!-- ⭐ GULV -->
+        <section>
+            <h3>Gulv</h3>
+
+            <input type="hidden" name="template_gulv" value="<%= gulvTemplate._id %>">
+
+            <label>Varighed pr enhed (min)</label>
+            <input type="number" name="duration_gulv" value="<%= gulvTemplate.durationPerUnit %>" step="0.01">
+
+            <label>Fast pris (valgfrit)</label>
+            <input type="number" name="custom_gulv" min="0">
+
+            <label>Dage</label>
+            <% Object.keys(days).forEach(key => { %>
+                <label>
+                    <input type="checkbox" name="days_gulv" value="<%= days[key] %>">
+                    <%= daysLabels[key] %>
+                </label>
+            <% }) %>
+
+            <label>Frekvens</label>
+            <select name="frequency_gulv">
+                <% Object.keys(frequencies).forEach(key => { %>
+                    <option value="<%= frequencies[key] %>"><%= frequencyLabels[key] %></option>
+                <% }) %>
+            </select>
+
+            <label>Beskrivelse</label>
+            <textarea name="description_gulv"><%= gulvTemplate.description %></textarea>
+        </section>
+
+        <hr>
+
+        <!-- ⭐ INVENTAR -->
+        <section>
+            <h3>Inventar</h3>
+
+            <input type="hidden" name="template_inventar" value="<%= inventarTemplate._id %>">
+
+            <label>Varighed pr enhed (min)</label>
+            <input type="number" name="duration_inventar" value="<%= inventarTemplate.durationPerUnit %>" step="0.01">
+
+            <label>Fast pris (valgfrit)</label>
+            <input type="number" name="custom_inventar" min="0">
+
+            <label>Dage</label>
+            <% Object.keys(days).forEach(key => { %>
+                <label>
+                    <input type="checkbox" name="days_inventar" value="<%= days[key] %>">
+                    <%= daysLabels[key] %>
+                </label>
+            <% }) %>
+
+            <label>Frekvens</label>
+            <select name="frequency_inventar">
+                <% Object.keys(frequencies).forEach(key => { %>
+                    <option value="<%= frequencies[key] %>"><%= frequencyLabels[key] %></option>
+                <% }) %>
+            </select>
+
+            <label>Beskrivelse</label>
+            <textarea name="description_inventar"><%= inventarTemplate.description %></textarea>
+        </section>
+
+        <hr>
+
+        <button class="button" type="submit">Gem daglig opgave</button>
+
+        <button class="button-secondary"
+                hx-get="/newPlan/tasks/daily?planId=<%= plan._id %>"
+                hx-target="#taskArea">
+            Tilbage
+        </button>
+
+    </form>
+
+</article>

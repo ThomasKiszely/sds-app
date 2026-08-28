@@ -1,5 +1,6 @@
 const cleaningPlanService = require('../services/cleaningPlanService');
 const cleaningTaskService = require('../services/cleaningTaskService');
+const locationService = require('../services/locationService');
 
 async function createCleaningPlan(req, res, next) {
     try {
@@ -62,17 +63,56 @@ async function updateCleaningPlan(req, res, next) {
 async function deleteCleaningPlan(req, res, next) {
     try {
         const { planId } = req.params;
+        const { context, customerId } = req.query;
 
         await cleaningPlanService.deleteCleaningPlan(planId);
 
-        return res.status(200).json({
-            status: 'success',
-            message: 'Rengøringsplan deaktiveret'
-        });
+        if (context === "planView") {
+            // Render plan-view igen
+            const plan = await cleaningPlanService.findCleaningPlanById(planId);
+            const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+            const enrichedTasks = tasks.map(t => {
+                const plain = t.toObject();
+                const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, plan.hourlyRate);
+                return { ...plain, ...prices };
+            });
+
+            return res.render("plans/view", {
+                plan,
+                tasks: enrichedTasks,
+                user: req.session.user
+            });
+        }
+
+        if (context === "customerPlans") {
+            // Render kundens planliste igen
+            const locations = await locationService.getLocationsForCustomer(customerId);
+
+            const plans = [];
+            for (const loc of locations) {
+                const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
+                plans.push(...locPlans.map(p => ({
+                    ...p.toObject(),
+                    location: loc
+                })));
+            }
+
+            return res.render("customers/plans", {
+                customerId,
+                plans,
+                user: req.session.user
+            });
+        }
+
+        // fallback
+        return res.status(200).json({ status: "success" });
+
     } catch (error) {
         next(error);
     }
 }
+
 
 async function getDeletedCleaningPlans(req, res, next) {
     try {
@@ -90,18 +130,56 @@ async function getDeletedCleaningPlans(req, res, next) {
 async function reactivateCleaningPlan(req, res, next) {
     try {
         const { planId } = req.params;
+        const { context, customerId } = req.query;
 
-        const reactivated = await cleaningPlanService.reactivateCleaningPlan(planId);
+        await cleaningPlanService.reactivateCleaningPlan(planId);
 
-        return res.status(200).json({
-            status: 'success',
-            message: 'Rengøringsplan genaktiveret',
-            reactivated
-        });
+        if (context === "planView") {
+            // Render plan-view igen
+            const plan = await cleaningPlanService.findCleaningPlanById(planId);
+            const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+            const enrichedTasks = tasks.map(t => {
+                const plain = t.toObject();
+                const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, plan.hourlyRate);
+                return { ...plain, ...prices };
+            });
+
+            return res.render("plans/view", {
+                plan,
+                tasks: enrichedTasks,
+                user: req.session.user
+            });
+        }
+
+        if (context === "customerPlans") {
+            // Render kundens planliste igen
+            const locations = await locationService.getLocationsForCustomer(customerId);
+
+            const plans = [];
+            for (const loc of locations) {
+                const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
+                plans.push(...locPlans.map(p => ({
+                    ...p.toObject(),
+                    location: loc
+                })));
+            }
+
+            return res.render("customers/plans", {
+                customerId,
+                plans,
+                user: req.session.user
+            });
+        }
+
+        // fallback
+        return res.status(200).json({ status: "success" });
+
     } catch (error) {
         next(error);
     }
 }
+
 
 async function viewPlan(req, res, next) {
     try {

@@ -1,6 +1,16 @@
 <article class="task-category">
     <h2>Daglige opgaver</h2>
 
+
+    <button
+            class="button"
+            hx-get="/newPlan/tasks/dailyBundle/create?planId=<%= plan._id %>"
+            hx-target="#taskArea"
+            hx-swap="innerHTML"
+    >
+        Opret daglig opgave (bundle)
+    </button>
+
     <ul class="template-list">
         <% templates.forEach(t => { %>
             <li>
@@ -21,6 +31,27 @@
     <hr>
 
     <h3>Valgte opgaver</h3>
+
+    <%
+    // Find de tre SDS-opgaver
+    const soignering = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("soignering"));
+    const gulv = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("gulv"));
+    const inventar = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("inventar"));
+
+    const hasBundle = soignering && gulv && inventar;
+    %>
+
+    <% if (hasBundle) { %>
+        <button
+                class="button"
+                hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= plan._id %>"
+                hx-target="#taskArea"
+                hx-swap="innerHTML"
+        >
+            Rediger daglig opgave (bundle)
+        </button>
+    <% } %>
+
 
     <ul class="task-list">
         <% tasks.forEach(task => { %>

@@ -64,13 +64,13 @@
                         <!-- DEAKTIVER / AKTIVÉR -->
                         <% if (plan.isActive) { %>
                             <button
-                                    hx-delete="/cleaningPlans/<%= plan._id %>"
+                                    hx-delete="/cleaningPlans/<%= plan._id %>?context=customerPlans"
                                     hx-target="#content">
                                 Deaktiver
                             </button>
                         <% } else { %>
                             <button
-                                    hx-patch="/cleaningPlans/<%= plan._id %>/reactivate"
+                                    hx-patch="/cleaningPlans/<%= plan._id %>?context=customerPlans/reactivate"
                                     hx-target="#content">
                                 Aktivér
                             </button>

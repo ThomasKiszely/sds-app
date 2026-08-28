@@ -67,7 +67,9 @@ async function addTaskFromTemplate(planId, templateId) {
         durationPerUnit: template.durationPerUnit,
         frequency: frequencies.weekly,
         amount: 0,
-        quantity: 1
+        quantity: 1,
+        roomName: "Ukendt lokale",
+        programCode: "000"
     });
 
     return task;
@@ -252,6 +254,160 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
     return totals.total;
 }
 
+// ------------------------------------------------------------
+// UPDATE DAILY BUNDLE (Soignering + Gulv + Inventar)
+// ------------------------------------------------------------
+async function updateDailyBundle(planId, body) {
+
+    // Fælles felter
+    const roomName = body.roomName;
+    const amount = Number(body.amount);
+    const daysNormalized = Array.isArray(body.days) ? body.days : (body.days ? [body.days] : []);
+    const frequency = body.frequency;
+
+    // De tre taskIds kommer som hidden inputs
+    const taskIds = Array.isArray(body.taskIds) ? body.taskIds : [body.taskIds];
+
+    for (const id of taskIds) {
+
+        const task = await cleaningTaskService.findCleaningTaskById(id);
+
+        // Fælles felter
+        task.roomName = roomName;
+        task.amount = amount;
+        task.days = daysNormalized;
+        task.frequency = frequency;
+
+        // Individuelle felter
+        task.durationPerUnit = Number(body[`duration_${id}`]);
+        task.customPrice = body[`custom_${id}`] ? Number(body[`custom_${id}`]) : null;
+        task.description = body[`description_${id}`] || "";
+
+        await cleaningTaskService.updateCleaningTask(id, task);
+    }
+
+    // Recalculate totals
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const tasks = await cleaningTaskService.listCleaningTasks(planId);
+
+    const hourlyRate = plan.hourlyRate;
+
+    const enrichedTasks = tasks.map(t => {
+        const plain = t.toObject();
+        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        return { ...plain, ...prices };
+    });
+
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+    const yearlyTotal = monthlyTotal * 12;
+
+    return {
+        planId,
+        tasks: enrichedTasks,
+        monthlyTotal,
+        yearlyTotal
+    };
+}
+
+async function createDailyBundle(planId, body) {
+
+    const roomName = body.roomName;
+    const amount = Number(body.amount);
+    const daysNormalized = Array.isArray(body.days)
+        ? body.days
+        : (body.days ? [body.days] : []);
+    const frequency = body.frequency;
+
+    // Varighed pr enhed
+    const durS = Number(body.duration_soignering);
+    const durG = Number(body.duration_gulv);
+    const durI = Number(body.duration_inventar);
+
+    // Custom priser
+    const customS = body.custom_soignering ? Number(body.custom_soignering) : null;
+    const customG = body.custom_gulv ? Number(body.custom_gulv) : null;
+    const customI = body.custom_inventar ? Number(body.custom_inventar) : null;
+
+    // Find templates
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+
+    const soigneringTemplate = templates.find(t => t.name.toLowerCase().includes("soignering"));
+    const gulvTemplate = templates.find(t => t.name.toLowerCase().includes("gulv"));
+    const inventarTemplate = templates.find(t => t.name.toLowerCase().includes("inventar"));
+
+    // Opret opgaver
+    await cleaningTaskService.createCleaningTask(planId, {
+        templateId: soigneringTemplate._id,
+        name: soigneringTemplate.name,
+        description: soigneringTemplate.description,
+        category: soigneringTemplate.category,
+        unit: soigneringTemplate.unit,
+        durationPerUnit: durS,
+        customPrice: customS,
+        frequency,
+        amount,
+        quantity: 1,
+        roomName,
+        days: daysNormalized,
+        programCode: "000"
+    });
+
+    await cleaningTaskService.createCleaningTask(planId, {
+        templateId: gulvTemplate._id,
+        name: gulvTemplate.name,
+        description: gulvTemplate.description,
+        category: gulvTemplate.category,
+        unit: gulvTemplate.unit,
+        durationPerUnit: durG,
+        customPrice: customG,
+        frequency,
+        amount,
+        quantity: 1,
+        roomName,
+        days: daysNormalized,
+        programCode: "000"
+    });
+
+    await cleaningTaskService.createCleaningTask(planId, {
+        templateId: inventarTemplate._id,
+        name: inventarTemplate.name,
+        description: inventarTemplate.description,
+        category: inventarTemplate.category,
+        unit: inventarTemplate.unit,
+        durationPerUnit: durI,
+        customPrice: customI,
+        frequency,
+        amount,
+        quantity: 1,
+        roomName,
+        days: daysNormalized,
+        programCode: "000"
+    });
+
+    // Recalculate totals
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const tasks = await cleaningTaskService.listCleaningTasks(planId);
+
+    const hourlyRate = plan.hourlyRate;
+
+    const enrichedTasks = tasks.map(t => {
+        const plain = t.toObject();
+        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        return { ...plain, ...prices };
+    });
+
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+    const yearlyTotal = monthlyTotal * 12;
+
+    return {
+        planId,
+        tasks: enrichedTasks,
+        monthlyTotal,
+        yearlyTotal
+    };
+}
+
+
 
 module.exports = {
     createPlan,
@@ -262,5 +418,7 @@ module.exports = {
     deleteTask,
     listTasks,
     getOfferStep4ViewModel,
-    getOfferPreview
+    getOfferPreview,
+    updateDailyBundle,
+    createDailyBundle
 };

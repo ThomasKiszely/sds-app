@@ -2,20 +2,29 @@ const { frequency } = require("../utils/frequencyEnum");
 
 module.exports = function validateCleaningTask(req, res, next) {
     const errors = [];
-    const { templateId, frequency: freq, quantity, amount } = req.body;
+    const { templateId, roomName, programCode, quantity, amount } = req.body;
 
+    // templateId
     if (!templateId || !templateId.match(/^[0-9a-fA-F]{24}$/)) {
         errors.push("templateId skal være et gyldigt MongoDB ObjectId.");
     }
 
-    if (!freq || !Object.values(frequency).includes(freq)) {
-        errors.push(`frequency skal være en af: ${Object.values(frequency).join(", ")}`);
+    // roomName
+    if (!roomName || typeof roomName !== "string" || roomName.trim().length === 0) {
+        errors.push("roomName skal være en ikke-tom tekststreng.");
     }
 
+    // programCode (skal være 3 cifre)
+    if (!programCode || !/^\d{3}$/.test(programCode)) {
+        errors.push("programCode skal være en 3-cifret kode, fx 551 eller 522.");
+    }
+
+    // quantity
     if (quantity !== undefined && (isNaN(quantity) || quantity < 1)) {
         errors.push("quantity skal være et positivt tal (min. 1).");
     }
 
+    // amount
     if (amount !== undefined && (isNaN(amount) || amount < 0)) {
         errors.push("amount skal være et positivt tal.");
     }

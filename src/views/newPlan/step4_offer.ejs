@@ -5,46 +5,50 @@
 
         <h3>Opgaver</h3>
 
-        <% const groups = { daily: [], extra: [], consumables: [], windows: [] }; %>
-        <% tasks.forEach(t => groups[t.category].push(t)); %>
+        <%
+        // ⭐ Gruppér tasks efter lokale
+        const rooms = {};
+        tasks.forEach(t => {
+            if (!rooms[t.roomName]) rooms[t.roomName] = [];
+            rooms[t.roomName].push(t);
+        });
+        %>
 
-        <% if (groups.daily.length) { %>
-            <h4>Daglig</h4>
-            <ul>
-                <% groups.daily.forEach(t => { %>
-                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
-                <% }) %>
-            </ul>
-        <% } %>
+        <%
+        // ⭐ Vis hvert lokale med programkode og opgaver
+        Object.keys(rooms).forEach(room => {
+            const tasksInRoom = rooms[room];
+            const programCode = tasksInRoom[0].programCode;
+        %>
 
-        <% if (groups.extra.length) { %>
-            <h4>Ekstra</h4>
-            <ul>
-                <% groups.extra.forEach(t => { %>
-                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
-                <% }) %>
-            </ul>
-        <% } %>
+        <h4><%= room %> (<%= programCode %>)</h4>
 
-        <% if (groups.consumables.length) { %>
-            <h4>Forbrugsvare</h4>
-            <ul>
-                <% groups.consumables.forEach(t => { %>
-                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
-                <% }) %>
-            </ul>
-        <% } %>
+        <ul>
+            <% tasksInRoom.forEach(t => { %>
+                <li>
+                    <strong><%= t.name %></strong>
 
-        <% if (groups.windows.length) { %>
-            <h4>Vinduespudsning</h4>
-            <ul>
-                <% groups.windows.forEach(t => { %>
-                    <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
-                <% }) %>
-            </ul>
-        <% } %>
+                    <!-- Frekvens -->
+                    <% if (t.category !== categoryTypes.consumables) { %>
+                        – <%= frequencyLabels[t.frequency] %>
+                    <% } %>
 
-        <!-- TOTALPRIS (LIVE) -->
+                    <!-- Mængde -->
+                    <% if (t.unit === units.m2 || t.unit === units.lbm) { %>
+                        – <%= t.amount %> <%= unitsLabels[t.unit] %>
+                    <% } else if (t.unit === units.stk) { %>
+                        – <%= t.quantity %> <%= unitsLabels[t.unit] %>
+                    <% } %>
+
+                    <!-- Pris -->
+                    – <%= t.totalPrice %> kr.
+                </li>
+            <% }) %>
+        </ul>
+
+        <% }) %>
+
+        <!-- ⭐ TOTALPRIS (LIVE) -->
         <div class="offer-total-box" style="margin-top:1rem;">
             <h3>Totalpris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
@@ -53,6 +57,7 @@
         </div>
 
     </section>
+
 
     <hr>
 

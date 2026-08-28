@@ -1,0 +1,98 @@
+<article class="standard wizard-step">
+
+    <h1>Rediger daglig opgave – Soignering, Gulv, Inventar</h1>
+
+    <form
+            hx-post="/newPlan/tasks/dailyBundle/<%= tasks[0].planId %>/update"
+            hx-target="#taskArea"
+            hx-swap="innerHTML"
+            class="daily-bundle-edit-form"
+    >
+
+        <!-- Fælles felter -->
+        <section>
+            <h2>Fælles oplysninger</h2>
+
+            <label for="roomName">Lokale</label>
+            <input type="text" id="roomName" name="roomName"
+                   value="<%= tasks[0].roomName %>" required>
+
+            <label for="amount">Areal (m²)</label>
+            <input type="number" id="amount" name="amount"
+                   value="<%= tasks[0].amount %>" min="0" required>
+
+            <h3>Dage</h3>
+
+            <button type="button" class="button" onclick="setDailyWeekdays()">Daglig (Man–Fre)</button>
+
+            <% Object.keys(days).forEach(key => { %>
+                <label class="checkbox-row">
+                    <input type="checkbox"
+                           name="days"
+                           value="<%= days[key] %>"
+                            <%= tasks[0].days.includes(days[key]) ? "checked" : "" %>>
+                    <span><%= daysLabels[key] %></span>
+                </label>
+            <% }) %>
+
+            <label for="frequency">Frekvens</label>
+            <select id="frequency" name="frequency">
+                <% Object.keys(frequencies).forEach(key => { %>
+                    <option value="<%= frequencies[key] %>"
+                            <%= tasks[0].frequency === frequencies[key] ? "selected" : "" %>>
+                        <%= frequencyLabels[key] %>
+                    </option>
+                <% }) %>
+            </select>
+        </section>
+
+        <hr>
+
+        <!-- Individuelle SDS-opgaver -->
+        <% tasks.forEach(task => { %>
+            <section>
+                <h2><%= task.name %></h2>
+
+                <input type="hidden" name="taskIds" value="<%= task._id %>">
+
+                <label>Varighed pr enhed (minutter)</label>
+                <input type="number"
+                       name="duration_<%= task._id %>"
+                       value="<%= task.durationPerUnit %>"
+                       step="0.01" min="0">
+
+                <label>Fast pris (valgfrit)</label>
+                <input type="number"
+                       name="custom_<%= task._id %>"
+                       value="<%= task.customPrice ?? '' %>"
+                       min="0">
+
+                <label>Beskrivelse</label>
+                <textarea name="description_<%= task._id %>" rows="3"><%= task.description %></textarea>
+
+                <p><strong>Aktuel pris:</strong> <%= task.monthlyPrice %> kr./måned</p>
+            </section>
+
+            <hr>
+        <% }) %>
+
+        <button type="submit" class="button">Gem daglig opgave</button>
+
+        <button class="button-secondary"
+                hx-get="/newPlan/tasks/daily?planId=<%= tasks[0].planId %>"
+                hx-target="#taskArea">
+            Tilbage
+        </button>
+
+    </form>
+
+</article>
+
+<script>
+    function setDailyWeekdays() {
+        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+        document.querySelectorAll('input[name="days"]').forEach(cb => {
+            cb.checked = weekdays.includes(cb.value);
+        });
+    }
+</script>

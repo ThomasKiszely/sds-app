@@ -25,6 +25,13 @@
         </section>
         <hr>
 
+        <!-- Lokale -->
+        <section>
+            <label for="roomName">Lokale</label>
+            <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" required>
+        </section>
+        <hr>
+
         <!-- Kategori -->
         <section>
             <p>Kategori: <strong><%= categoryLabels[task.category] %></strong></p>
@@ -60,12 +67,22 @@
             <section>
                 <h3>Dage</h3>
 
+                <!-- Daglig-knap -->
+                <button
+                        type="button"
+                        class="button"
+                        onclick="setDailyWeekdays()"
+                >
+                    Daglig (Man–Fre)
+                </button>
+
                 <% Object.keys(days).forEach(key => { %>
                     <label class="checkbox-row">
                         <input
                                 type="checkbox"
                                 name="days"
                                 value="<%= days[key] %>"
+                                data-days-button="true"
                                 <%= task.days.includes(days[key]) ? "checked" : "" %>
 
                                 hx-post="/newPlan/tasks/<%= task._id %>/preview"
@@ -245,5 +262,19 @@
         <% } %>
 
         document.querySelector('#taskDuration').innerText = total + " min";
+    }
+
+    function setDailyWeekdays() {
+        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+
+        const boxes = document.querySelectorAll('input[name="days"][data-days-button="true"]');
+
+        boxes.forEach(cb => {
+            cb.checked = weekdays.includes(cb.value);
+        });
+
+        boxes.forEach(cb => {
+            htmx.trigger(cb, 'change');
+        });
     }
 </script>

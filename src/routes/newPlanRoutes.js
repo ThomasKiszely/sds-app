@@ -14,6 +14,7 @@ router.get("/locationList", requireLogin, newPlanController.locationList);
 router.get("/plan", requireLogin, newPlanController.step2_plan);
 router.post("/plan", requireLogin, newPlanController.savePlan);
 
+
 // Step 3: Tilføj opgaver
 router.get("/tasks", requireLogin, newPlanController.step3_tasks);
 router.get("/tasks/daily", requireLogin, newPlanController.tasks_daily);
@@ -28,6 +29,14 @@ router.get("/tasks/:taskId/edit", requireLogin, newPlanController.tasks_edit);
 router.post("/tasks/:taskId/preview", requireLogin, newPlanController.tasks_preview);
 router.delete("/tasks/:taskId/delete", requireLogin, newPlanController.tasks_delete);
 router.get("/tasks/list", requireLogin, newPlanController.tasks_list);
+
+// UPDATE DAILY BUNDLE (3 SDS-opgaver på én gang)
+router.post("/tasks/dailyBundle/update", requireLogin, newPlanController.tasks_updateDailyBundle);
+router.get("/tasks/dailyBundle/edit", requireLogin, newPlanController.tasks_editDailyBundle);
+router.get("/tasks/dailyBundle/create", requireLogin, newPlanController.tasks_createDailyBundle);
+router.post("/tasks/dailyBundle/save", requireLogin, newPlanController.tasks_saveDailyBundle);
+
+
 
 // UPDATE TASK
 router.patch("/tasks/:taskId/update", requireLogin, newPlanController.tasks_update);

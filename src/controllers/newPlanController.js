@@ -330,6 +330,38 @@ async function step4_offer(req, res) {
     res.render("newPlan/step4_offer", vm);
 }
 
+async function tasks_updateDailyBundle(req, res) {
+    try {
+        const planId = req.body.planId;
+
+        // Én service-metode der opdaterer alle tre SDS-opgaver
+        await newPlanService.updateDailyBundle(planId, req.body);
+
+        // Når bundle er opdateret, viser vi daglige opgaver igen
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        return res.render("newPlan/partials/tasks/daily", {
+            plan,
+            templates,
+            tasks,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels,
+            customerId: plan.customerId
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
 async function previewOffer(req, res) {
     const total = await newPlanService.getOfferPreview(
         req.body.planId,
@@ -352,6 +384,109 @@ async function saveOffer(req, res) {
     res.redirect(`/offers/${offer._id}/view`);
 }
 
+async function tasks_editDailyBundle(req, res) {
+    try {
+        const planId = req.query.planId;
+
+        // Hent alle tasks for planen
+        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        // Find de tre SDS-opgaver
+        const soignering = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("soignering"));
+        const gulv = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("gulv"));
+        const inventar = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("inventar"));
+
+        if (!soignering || !gulv || !inventar) {
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Daglig bundle mangler opgaver" }));
+            return res.status(400).end();
+        }
+
+        return res.render("newPlan/partials/tasks/editDailyBundle", {
+            planId,
+            tasks: [soignering, gulv, inventar],
+            days,
+            daysLabels,
+            frequencies,
+            frequencyLabels,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+async function tasks_createDailyBundle(req, res) {
+    try {
+        const planId = req.query.planId;
+
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+        // HENT DAGLIGE TEMPLATES
+        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+
+        // FIND DE TRE SPECIFIKKE TEMPLATES
+        const soigneringTemplate = templates.find(t => t.name.toLowerCase().includes("soignering"));
+        const gulvTemplate = templates.find(t => t.name.toLowerCase().includes("gulv"));
+        const inventarTemplate = templates.find(t => t.name.toLowerCase().includes("inventar"));
+
+        return res.render("newPlan/partials/tasks/createDailyBundle", {
+            plan,
+            soigneringTemplate,
+            gulvTemplate,
+            inventarTemplate,
+            days,
+            daysLabels,
+            frequencies,
+            frequencyLabels,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
+
+async function tasks_saveDailyBundle(req, res) {
+    try {
+        const planId = req.body.planId;
+
+        // Opret de tre SDS-opgaver
+        await newPlanService.createDailyBundle(planId, req.body);
+
+        // Efter oprettelse viser vi daglige opgaver igen
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        return res.render("newPlan/partials/tasks/daily", {
+            plan,
+            templates,
+            tasks,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels,
+            customerId: plan.customerId
+        });
+
+    } catch (error) {
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
+        return res.status(500).end();
+    }
+}
+
 
 module.exports = {
     step1_customer,
@@ -372,5 +507,9 @@ module.exports = {
     tasks_windows,
     tasks_delete,
     tasks_list,
-    previewOffer
+    tasks_updateDailyBundle,
+    previewOffer,
+    tasks_editDailyBundle,
+    tasks_createDailyBundle,
+    tasks_saveDailyBundle,
 };
