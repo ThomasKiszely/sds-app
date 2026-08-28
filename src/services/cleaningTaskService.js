@@ -32,7 +32,6 @@ async function getHourlyRateForPlan(planId) {
 
 
 // Create
-// Create
 async function createCleaningTask(planId, data) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -47,7 +46,10 @@ async function createCleaningTask(planId, data) {
 
     const roomName = data.roomName ?? "Ukendt lokale";
 
-    // ⭐ Opret tasken (midlertidig programkode)
+    // ⭐ Kun SDS-kategorier skal have programkode
+    const isSdsCategory = ["daily", "floor", "inventory"].includes(template.category);
+
+    // ⭐ Opret tasken
     const task = await cleaningTaskRepo.create({
         planId,
         templateId: template._id,
@@ -66,40 +68,29 @@ async function createCleaningTask(planId, data) {
         customPrice,
         roomName,
 
-        programCode: "000",
+        programCode: isSdsCategory ? "000" : null,
         isActive: true
     });
 
-    // ⭐ Find alle tasks i samme plan
-    const siblings = await cleaningTaskRepo.findByPlanId(planId);
+    // ⭐ SDS-kode skal kun genereres for SDS-opgaver
+    if (isSdsCategory) {
+        const siblings = await cleaningTaskRepo.findByPlanId(planId);
+        const sameRoomTasks = siblings.filter(t => t.roomName === roomName);
 
-    // ⭐ Find alle tasks i samme lokale
-    const sameRoomTasks = siblings.filter(t => t.roomName === roomName);
+        let digits = ["0", "0", "0"];
 
-    // ⭐ SDS mapping
-    const sdsCategoryMap = {
-        daily: 0,
-        floor: 1,
-        inventory: 2
-    };
+        sameRoomTasks.forEach(t => {
+            const index = sdsCategoryMap[t.category];
+            if (index !== undefined) {
+                digits[index] = String(sdsDigitFromDays(t.days));
+            }
+        });
 
-    // ⭐ Start med tre null-cifre
-    let digits = ["0", "0", "0"];
+        const finalProgramCode = digits.join("");
 
-    // ⭐ Gennemgå alle tasks i lokalet
-    sameRoomTasks.forEach(t => {
-        const index = sdsCategoryMap[t.category];
-        if (index !== undefined) {
-            digits[index] = String(sdsDigitFromDays(t.days));
+        for (const t of sameRoomTasks) {
+            await cleaningTaskRepo.updateById(t._id, { programCode: finalProgramCode });
         }
-    });
-
-    // ⭐ Generér SDS-koden
-    const finalProgramCode = digits.join("");
-
-    // ⭐ Opdater ALLE tasks i lokalet med den nye SDS-kode
-    for (const t of sameRoomTasks) {
-        await cleaningTaskRepo.updateById(t._id, { programCode: finalProgramCode });
     }
 
     await recalculatePlanTotal(planId);
@@ -108,52 +99,45 @@ async function createCleaningTask(planId, data) {
 
 
 
+
 // Update
 async function updateCleaningTask(taskId, data) {
     const task = await cleaningTaskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
 
-    // ⭐ Find alle tasks i samme plan
     const siblings = await cleaningTaskRepo.findByPlanId(task.planId);
 
-    // ⭐ Find alle tasks i samme lokale (roomName)
     const roomName = data.roomName ?? task.roomName;
     const sameRoomTasks = siblings.filter(t => t.roomName === roomName);
 
-    // ⭐ SDS mapping (daily → 0, floor → 1, inventory → 2)
-    const sdsCategoryMap = {
-        daily: 0,
-        floor: 1,
-        inventory: 2
-    };
+    const isSdsCategory = ["daily", "floor", "inventory"].includes(task.category);
 
-    // ⭐ Start med tre null-cifre
-    let digits = ["0", "0", "0"];
+    let finalProgramCode = null;
 
-    // ⭐ Gennemgå alle tasks i lokalet (før opdatering)
-    sameRoomTasks.forEach(t => {
-        const index = sdsCategoryMap[t.category];
-        if (index !== undefined) {
-            digits[index] = String(sdsDigitFromDays(t.days));
+    // ⭐ Kun SDS-opgaver skal have SDS-kode
+    if (isSdsCategory) {
+        let digits = ["0", "0", "0"];
+
+        sameRoomTasks.forEach(t => {
+            const index = sdsCategoryMap[t.category];
+            if (index !== undefined) {
+                digits[index] = String(sdsDigitFromDays(t.days));
+            }
+        });
+
+        const updatedDays = normalizeDays(data.days ?? task.days);
+        const updatedIndex = sdsCategoryMap[task.category];
+
+        if (updatedIndex !== undefined) {
+            digits[updatedIndex] = String(sdsDigitFromDays(updatedDays));
         }
-    });
 
-    // ⭐ Opdater cifret for den task der ændres
-    const updatedCategory = data.category ?? task.category;
-    const updatedDays = normalizeDays(data.days ?? task.days);
-
-    const updatedIndex = sdsCategoryMap[updatedCategory];
-    if (updatedIndex !== undefined) {
-        digits[updatedIndex] = String(sdsDigitFromDays(updatedDays));
+        finalProgramCode = digits.join("");
     }
 
-    // ⭐ Generér SDS-koden
-    const finalProgramCode = digits.join("");
-
-    // ⭐ Opdater tasken
     const quantity = Number(data.quantity ?? task.quantity);
     const frequency = data.frequency ?? task.frequency;
-    const days = updatedDays;
+    const days = normalizeDays(data.days ?? task.days);
     const customPrice = data.customPrice ? Number(data.customPrice) : task.customPrice;
 
     const updated = await cleaningTaskRepo.updateById(taskId, {

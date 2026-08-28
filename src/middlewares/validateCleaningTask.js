@@ -14,10 +14,11 @@ module.exports = function validateCleaningTask(req, res, next) {
         errors.push("roomName skal være en ikke-tom tekststreng.");
     }
 
-    // programCode (skal være 3 cifre)
-    if (!programCode || !/^\d{3}$/.test(programCode)) {
+    // programCode: kun validere hvis feltet findes
+    if (programCode && !/^\d{3}$/.test(programCode)) {
         errors.push("programCode skal være en 3-cifret kode, fx 551 eller 522.");
     }
+
 
     // quantity
     if (quantity !== undefined && (isNaN(quantity) || quantity < 1)) {

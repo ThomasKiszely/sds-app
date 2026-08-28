@@ -69,7 +69,6 @@ async function addTaskFromTemplate(planId, templateId) {
         amount: 0,
         quantity: 1,
         roomName: "Ukendt lokale",
-        programCode: "000"
     });
 
     return task;
@@ -349,7 +348,7 @@ async function createDailyBundle(planId, body) {
         quantity: 1,
         roomName,
         days: daysNormalized,
-        programCode: "000"
+        programCode: body.programCode
     });
 
     await cleaningTaskService.createCleaningTask(planId, {
@@ -365,7 +364,7 @@ async function createDailyBundle(planId, body) {
         quantity: 1,
         roomName,
         days: daysNormalized,
-        programCode: "000"
+        programCode: body.programCode
     });
 
     await cleaningTaskService.createCleaningTask(planId, {
@@ -381,7 +380,7 @@ async function createDailyBundle(planId, body) {
         quantity: 1,
         roomName,
         days: daysNormalized,
-        programCode: "000"
+        programCode: body.programCode
     });
 
     // Recalculate totals
