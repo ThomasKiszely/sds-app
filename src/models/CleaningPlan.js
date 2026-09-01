@@ -38,6 +38,12 @@ const cleaningPlanSchema = new mongoose.Schema({
         ref: "CleaningTask"
     }],
 
+    roomNotes: [{
+        roomName: String,
+        notes: [String]
+    }],
+
+
     // ⭐ Prisberegning (beregnes ud fra CleaningTasks)
     subtotalBeforeDiscount: { type: Number, default: 0 },
     discountPercent: { type: Number, default: 0 },

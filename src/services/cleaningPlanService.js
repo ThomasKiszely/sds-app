@@ -108,7 +108,8 @@ async function updateCleaningPlan(planId, data) {
         description: data.description ?? plan.description,
         hourlyRate: data.hourlyRate ?? plan.hourlyRate,
         discountPercent: data.discountPercent ?? plan.discountPercent,
-        environmentalFeePercent: data.environmentalFeePercent ?? plan.environmentalFeePercent
+        environmentalFeePercent: data.environmentalFeePercent ?? plan.environmentalFeePercent,
+        roomNotes: data.roomNotes ?? plan.roomNotes
     });
 
     await recalculatePlanTotal(planId);

@@ -455,6 +455,12 @@ async function tasks_editDailyBundle(req, res) {
             return res.status(400).end();
         }
 
+        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+        const notesEntry = plan.roomNotes.find(r => r.roomName === roomName);
+        const existingNotes = notesEntry ? notesEntry.notes : [];
+
+
         // ⭐ Find SDS-opgaver for dette rum (robust)
         const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
 
@@ -477,7 +483,8 @@ async function tasks_editDailyBundle(req, res) {
             units,
             unitsLabels,
             categoryLabels,
-            categoryTypes
+            categoryTypes,
+            existingNotes
         });
 
     } catch (error) {

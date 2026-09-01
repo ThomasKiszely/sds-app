@@ -316,7 +316,31 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
 async function updateDailyBundle(planId, body) {
 
     const roomName = body.roomName;
+
     const amount = Number(body.amount);
+
+    // ⭐ Bemærkninger for rummet
+    const notesRaw = body.roomNotes || "";
+    const notesArray = notesRaw
+        .split("\n")
+        .map(n => n.trim())
+        .filter(n => n.length > 0);
+
+// ⭐ Hent planen
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+// ⭐ Fjern gamle entry
+    const filtered = plan.roomNotes.filter(r => r.roomName !== roomName);
+
+// ⭐ Tilføj opdateret entry
+    filtered.push({
+        roomName,
+        notes: notesArray
+    });
+
+// ⭐ Gem via repo
+    await cleaningPlanService.updateCleaningPlan(planId, { roomNotes: filtered });
+
 
     // ⭐ Hent dage pr kategori
     const daysS = Array.isArray(body.days_soignering)
@@ -389,7 +413,30 @@ async function updateDailyBundle(planId, body) {
 async function createDailyBundle(planId, body) {
 
     const roomName = body.roomName;
+
     const amount = Number(body.amount);
+
+    // ⭐ Bemærkninger for rummet
+    const notesRaw = body.roomNotes || "";
+    const notesArray = notesRaw
+        .split("\n")
+        .map(n => n.trim())
+        .filter(n => n.length > 0);
+
+// ⭐ Hent planen
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+
+// ⭐ Fjern gamle bemærkninger for rummet
+    const filtered = plan.roomNotes.filter(r => r.roomName !== roomName);
+
+// ⭐ Tilføj nye bemærkninger
+    filtered.push({
+        roomName,
+        notes: notesArray
+    });
+
+// ⭐ Gem via repo
+    await cleaningPlanService.updateCleaningPlan(planId, { roomNotes: filtered });
 
     // ⭐ Hent dage pr kategori
     const daysS = Array.isArray(body.days_soignering)

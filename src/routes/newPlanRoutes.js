@@ -20,6 +20,7 @@ router.get("/tasks/daily", requireLogin, newPlanController.tasks_daily);
 router.get("/tasks/extra", requireLogin, newPlanController.tasks_extra);
 router.get("/tasks/consumables", requireLogin, newPlanController.tasks_consumables);
 router.get("/tasks/windows", requireLogin, newPlanController.tasks_windows);
+router.get("/tasks/list", requireLogin, newPlanController.tasks_list);
 
 router.post("/tasks/add", requireLogin, newPlanController.tasks_add);
 

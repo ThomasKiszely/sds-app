@@ -22,6 +22,11 @@
             <input type="number" id="amount" name="amount"
                    value="<%= tasks[0].amount %>" min="0" required>
 
+            <label>Bemærkninger for rummet</label>
+            <textarea name="roomNotes" rows="3"><%= existingNotes.join("\n") %></textarea>
+        </section>
+
+        <section>
             <h3>Dage</h3>
 
             <button type="button" class="button" onclick="setDailyWeekdays()">Daglig (Man–Fre)</button>
