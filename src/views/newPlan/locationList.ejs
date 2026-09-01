@@ -23,6 +23,12 @@
 
     <section>
         <button class="button secondary"
+                hx-get="/customers/<%= customerId %>/plans"
+                hx-target="#content">
+            Se planer
+        </button>
+
+        <button class="button secondary"
                 hx-get="/customers/<%= customerId %>/locations/create"
                 hx-target="#content">
             Tilføj lokation
