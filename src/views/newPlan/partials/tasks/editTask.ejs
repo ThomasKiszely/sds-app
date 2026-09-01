@@ -28,7 +28,7 @@
         <!-- Lokale -->
         <section>
             <label for="roomName">Lokale</label>
-            <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" required>
+            <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" >
         </section>
         <hr>
 
@@ -181,42 +181,43 @@
         <hr>
 
         <!-- Varighed pr enhed -->
-        <section>
-            <label for="durationPerUnit">Varighed (pr enhed i minutter)</label>
-            <input
-                    type="number"
-                    id="durationPerUnit"
-                    name="durationPerUnit"
-                    value="<%= task.durationPerUnit %>"
-                    step="0.01"
-                    min="0"
-                    hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                    hx-trigger="change"
-                    hx-target="#taskPrice"
-                    hx-swap="innerHTML"
-                    oninput="updateDuration()"
-            >
-        </section>
-        <hr>
+        <% if (task.category !== categoryTypes.consumables) { %>
+            <section>
+                <label for="durationPerUnit">Varighed (pr enhed i minutter)</label>
+                <input
+                        type="number"
+                        id="durationPerUnit"
+                        name="durationPerUnit"
+                        value="<%= task.durationPerUnit %>"
+                        step="0.01"
+                        min="0"
+                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                        hx-trigger="change"
+                        hx-target="#taskPrice"
+                        hx-swap="innerHTML"
+                        oninput="updateDuration()"
+                >
+            </section>
+            <hr>
+        <% } %>
 
         <!-- Samlet varighed -->
-        <section>
-            <h3>Varighed pr gang</h3>
-            <p id="taskDuration">
-                <%
-                let totalDuration = task.durationPerUnit;
-
-                if (task.unit === units.stk) {
-                    totalDuration = task.durationPerUnit * task.quantity;
-                } else if (task.unit === units.m2 || task.unit === units.lbm) {
-                    totalDuration = task.durationPerUnit * task.amount;
-                }
-                %>
-
-                <%= totalDuration %> min
-            </p>
-        </section>
-        <hr>
+        <% if (task.category !== categoryTypes.consumables) { %>
+            <section>
+                <h3>Varighed pr gang</h3>
+                <p id="taskDuration">
+                    <% let totalDuration = task.durationPerUnit;
+                        if (task.unit === units.stk) {
+                            totalDuration = task.durationPerUnit * task.quantity;
+                        } else if (task.unit === units.m2 || task.unit === units.lbm) {
+                            totalDuration = task.durationPerUnit * task.amount;
+                        }
+                    %>
+                    <%= totalDuration %> min
+                </p>
+            </section>
+            <hr>
+        <% } %>
 
         <!-- Actions -->
         <section class="form-actions">

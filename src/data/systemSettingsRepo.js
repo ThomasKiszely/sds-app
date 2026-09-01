@@ -1,7 +1,7 @@
 const SystemSettings = require("../models/SystemSettings");
 
 async function getSettings() {
-    let settings = await SystemSettings.findOne().lean();
+    let settings = await SystemSettings.findOne();
 
     // Hvis der ikke findes settings, opret standard
     if (!settings) {

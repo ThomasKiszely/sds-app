@@ -4,7 +4,15 @@ const { frequencies } = require("../utils/frequencyEnum");
 
 module.exports = function validateCleaningTaskTemplate(req, res, next) {
     const errors = [];
-    const { name, description, category, durationPerUnit, frequency, unit } = req.body;
+    const {
+        name,
+        description,
+        category,
+        durationPerUnit,
+        frequency,
+        unit,
+        pricePerUnit
+    } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
         errors.push("Navn på opgave-skabelon er påkrævet.");
@@ -18,16 +26,24 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         errors.push(`Kategori skal være en af: ${Object.values(categoryTypes).join(", ")}`);
     }
 
-    if (durationPerUnit === undefined || isNaN(durationPerUnit) || durationPerUnit < 0) {
-        errors.push("durationPerUnit skal være et positivt tal.");
-    }
+    const isConsumable = category === categoryTypes.consumables;
 
-    if (!frequency || !Object.values(frequencies).includes(frequency)) {
-        errors.push(`Frekvens skal være en af: ${Object.values(frequencies).join(", ")}`);
-    }
+    if (isConsumable) {
+        if (pricePerUnit === undefined || isNaN(pricePerUnit) || pricePerUnit < 0) {
+            errors.push("pricePerUnit skal være et positivt tal for forbrugsvarer.");
+        }
+    } else {
+        if (durationPerUnit === undefined || isNaN(durationPerUnit) || durationPerUnit < 0) {
+            errors.push("durationPerUnit skal være et positivt tal.");
+        }
 
-    if (unit && !Object.values(units).includes(unit)) {
-        errors.push(`Unit skal være en af: ${Object.values(units).join(", ")}`);
+        if (!frequency || !Object.values(frequencies).includes(frequency)) {
+            errors.push(`Frekvens skal være en af: ${Object.values(frequencies).join(", ")}`);
+        }
+
+        if (unit && !Object.values(units).includes(unit)) {
+            errors.push(`Unit skal være en af: ${Object.values(units).join(", ")}`);
+        }
     }
 
     if (errors.length > 0) {
@@ -36,7 +52,12 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
 
     req.body.name = name.trim();
     if (description !== undefined) req.body.description = description.trim();
-    req.body.durationPerUnit = Number(durationPerUnit);
+
+    if (isConsumable) {
+        req.body.pricePerUnit = Number(pricePerUnit);
+    } else {
+        req.body.durationPerUnit = Number(durationPerUnit);
+    }
 
     next();
 };

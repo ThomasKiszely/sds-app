@@ -3,22 +3,24 @@
 
     <section class="offer-summary">
 
+        <!-- ⭐ Opgaver med lokale (dailyBundle) -->
         <h3>Opgaver</h3>
 
         <%
-        // ⭐ Gruppér tasks efter lokale
+        // ⭐ Gruppér KUN opgaver der har roomName
         const rooms = {};
         tasks.forEach(t => {
+            if (!t.roomName || t.roomName.trim() === "") return; // skip tasks uden lokale
             if (!rooms[t.roomName]) rooms[t.roomName] = [];
             rooms[t.roomName].push(t);
         });
         %>
 
-        <%
-        // ⭐ Vis hvert lokale med programkode og opgaver
-        Object.keys(rooms).forEach(room => {
+        <% Object.keys(rooms).forEach(room => {
             const tasksInRoom = rooms[room];
-            const programCode = tasksInRoom[0].programCode;
+
+            // ⭐ Programkode KUN for bundle-opgaver
+            const programCode = grouped[room]?.programCode || "";
         %>
 
         <h4><%= room %> (<%= programCode %>)</h4>
@@ -29,9 +31,7 @@
                     <strong><%= t.name %></strong>
 
                     <!-- Frekvens -->
-                    <% if (t.category !== categoryTypes.consumables) { %>
-                        – <%= frequencyLabels[t.frequency] %>
-                    <% } %>
+                    – <%= frequencyLabels[t.frequency] %>
 
                     <!-- Mængde -->
                     <% if (t.unit === units.m2 || t.unit === units.lbm) { %>
@@ -41,12 +41,35 @@
                     <% } %>
 
                     <!-- Pris -->
-                    – <%= t.totalPrice %> kr.
+                    – <%= t.monthlyPrice.toFixed(2) %> kr./måned
                 </li>
             <% }) %>
         </ul>
 
         <% }) %>
+
+        <!-- ⭐ Opgaver uden lokale (vinduespudsning, specialopgaver, engangsopgaver) -->
+        <%
+        const noRoomTasks = tasks.filter(t => !t.roomName || t.roomName.trim() === "");
+        %>
+
+        <% if (noRoomTasks.length > 0) { %>
+            <h3>Opgaver uden lokale</h3>
+            <ul>
+                <% noRoomTasks.forEach(t => { %>
+                    <li>
+                        <strong><%= t.name %></strong>
+                        – <%= frequencyLabels[t.frequency] %>
+
+                        <% if (t.unit === units.stk) { %>
+                            – <%= t.quantity %> stk
+                        <% } %>
+
+                        – <%= t.monthlyPrice.toFixed(2) %> kr./måned
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
 
         <!-- ⭐ TOTALPRIS (LIVE) -->
         <div class="offer-total-box" style="margin-top:1rem;">
@@ -58,8 +81,32 @@
 
     </section>
 
-
     <hr>
+
+    <!-- ⭐ TILKØB – FORBRUGSVARER -->
+    <% if (consumables && consumables.length > 0) { %>
+        <section class="offer-summary">
+            <h3>Tilkøb – Forbrugsvarer</h3>
+
+            <ul>
+                <% consumables.forEach(c => { %>
+                    <li>
+                        <strong><%= c.name %></strong>
+                        – <%= c.pricePerUnit %> kr pr stk
+                        – <%= c.quantity %> stk
+
+                        <% if (c.description && c.description.trim().length > 0) { %>
+                            <div><em><%= c.description %></em></div>
+                        <% } %>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <p><em>Faktureres efter forbrug</em></p>
+        </section>
+
+        <hr>
+    <% } %>
 
     <!-- Hele formularen -->
     <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
@@ -76,15 +123,14 @@
         <!-- Avanceret sektion -->
         <div id="advanced" class="hidden" style="margin-top: 1rem;">
 
-
             <label>Drift- og miljøtillæg (%)</label>
             <input type="number"
-            name="environmentalFee"
-            value="<%= environmentalFee || 0 %>"
-            hx-post="/newPlan/offer/preview"
-            hx-trigger="change"
-            hx-target="#offerTotal"
-            hx-swap="innerHTML">
+                   name="environmentalFee"
+                   value="<%= environmentalFee || 0 %>"
+                   hx-post="/newPlan/offer/preview"
+                   hx-trigger="change"
+                   hx-target="#offerTotal"
+                   hx-swap="innerHTML">
 
             <label>Rabat (%)</label>
             <input type="number"

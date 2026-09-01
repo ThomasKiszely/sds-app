@@ -4,23 +4,45 @@ const cleaningPlanRepo = require("../data/cleaningPlanRepo");
 const { userError } = require("../utils/userError");
 const crypto = require("crypto");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
+const { categoryTypes } = require("../utils/categoryEnum");
 
 async function getOfferById(id) {
     return await offerRepo.findById(id);
 }
 
 async function createOffer(planId, { discountPercent = 0, environmentalFeePercent = 4 }) {
-
     const plan = await cleaningPlanRepo.findById(planId);
     if (!plan) throw userError("Rengøringsplanen findes ikke");
 
-    const tasks = await cleaningTaskRepo.findByPlanId(planId);
-    if (!tasks || tasks.length === 0) {
+    const rawTasks = await cleaningTaskRepo.findByPlanId(planId);
+    if (!rawTasks || rawTasks.length === 0) {
         throw userError("Rengøringsplanen har ingen opgaver");
     }
 
-    const totals = calculateOfferTotals(tasks, discountPercent, environmentalFeePercent);
+    const hourlyRate = plan.hourlyRate;
 
+    // Enrich alle tasks med priser
+    const enrichedTasks = rawTasks.map(t => {
+        const plain = typeof t.toObject === "function" ? t.toObject() : t;
+        const { monthlyPrice, pricePerTime, duration } =
+            calculateTaskMonthlyPrice(plain, hourlyRate);
+
+        return {
+            ...plain,
+            monthlyPrice,
+            pricePerTime,
+            durationPerTask: duration
+        };
+    });
+
+    // Split i normale opgaver og forbrugsvarer
+    const consumables = enrichedTasks.filter(t => t.category === categoryTypes.consumables);
+    const normalTasks = enrichedTasks.filter(t => t.category !== categoryTypes.consumables);
+
+    // Beregn totals KUN for normale opgaver
+    const totals = calculateOfferTotals(normalTasks, discountPercent, environmentalFeePercent, hourlyRate);
+
+    // Snapshot til tilbuddet
     const snapshot = {
         plan: {
             name: plan.name,
@@ -40,29 +62,34 @@ async function createOffer(planId, { discountPercent = 0, environmentalFeePercen
             paymentTerms: plan.paymentTerms
         },
 
-        tasks: tasks.map(t => {
-            const { monthlyPrice, pricePerTime, duration } =
-                calculateTaskMonthlyPrice(t, plan.hourlyRate);
+        // Normale opgaver
+        tasks: normalTasks.map(t => ({
+            name: t.name,
+            category: t.category,
+            unit: t.unit,
+            amount: t.amount,
+            quantity: t.quantity,
 
-            return {
-                name: t.name,
-                category: t.category,
-                unit: t.unit,
-                amount: t.amount,
-                quantity: t.quantity,
+            durationPerUnit: t.durationPerUnit,
+            durationPerTask: t.durationPerTask,
 
-                durationPerUnit: t.durationPerUnit,
-                durationPerTask: duration,
+            frequency: t.frequency,
+            days: t.days,
 
-                frequency: t.frequency,
-                days: t.days,
+            pricePerTime: t.pricePerTime,
+            monthlyPrice: t.monthlyPrice,
 
-                pricePerTime,
-                monthlyPrice,
+            description: t.description
+        })),
 
-                description: t.description
-            };
-        })
+        // Forbrugsvarer (tilkøb)
+        consumables: consumables.map(c => ({
+            name: c.name,
+            quantity: c.quantity,
+            unit: c.unit,                // altid stk
+            pricePerUnit: c.customPrice, // pris pr stk
+            description: c.description
+        }))
     };
 
     const signatureToken = crypto.randomBytes(32).toString("hex");
@@ -125,13 +152,13 @@ async function listOffersForPlan(planId) {
     return await offerRepo.findByPlanId(planId);
 }
 
-function calculateOfferTotals(tasks, discountPercent, environmentalFeePercent) {
+// ⭐ Nu med eksplicit hourlyRate, så både step4 og createOffer får korrekt total
+function calculateOfferTotals(tasks, discountPercent, environmentalFeePercent, hourlyRate) {
+    const rate = hourlyRate ?? 0;
 
     const subtotal = tasks.reduce((sum, t) => {
-        const hourlyRate = t.hourlyRate || t.planHourlyRate || t._doc?.hourlyRate;
-        const rate = hourlyRate ?? 0;
-
-        const { monthlyPrice } = calculateTaskMonthlyPrice(t, rate);
+        const plain = typeof t.toObject === "function" ? t.toObject() : t;
+        const { monthlyPrice } = calculateTaskMonthlyPrice(plain, rate);
         return sum + monthlyPrice;
     }, 0);
 

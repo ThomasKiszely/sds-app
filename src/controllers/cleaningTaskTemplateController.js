@@ -154,6 +154,7 @@ async function showTemplatePage(req, res) {
 
 async function showCreateForm(req, res) {
     return res.render("cleaningTaskTemplates/create", {
+        category: req.query.category || null,
         categoryTypes,
         categoryLabels,
         units,
@@ -162,6 +163,29 @@ async function showCreateForm(req, res) {
         frequencyLabels
     });
 }
+
+function showConsumableFields(req, res) {
+    const category = req.query.category || null;
+
+    return res.render("cleaningTaskTemplates/partials/consumableFields", {
+        category,
+        categoryTypes
+    });
+}
+
+function showTaskFields(req, res) {
+    const category = req.query.category || null;
+
+    res.render("cleaningTaskTemplates/partials/taskFields", {
+        category,
+        categoryTypes,
+        units,
+        unitsLabels,
+        frequencies,
+        frequencyLabels
+    });
+}
+
 
 
 module.exports = {
@@ -174,5 +198,7 @@ module.exports = {
     reactivateCleaningTaskTemplate,
     getDeletedCleaningTaskTemplates,
     showTemplatePage,
-    showCreateForm
+    showCreateForm,
+    showConsumableFields,
+    showTaskFields
 };

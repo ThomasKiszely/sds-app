@@ -8,6 +8,9 @@ const validateCleaningTaskTemplate = require('../middlewares/validateCleaningTas
 router.get('/archived', requireAdmin, cleaningTaskTemplateController.getDeletedCleaningTaskTemplates);
 router.patch('/:id/reactivate', requireAdmin, cleaningTaskTemplateController.reactivateCleaningTaskTemplate);
 router.get('/create', requireAdmin, cleaningTaskTemplateController.showCreateForm);   // ← VIGTIG!
+router.get('/create/taskFields', requireAdmin, cleaningTaskTemplateController.showTaskFields);
+router.get("/create/consumableFields", requireAdmin, cleaningTaskTemplateController.showConsumableFields);
+router.get("/:id/edit/taskFields", requireAdmin, cleaningTaskTemplateController.showTaskFields);
 router.get('/:id/edit', requireAdmin, cleaningTaskTemplateController.editCleaningTaskTemplate);
 
 // 2) WRAPPER-SIDEN (hele layoutet)

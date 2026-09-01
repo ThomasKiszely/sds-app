@@ -28,8 +28,6 @@ const cleaningTaskSchema = new mongoose.Schema({
     },
 
     roomName: { type: String },
-    programCode: { type: String },
-
 
     unit: {
         type: String,

@@ -1,9 +1,10 @@
 const newPlanService = require("../services/newPlanService");
-
+const cleaningTaskService = require("../services/cleaningTaskService");
 const cleaningPlanService = require("../services/cleaningPlanService");
 const customerService = require("../services/customerService");
 const locationService = require("../services/locationService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
+const offerService = require("../services/offerService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
@@ -125,12 +126,24 @@ async function tasks_daily(req, res) {
 
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const hourlyRate = plan.hourlyRate;
+
+    const tasks = rawTasks.map(t => {
+        const plain = t.toObject();
+        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        return { ...plain, ...prices };
+    });
+
+    const grouped = newPlanService.groupTasksByRoom(tasks);
 
     return res.render("newPlan/partials/tasks/daily", {
         plan,
         templates,
         tasks,
+        grouped,
         units,
         unitsLabels,
         categoryLabels,
@@ -139,14 +152,18 @@ async function tasks_daily(req, res) {
         frequencyLabels,
         customerId: plan.customerId
     });
+
 }
+
 
 async function tasks_extra(req, res) {
     const planId = req.query.planId;
 
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.extra);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+    const tasks = rawTasks.filter(t => t.category === categoryTypes.extra);
 
     return res.render("newPlan/partials/tasks/extra", {
         plan,
@@ -162,12 +179,15 @@ async function tasks_extra(req, res) {
     });
 }
 
+
 async function tasks_consumables(req, res) {
     const planId = req.query.planId;
 
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.consumables);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+    const tasks = rawTasks.filter(t => t.category === categoryTypes.consumables);
 
     return res.render("newPlan/partials/tasks/consumables", {
         plan,
@@ -188,7 +208,9 @@ async function tasks_windows(req, res) {
 
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.windows);
-    const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+    const tasks = rawTasks.filter(t => t.category === categoryTypes.windows);
 
     return res.render("newPlan/partials/tasks/windows", {
         plan,
@@ -255,12 +277,16 @@ async function tasks_edit(req, res) {
     }
 }
 
+
 async function tasks_update(req, res) {
     try {
         const vm = await newPlanService.updateTask(req.params.taskId, req.body);
 
+        const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+
         return res.render("newPlan/partials/tasks/taskList", {
             ...vm,
+            grouped,
             units,
             unitsLabels,
             categoryLabels,
@@ -269,6 +295,7 @@ async function tasks_update(req, res) {
             frequencyLabels,
             frequencyMultipliers
         });
+
 
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
@@ -289,8 +316,11 @@ async function tasks_delete(req, res) {
     try {
         const vm = await newPlanService.deleteTask(req.params.taskId);
 
+        const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+
         return res.render("newPlan/partials/tasks/taskList", {
             ...vm,
+            grouped,
             units,
             unitsLabels,
             categoryLabels,
@@ -299,6 +329,7 @@ async function tasks_delete(req, res) {
             frequencyLabels,
             frequencyMultipliers
         });
+
 
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
@@ -309,8 +340,11 @@ async function tasks_delete(req, res) {
 async function tasks_list(req, res) {
     const vm = await newPlanService.listTasks(req.query.planId);
 
+    const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+
     return res.render("newPlan/partials/tasks/taskList", {
         ...vm,
+        grouped,
         units,
         unitsLabels,
         categoryLabels,
@@ -327,25 +361,50 @@ async function tasks_list(req, res) {
 // ------------------------------------------------------------
 async function step4_offer(req, res) {
     const vm = await newPlanService.getOfferStep4ViewModel(req.query.planId);
-    res.render("newPlan/step4_offer", vm);
+
+    const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+
+    const consumables = vm.tasks.filter(t => t.category === categoryTypes.consumables);
+    const normalTasks = vm.tasks.filter(t => t.category !== categoryTypes.consumables);
+
+    res.render("newPlan/step4_offer", {
+        ...vm,
+        tasks: normalTasks,
+        consumables,
+        grouped,
+        frequencyLabels,
+        units,
+        unitsLabels,
+        categoryLabels
+    });
 }
+
 
 async function tasks_updateDailyBundle(req, res) {
     try {
         const planId = req.body.planId;
 
-        // Én service-metode der opdaterer alle tre SDS-opgaver
         await newPlanService.updateDailyBundle(planId, req.body);
 
-        // Når bundle er opdateret, viser vi daglige opgaver igen
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
         const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+        const hourlyRate = plan.hourlyRate;
+
+        const tasks = rawTasks.map(t => {
+            const plain = t.toObject();
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            return { ...plain, ...prices };
+        });
+
+        const grouped = newPlanService.groupTasksByRoom(tasks);
 
         return res.render("newPlan/partials/tasks/daily", {
             plan,
             templates,
             tasks,
+            grouped,   // ⭐ VIGTIGT
             units,
             unitsLabels,
             categoryLabels,
@@ -355,11 +414,13 @@ async function tasks_updateDailyBundle(req, res) {
             customerId: plan.customerId
         });
 
+
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
         return res.status(500).end();
     }
 }
+
 
 
 async function previewOffer(req, res) {
@@ -387,23 +448,28 @@ async function saveOffer(req, res) {
 async function tasks_editDailyBundle(req, res) {
     try {
         const planId = req.query.planId;
+        const roomName = req.query.roomName;   // ⭐ VIGTIGT: vi skal vide hvilket rum der redigeres
 
-        // Hent alle tasks for planen
-        const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-        // Find de tre SDS-opgaver
-        const soignering = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("soignering"));
-        const gulv = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("gulv"));
-        const inventar = tasks.find(t => t.category === categoryTypes.daily && t.name.toLowerCase().includes("inventar"));
-
-        if (!soignering || !gulv || !inventar) {
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Daglig bundle mangler opgaver" }));
+        if (!roomName) {
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Rum-navn mangler" }));
             return res.status(400).end();
         }
 
+        // ⭐ Find SDS-opgaver for dette rum (robust)
+        const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
+
+        if (sdsTasks.length !== 3) {
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Bundle mangler opgaver" }));
+            return res.status(400).end();
+        }
+
+        // ⭐ Sortér dem efter kategori, så rækkefølgen er stabil
+        const sorted = sdsTasks.sort((a, b) => a.category.localeCompare(b.category));
+
         return res.render("newPlan/partials/tasks/editDailyBundle", {
             planId,
-            tasks: [soignering, gulv, inventar],
+            roomName,
+            tasks: sorted,
             days,
             daysLabels,
             frequencies,
@@ -420,19 +486,27 @@ async function tasks_editDailyBundle(req, res) {
     }
 }
 
+
 async function tasks_createDailyBundle(req, res) {
     try {
         const planId = req.query.planId;
 
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
-        // HENT DAGLIGE TEMPLATES
-        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+        // ⭐ Find alle templates for SDS-kategorier
+        const dailyTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
+        const floorTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.floor);
+        const inventoryTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.inventory);
 
-        // FIND DE TRE SPECIFIKKE TEMPLATES
-        const soigneringTemplate = templates.find(t => t.name.toLowerCase().includes("soignering"));
-        const gulvTemplate = templates.find(t => t.name.toLowerCase().includes("gulv"));
-        const inventarTemplate = templates.find(t => t.name.toLowerCase().includes("inventar"));
+        // ⭐ Find præcis én template pr kategori (robust)
+        const soigneringTemplate = dailyTemplates[0];
+        const gulvTemplate       = floorTemplates[0];
+        const inventarTemplate   = inventoryTemplates[0];
+
+        if (!soigneringTemplate || !gulvTemplate || !inventarTemplate) {
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Mangler SDS-skabeloner" }));
+            return res.status(400).end();
+        }
 
         return res.render("newPlan/partials/tasks/createDailyBundle", {
             plan,
@@ -460,18 +534,29 @@ async function tasks_saveDailyBundle(req, res) {
     try {
         const planId = req.body.planId;
 
-        // Opret de tre SDS-opgaver
+        // ⭐ Opret SDS-bundle via service (robust)
         await newPlanService.createDailyBundle(planId, req.body);
 
-        // Efter oprettelse viser vi daglige opgaver igen
+        // ⭐ Hent plan + tasks til visning
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
         const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-        const tasks = await cleaningPlanService.getTasksForPlan(planId);
+
+        const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
+        const hourlyRate = plan.hourlyRate;
+
+        const tasks = rawTasks.map(t => {
+            const plain = t.toObject();
+            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            return { ...plain, ...prices };
+        });
+
+        const grouped = newPlanService.groupTasksByRoom(tasks);
 
         return res.render("newPlan/partials/tasks/daily", {
             plan,
             templates,
             tasks,
+            grouped,   // ⭐ VIGTIGT
             units,
             unitsLabels,
             categoryLabels,
@@ -481,11 +566,13 @@ async function tasks_saveDailyBundle(req, res) {
             customerId: plan.customerId
         });
 
+
     } catch (error) {
         res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
         return res.status(500).end();
     }
 }
+
 
 
 module.exports = {

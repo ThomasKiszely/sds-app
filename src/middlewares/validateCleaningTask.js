@@ -1,8 +1,8 @@
-const { frequency } = require("../utils/frequencyEnum");
+const { frequencies } = require("../utils/frequencyEnum");
 
 module.exports = function validateCleaningTask(req, res, next) {
     const errors = [];
-    const { templateId, roomName, programCode, quantity, amount } = req.body;
+    const { templateId, roomName, quantity, amount } = req.body;
 
     // templateId
     if (!templateId || !templateId.match(/^[0-9a-fA-F]{24}$/)) {
@@ -13,12 +13,6 @@ module.exports = function validateCleaningTask(req, res, next) {
     if (!roomName || typeof roomName !== "string" || roomName.trim().length === 0) {
         errors.push("roomName skal være en ikke-tom tekststreng.");
     }
-
-    // programCode: kun validere hvis feltet findes
-    if (programCode && !/^\d{3}$/.test(programCode)) {
-        errors.push("programCode skal være en 3-cifret kode, fx 551 eller 522.");
-    }
-
 
     // quantity
     if (quantity !== undefined && (isNaN(quantity) || quantity < 1)) {

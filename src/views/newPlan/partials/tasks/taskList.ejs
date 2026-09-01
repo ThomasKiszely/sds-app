@@ -7,69 +7,106 @@
 
         <h3>Valgte opgaver</h3>
 
-        <ul>
-                <% tasks.forEach(task => { %>
-                        <li class="task-item">
+        <% for (const roomName in grouped) { %>
+                <section class="task-room-group">
 
-                                <!-- Navn + kategori -->
-                                <strong><%= task.name || "Ukendt opgave" %></strong>
-                                <span>(<%= categoryLabels[task.category] %>)</span>
+                        <!-- ⭐ Rum-navn + programkode -->
+                        <h4>
+                                <strong><%= roomName %></strong>
+                                <span class="program-code">(Kode: <%= grouped[roomName].programCode %>)</span>
+                        </h4>
 
-                                <!-- ⭐ Lokale + programkode -->
-                                <div class="task-room">
-                                        <strong>Lokale:</strong> <%= task.roomName %>
-                                        – <strong>Kode:</strong> <%= task.programCode %>
-                                </div>
-
-
-                                <!-- Mængde -->
-                                <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
-                                        – <%= task.amount %> <%= unitsLabels[task.unit] %>
-                                <% } else if (task.unit === units.stk) { %>
-                                        – <%= task.quantity %> <%= unitsLabels[task.unit] %>
-                                <% } %>
-
-                                <!-- Dage + frekvens (kun hvis ikke consumables) -->
-                                <% if (task.category !== categoryTypes.consumables) { %>
-                                        –
-                                        <% (task.days || []).forEach(d => { %>
-                                                <%= daysLabels[d] %>
-                                        <% }) %>
-
-                                        – <%= frequencyLabels[task.frequency] %>
-                                <% } %>
-
-                                <!-- Pris pr måned -->
-                                <div class="task-meta">
-
-                                        <% if (task.customPrice != null) { %>
-                                                <div>Fast pris pr gang: <strong><%= task.customPrice %> kr.</strong></div>
-                                        <% } %>
-
-                                        <div>Pris pr måned: <strong><%= task.monthlyPrice %> kr.</strong></div>
-                                </div>
-
-                                <!-- Beskrivelse -->
-                                <% if (task.description && task.description.trim().length > 0) { %>
-                                        <div class="task-description"><em><%= task.description %></em></div>
-                                <% } %>
-
-                                <!-- Knapper -->
+                        <!-- ⭐ Bundle-knapper -->
+                        <div class="task-actions">
                                 <button class="button small"
-                                        hx-get="/newPlan/tasks/<%= task._id %>/edit"
-                                        hx-target="#taskArea">
-                                        Rediger
+                                        hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= planId %>&roomName=<%= roomName %>"
+                                        hx-target="#taskArea"
+                                        hx-swap="innerHTML">
+                                        Rediger bundle
                                 </button>
 
                                 <button class="button small danger"
-                                        hx-delete="/newPlan/tasks/<%= task._id %>/delete"
+                                        hx-delete="/newPlan/tasks/dailyBundle/delete?planId=<%= planId %>&roomName=<%= roomName %>"
                                         hx-target="#taskArea">
-                                        Slet
+                                        Slet opgaver
                                 </button>
+                        </div>
 
-                        </li>
-                <% }) %>
-        </ul>
+                        <ul class="task-list-room">
+
+                                <!-- ⭐ SDS-opgaver -->
+                                <% grouped[roomName].sds.forEach(task => { %>
+                                        <li class="task-item sds-task">
+
+                                                <div class="task-info">
+                                                        <strong><%= task.name %></strong>
+
+                                                        <div class="task-days">
+                                                                <% (task.days || []).forEach(d => { %>
+                                                                        <%= daysLabels[d] %>
+                                                                <% }) %>
+                                                                – <%= frequencyLabels[task.frequency] %>
+                                                        </div>
+
+                                                        <div class="task-meta">
+                                                                Pris pr måned:
+                                                                <strong><%= task.monthlyPrice %> kr.</strong>
+                                                        </div>
+
+                                                        <% if (task.description && task.description.trim().length > 0) { %>
+                                                                <div class="task-description"><em><%= task.description %></em></div>
+                                                        <% } %>
+                                                </div>
+
+                                        </li>
+                                <% }) %>
+
+                                <!-- ⭐ Øvrige opgaver -->
+                                <% grouped[roomName].other.forEach(task => { %>
+                                        <li class="task-item other-task">
+
+                                                <div class="task-info">
+                                                        <strong><%= task.name %></strong>
+
+                                                        <% if (task.category !== categoryTypes.consumables) { %>
+                                                                <div class="task-days">
+                                                                        <% (task.days || []).forEach(d => { %>
+                                                                                <%= daysLabels[d] %>
+                                                                        <% }) %>
+                                                                        – <%= frequencyLabels[task.frequency] %>
+                                                                </div>
+                                                        <% } %>
+
+                                                        <div class="task-meta">
+                                                                Pris pr måned:
+                                                                <strong><%= task.monthlyPrice %> kr.</strong>
+                                                        </div>
+
+                                                        <% if (task.description && task.description.trim().length > 0) { %>
+                                                                <div class="task-description"><em><%= task.description %></em></div>
+                                                        <% } %>
+                                                </div>
+
+                                                <div class="task-actions">
+                                                        <button class="button small"
+                                                                hx-get="/newPlan/tasks/<%= task._id %>/edit"
+                                                                hx-target="#taskArea">
+                                                                Rediger
+                                                        </button>
+
+                                                        <button class="button small danger"
+                                                                hx-delete="/newPlan/tasks/<%= task._id %>/delete"
+                                                                hx-target="#taskArea">
+                                                                Slet
+                                                        </button>
+                                                </div>
+
+                                        </li>
+                                <% }) %>
+
+                        </ul>
+
+                </section>
+        <% } %>
 
 </article>
-

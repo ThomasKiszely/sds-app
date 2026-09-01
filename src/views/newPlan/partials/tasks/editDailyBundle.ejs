@@ -3,11 +3,12 @@
     <h1>Rediger daglig opgave – Soignering, Gulv, Inventar</h1>
 
     <form
-            hx-post="/newPlan/tasks/dailyBundle/<%= tasks[0].planId %>/update"
+            hx-post="/newPlan/tasks/dailyBundle/update"
             hx-target="#taskArea"
             hx-swap="innerHTML"
             class="daily-bundle-edit-form"
     >
+        <input type="hidden" name="planId" value="<%= tasks[0].planId %>">
 
         <!-- Fælles felter -->
         <section>
@@ -53,7 +54,7 @@
             <section>
                 <h2><%= task.name %></h2>
 
-                <input type="hidden" name="taskIds" value="<%= task._id %>">
+                <input type="hidden" name="taskIds[]" value="<%= task._id %>">
 
                 <label>Varighed pr enhed (minutter)</label>
                 <input type="number"

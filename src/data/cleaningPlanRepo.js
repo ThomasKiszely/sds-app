@@ -31,7 +31,7 @@ async function updateById(id, data) {
 }
 
 async function findByLocationId(locationId) {
-    return CleaningPlan.find({ locationId, isActive: true });
+    return CleaningPlan.find({ locationId });
 }
 
 

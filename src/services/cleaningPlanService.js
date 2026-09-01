@@ -2,6 +2,7 @@ const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const { ensureExists, userError } = require("../utils/userError");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
+const { categoryTypes } = require('../utils/categoryEnum');
 
 // ------------------------------------------------------------
 // GENBEREGN TOTALPRIS FOR PLAN
@@ -16,9 +17,12 @@ async function recalculatePlanTotal(planId) {
     let subtotal = 0;
 
     for (const t of tasks) {
+        if (t.category === categoryTypes.consumables) continue;  // IGNORÉR FORBRUGSVARER
+
         const { monthlyPrice } = calculateTaskMonthlyPrice(t, hourlyRate);
         subtotal += monthlyPrice;
     }
+
 
     // Rabat
     const discountPercent = plan.discountPercent || 0;

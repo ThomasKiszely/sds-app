@@ -8,20 +8,18 @@ async function createTemplate(data) {
 // LIST ACTIVE
 async function listTemplates() {
     return CleaningTaskTemplate.find({ isActive: true })
-        .sort({ name: 1 })
-        .lean();
+        .sort({ name: 1 });
 }
 
 // LIST DELETED
 async function listDeletedTemplates() {
     return CleaningTaskTemplate.find({ isActive: false })
-        .sort({ name: 1 })
-        .lean();
+        .sort({ name: 1 });
 }
 
 // FIND BY ID
 async function findTemplateById(id) {
-    return CleaningTaskTemplate.findById(id).lean();
+    return CleaningTaskTemplate.findById(id);
 }
 
 // UPDATE
@@ -33,7 +31,7 @@ async function updateTemplate(id, data) {
             updatedAt: new Date()
         },
         { new: true }
-    ).lean();
+    );
 }
 
 // SOFT DELETE
@@ -42,7 +40,7 @@ async function softDeleteTemplate(id) {
         id,
         { isActive: false, updatedAt: new Date() },
         { new: true }
-    ).lean();
+    );
 }
 
 // REACTIVATE
@@ -51,7 +49,7 @@ async function reactivateTemplate(id) {
         id,
         { isActive: true, updatedAt: new Date() },
         { new: true }
-    ).lean();
+    );
 }
 
 // FIND BY CATEGORY
@@ -60,8 +58,7 @@ async function findByCategory(category) {
         category,
         isActive: true
     })
-        .sort({ name: 1 })
-        .lean();
+        .sort({ name: 1 });
 }
 
 module.exports = {

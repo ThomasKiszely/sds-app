@@ -1,6 +1,7 @@
 <article class="task-category">
     <h2>Forbrugsvare</h2>
 
+    <!-- ⭐ Templates (varer man kan tilføje) -->
     <ul class="template-list">
         <% templates.forEach(t => { %>
             <li>
@@ -20,14 +21,39 @@
 
     <hr>
 
-    <h3>Valgte opgaver</h3>
+    <!-- ⭐ Valgte forbrugsvarer -->
+    <h3>Valgte forbrugsvarer (tilkøb)</h3>
 
     <ul class="task-list">
         <% tasks.forEach(task => { %>
-            <li>
-                <%= task.name %> – <%= task.totalPrice %> kr.
+            <li class="task-item">
+
+                <strong><%= task.name %></strong>
+                – <%= task.customPrice %> kr pr stk
+                – <%= task.quantity %> stk
+
+                <% if (task.description && task.description.trim().length > 0) { %>
+                    <div><em><%= task.description %></em></div>
+                <% } %>
+
+                <div class="task-actions">
+                    <button class="button small"
+                            hx-get="/newPlan/tasks/<%= task._id %>/edit"
+                            hx-target="#taskArea">
+                        Rediger
+                    </button>
+
+                    <button class="button small danger"
+                            hx-delete="/newPlan/tasks/<%= task._id %>/delete"
+                            hx-target="#taskArea">
+                        Slet
+                    </button>
+                </div>
+
             </li>
         <% }) %>
     </ul>
+
+    <p><em>Forbrugsvarer faktureres efter forbrug og indgår ikke i planens månedlige pris.</em></p>
 
 </article>

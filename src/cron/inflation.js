@@ -9,7 +9,7 @@ const { calculateTaskTotalPrice } = require('../utils/priceUtil');
 const SystemSettings = require('../models/SystemSettings');
 
 async function getInflationRate() {
-    const settings = await SystemSettings.findOne().lean();
+    const settings = await SystemSettings.findOne();
     return settings?.inflationRate ?? 0.025;
 }
 
@@ -20,7 +20,7 @@ async function runInflationAdjustment() {
 
     const INFLATION_RATE = await getInflationRate();
 
-    const tasks = await CleaningTask.find({ isActive: true }).lean();
+    const tasks = await CleaningTask.find({ isActive: true });
     console.log(`Antal aktive opgaver: ${tasks.length}`);
 
     for (const task of tasks) {
@@ -43,7 +43,7 @@ async function runInflationAdjustment() {
 
     console.log("Alle opgaver er opdateret.");
 
-    const plans = await CleaningPlan.find({ isActive: true }).lean();
+    const plans = await CleaningPlan.find({ isActive: true });
 
     for (const plan of plans) {
         const tasksForPlan = await taskRepo.findByPlanId(plan._id);

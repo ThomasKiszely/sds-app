@@ -3,10 +3,18 @@ const cleaningTaskTemplateRepo = require('../data/cleaningTaskTemplateRepo');
 const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 
 const { ensureExists } = require("../utils/userError");
-const { frequencyMultipliers } = require("../utils/frequencyEnum");
 const { recalculatePlanTotal } = require('./cleaningPlanService');
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
-const { frequencyDigit, sdsDigitFromDays } = require("../utils/sdsUtil");
+const { categoryTypes } = require("../utils/categoryEnum");
+const { units } = require("../utils/unitEnum");
+const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
+
+// Beregn programkode for et bestemt rum
+async function getProgramCodeForRoom(planId, roomName) {
+    const tasksForRoom = await findSdsTasksForRoom(planId, roomName);
+    return calculateProgramCodeForRoom(tasksForRoom);
+}
+
 
 
 // Helpers
@@ -16,6 +24,7 @@ function normalizeDays(days) {
     return [days];
 }
 
+// SDS-kategorier (bruges senere til programkode pr. rum)
 const sdsCategoryMap = {
     daily: 0,      // Daglig soignering → 1. ciffer
     floor: 1,      // Gulv → 2. ciffer
@@ -39,17 +48,50 @@ async function createCleaningTask(planId, data) {
     const template = await cleaningTaskTemplateRepo.findTemplateById(data.templateId);
     ensureExists(template, "Opgave-skabelon blev ikke fundet.");
 
+    const roomName = data.roomName ?? "Ukendt lokale";
+
+    const isConsumable =
+        template.isConsumable === true ||
+        data.category === categoryTypes.consumables;
+
+    // ⭐ FORBRUGSVARE – tilkøb, ikke en del af planens pris
+    if (isConsumable) {
+        const quantity = Number(data.quantity ?? 1);
+        const customPrice = data.customPrice != null
+            ? Number(data.customPrice)
+            : Number(template.pricePerUnit);
+
+        const task = await cleaningTaskRepo.create({
+            planId,
+            templateId: template._id,
+
+            name: template.name,
+            description: template.description,
+            category: categoryTypes.consumables,
+
+            unit: units.stk,
+
+            // ingen varighed, ingen frekvens, ingen SDS, ingen dage
+            durationPerUnit: 0,
+            amount: 0,
+            quantity,
+            frequency: null,
+            days: [],
+            customPrice,
+            roomName,
+            isActive: true
+        });
+
+        await recalculatePlanTotal(planId); // totalen vil senere ignorere forbrugsvarer
+        return task;
+    }
+
+    // ⭐ ALMINDELIG OPERATION (SDS + normale opgaver)
     const quantity = Number(data.quantity ?? 1);
-    const frequency = data.frequency ?? "weekly";
+    const frequency = data.frequency ?? template.frequency;
     const days = normalizeDays(data.days ?? []);
     const customPrice = data.customPrice ? Number(data.customPrice) : null;
 
-    const roomName = data.roomName ?? "Ukendt lokale";
-
-    // ⭐ Kun SDS-kategorier skal have programkode
-    const isSdsCategory = ["daily", "floor", "inventory"].includes(template.category);
-
-    // ⭐ Opret tasken
     const task = await cleaningTaskRepo.create({
         planId,
         templateId: template._id,
@@ -67,37 +109,14 @@ async function createCleaningTask(planId, data) {
         days,
         customPrice,
         roomName,
-
-        programCode: isSdsCategory ? "000" : null,
         isActive: true
     });
 
-    // ⭐ SDS-kode skal kun genereres for SDS-opgaver
-    if (isSdsCategory) {
-        const siblings = await cleaningTaskRepo.findByPlanId(planId);
-        const sameRoomTasks = siblings.filter(t => t.roomName === roomName);
-
-        let digits = ["0", "0", "0"];
-
-        sameRoomTasks.forEach(t => {
-            const index = sdsCategoryMap[t.category];
-            if (index !== undefined) {
-                digits[index] = String(sdsDigitFromDays(t.days));
-            }
-        });
-
-        const finalProgramCode = digits.join("");
-
-        for (const t of sameRoomTasks) {
-            await cleaningTaskRepo.updateById(t._id, { programCode: finalProgramCode });
-        }
-    }
+    // ⭐ VIGTIGT: ingen programCode her – den bliver senere beregnet dynamisk pr. rum
 
     await recalculatePlanTotal(planId);
     return task;
 }
-
-
 
 
 // Update
@@ -105,35 +124,26 @@ async function updateCleaningTask(taskId, data) {
     const task = await cleaningTaskRepo.findById(taskId);
     ensureExists(task, "Rengøringsopgave blev ikke fundet.");
 
-    const siblings = await cleaningTaskRepo.findByPlanId(task.planId);
+    // ⭐ FORBRUGSVARE – kun pris, antal, lokale
+    if (task.category === categoryTypes.consumables) {
+        const quantity = Number(data.quantity ?? task.quantity);
+        const customPrice = data.customPrice != null
+            ? Number(data.customPrice)
+            : task.customPrice;
+        const roomName = data.roomName ?? task.roomName;
 
-    const roomName = data.roomName ?? task.roomName;
-    const sameRoomTasks = siblings.filter(t => t.roomName === roomName);
-
-    const isSdsCategory = ["daily", "floor", "inventory"].includes(task.category);
-
-    let finalProgramCode = null;
-
-    // ⭐ Kun SDS-opgaver skal have SDS-kode
-    if (isSdsCategory) {
-        let digits = ["0", "0", "0"];
-
-        sameRoomTasks.forEach(t => {
-            const index = sdsCategoryMap[t.category];
-            if (index !== undefined) {
-                digits[index] = String(sdsDigitFromDays(t.days));
-            }
+        const updated = await cleaningTaskRepo.updateById(taskId, {
+            quantity,
+            customPrice,
+            roomName
         });
 
-        const updatedDays = normalizeDays(data.days ?? task.days);
-        const updatedIndex = sdsCategoryMap[task.category];
-
-        if (updatedIndex !== undefined) {
-            digits[updatedIndex] = String(sdsDigitFromDays(updatedDays));
-        }
-
-        finalProgramCode = digits.join("");
+        await recalculatePlanTotal(task.planId); // totalen ignorerer dem
+        return updated;
     }
+
+    // ⭐ ALMINDELIGE + SDS-opgaver – ingen programCode i DB
+    const roomName = data.roomName ?? task.roomName;
 
     const quantity = Number(data.quantity ?? task.quantity);
     const frequency = data.frequency ?? task.frequency;
@@ -143,20 +153,16 @@ async function updateCleaningTask(taskId, data) {
     const updated = await cleaningTaskRepo.updateById(taskId, {
         amount: Number(data.amount ?? task.amount),
         durationPerUnit: Number(data.durationPerUnit ?? task.durationPerUnit),
-
         quantity,
         frequency,
         days,
         customPrice,
-
         roomName,
-        programCode: finalProgramCode
     });
 
     await recalculatePlanTotal(task.planId);
     return updated;
 }
-
 
 
 // Delete (soft)
@@ -194,6 +200,17 @@ function calculateCleaningTaskPrices(task, hourlyRate) {
     return calculateTaskMonthlyPrice(task, hourlyRate);
 }
 
+// Find alle SDS-opgaver for et bestemt rum
+async function findSdsTasksForRoom(planId, roomName) {
+    const allTasks = await cleaningTaskRepo.findByPlanId(planId);
+
+    return allTasks.filter(t =>
+        t.isActive &&
+        t.roomName === roomName &&
+        ["daily", "floor", "inventory"].includes(t.category)
+    );
+}
+
 
 
 module.exports = {
@@ -205,5 +222,7 @@ module.exports = {
     findCleaningTaskById: cleaningTaskRepo.findById,
     listCleaningTasks: cleaningTaskRepo.findByPlanId,
     getHourlyRateForPlan,
-    calculateCleaningTaskPrices
+    calculateCleaningTaskPrices,
+    findSdsTasksForRoom,
+    getProgramCodeForRoom
 };

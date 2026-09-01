@@ -13,14 +13,14 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
         required: true
     },
 
-    // NYT: tid pr. enhed (minutter)
+    // Tid pr. enhed (minutter)
     durationPerUnit: { type: Number, default: 0 },
 
-    // NYT: frekvens
+    // Frekvens
     frequency: {
         type: String,
         enum: Object.values(frequencies),
-        required: true
+        default: frequencies.weekly,
     },
 
     // Enhed (m2, stk, rum)
@@ -29,6 +29,10 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
         enum: Object.values(units),
         default: units.ingen
     },
+
+    isConsumable: { type: Boolean, default: false },
+
+    pricePerUnit: { type: Number, default: null },
 
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
