@@ -1,0 +1,43 @@
+<article class="task-edit">
+
+    <h2>Rediger forbrugsvare</h2>
+
+    <form hx-patch="/newPlan/tasks/<%= task._id %>/update"
+          hx-target="#taskArea"
+          hx-include="[name=planId]">
+
+        <input type="hidden" name="planId" value="<%= task.planId %>">
+
+        <div class="form-group">
+            <label>Navn</label>
+            <input type="text" name="name" value="<%= task.name %>" required>
+        </div>
+
+        <div class="form-group">
+            <label>Beskrivelse</label>
+            <textarea name="description"><%= task.description %></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Pris pr stk</label>
+            <input type="number" name="customPrice" value="<%= task.customPrice %>" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label>Antal</label>
+            <input type="number" name="quantity" value="<%= task.quantity %>" min="1" required>
+        </div>
+
+        <hr>
+
+        <button class="button">Gem</button>
+
+        <button class="button-secondary"
+                hx-get="/newPlan/tasks/consumables?planId=<%= task.planId %>"
+                hx-target="#taskArea">
+            Tilbage
+        </button>
+
+    </form>
+
+</article>

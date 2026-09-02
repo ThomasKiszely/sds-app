@@ -31,13 +31,6 @@ const cleaningPlanSchema = new mongoose.Schema({
         required: true
     },
 
-    // ⭐ Tasks er separate dokumenter (CleaningTask)
-    // Du må IKKE embedde tasks her
-    taskIds: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "CleaningTask"
-    }],
-
     roomNotes: [{
         roomName: String,
         notes: [String]

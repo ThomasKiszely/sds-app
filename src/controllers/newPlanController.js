@@ -259,6 +259,12 @@ async function tasks_edit(req, res) {
     try {
         const task = await newPlanService.getEditTaskViewModel(req.params.taskId);
 
+        if (task.category === categoryTypes.consumables) {
+            return res.render("newPlan/partials/tasks/editConsumable", {
+                task
+            });
+        }
+
         return res.render("newPlan/partials/tasks/editTask", {
             task,
             days,
@@ -375,7 +381,10 @@ async function step4_offer(req, res) {
         frequencyLabels,
         units,
         unitsLabels,
-        categoryLabels
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyMultipliers
     });
 }
 

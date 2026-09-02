@@ -1,10 +1,8 @@
 const { validateCVR } = require("../utils/validateCVR");
-
-
+const { normalizeAddress } = require("../utils/addressUtil");
 
 function validateCustomer(req, res, next) {
     const data = req.body;
-
 
     const required = [
         "customerName",
@@ -32,6 +30,10 @@ function validateCustomer(req, res, next) {
     if (!validateCVR(data.cvr)) {
         return next({ isUserError: true, message: "CVR er ugyldig" });
     }
+
+    // ⭐ Normaliser adresser (tilføj komma hvis nødvendigt)
+    data.customerAddress = normalizeAddress(data.customerAddress);
+    data.billingAddress = normalizeAddress(data.billingAddress);
 
     next();
 }

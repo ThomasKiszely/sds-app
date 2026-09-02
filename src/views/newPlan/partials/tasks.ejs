@@ -33,11 +33,8 @@
         </button>
     </section>
 
-    <section id="taskArea"
-             hx-get="/newPlan/tasks/list?planId=<%= planId %>"
-             hx-trigger="load"
-             hx-target="#taskArea">
-    </section>
+    <section id="taskArea"></section>
+
 
     <!-- ⭐ DETTE ER DET VIGTIGE -->
     <input type="hidden" name="planId" value="<%= planId %>">

@@ -221,6 +221,7 @@ module.exports = {
     getDeletedCleaningTasks,
     findCleaningTaskById: cleaningTaskRepo.findById,
     listCleaningTasks: cleaningTaskRepo.findByPlanId,
+    findCleaningTasksByIds: cleaningTaskRepo.findTasksByIds,
     getHourlyRateForPlan,
     calculateCleaningTaskPrices,
     findSdsTasksForRoom,

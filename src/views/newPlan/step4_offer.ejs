@@ -1,77 +1,164 @@
 <article class="standard wizard-step">
+
     <h2>Prisberegning – Lav tilbud</h2>
 
     <section class="offer-summary">
 
-        <!-- ⭐ Opgaver med lokale (dailyBundle) -->
-        <h3>Opgaver</h3>
+        <!-- ⭐ Samlet månedlig pris -->
+        <h3>Samlet månedlig pris</h3>
+        <p class="plan-total"><strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong></p>
+
+        <hr>
+
+        <h3>Faste opgaver (pris pr måned)</h3>
 
         <%
-        // ⭐ Gruppér KUN opgaver der har roomName
-        const rooms = {};
-        tasks.forEach(t => {
-            if (!t.roomName || t.roomName.trim() === "") return; // skip tasks uden lokale
-            if (!rooms[t.roomName]) rooms[t.roomName] = [];
-            rooms[t.roomName].push(t);
-        });
+        // ⭐ Opdel tasks i sektioner
+
+        const roomTasks = tasks.filter(t =>
+                t.roomName &&
+                t.roomName.trim() !== "" &&
+                t.monthlyPrice > 0
+        );
+
+        const noRoomTasks = tasks.filter(t =>
+                (!t.roomName || t.roomName.trim() === "") &&
+                t.monthlyPrice > 0
+        );
+
+        const adHocTasks = tasks.filter(t =>
+                t.monthlyPrice === 0 &&
+                t.customPrice != null &&
+                t.category !== categoryTypes.consumables
+        );
+
+        const consumables = tasks.filter(t =>
+                t.category === categoryTypes.consumables
+        );
         %>
 
-        <% Object.keys(rooms).forEach(room => {
-            const tasksInRoom = rooms[room];
+        <!-- ⭐ RUM -->
+        <% if (roomTasks.length > 0) { %>
+            <section>
+                <h3>Rum</h3>
 
-            // ⭐ Programkode KUN for bundle-opgaver
-            const programCode = grouped[room]?.programCode || "";
-        %>
+                <%
+                    const rooms = {};
+                    roomTasks.forEach(t => {
+                        if (!rooms[t.roomName]) rooms[t.roomName] = [];
+                        rooms[t.roomName].push(t);
+                    });
+                %>
 
-        <h4><%= room %> (<%= programCode %>)</h4>
+                <% Object.keys(rooms).forEach(room => {
+                    const tasksInRoom = rooms[room];
+                    const programCode = grouped[room]?.programCode || "";
+                %>
 
-        <ul>
-            <% tasksInRoom.forEach(t => { %>
-                <li>
-                    <strong><%= t.name %></strong>
+                <h4><%= room %> (<%= programCode %>)</h4>
 
-                    <!-- Frekvens -->
-                    – <%= frequencyLabels[t.frequency] %>
+                <ul>
+                    <% tasksInRoom.forEach(t => { %>
+                        <li>
+                            <strong><%= t.name %></strong>
 
-                    <!-- Mængde -->
-                    <% if (t.unit === units.m2 || t.unit === units.lbm) { %>
-                        – <%= t.amount %> <%= unitsLabels[t.unit] %>
-                    <% } else if (t.unit === units.stk) { %>
-                        – <%= t.quantity %> <%= unitsLabels[t.unit] %>
-                    <% } %>
+                            <!-- Dage + frekvens -->
+                            <div>
+                                <% (t.days || []).forEach(d => { %>
+                                    <%= daysLabels[d] %>
+                                <% }) %>
+                                – <%= frequencyLabels[t.frequency] %>
+                            </div>
 
-                    <!-- Pris -->
-                    – <%= t.monthlyPrice.toFixed(2) %> kr./måned
-                </li>
-            <% }) %>
-        </ul>
+                            <!-- ⭐ Pris pr måned -->
+                            <div>
+                                <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
+                            </div>
 
-        <% }) %>
+                            <% if (t.description && t.description.trim().length > 0) { %>
+                                <div><em><%= t.description %></em></div>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>
 
-        <!-- ⭐ Opgaver uden lokale (vinduespudsning, specialopgaver, engangsopgaver) -->
-        <%
-        const noRoomTasks = tasks.filter(t => !t.roomName || t.roomName.trim() === "");
-        %>
-
-        <% if (noRoomTasks.length > 0) { %>
-            <h3>Opgaver uden lokale</h3>
-            <ul>
-                <% noRoomTasks.forEach(t => { %>
-                    <li>
-                        <strong><%= t.name %></strong>
-                        – <%= frequencyLabels[t.frequency] %>
-
-                        <% if (t.unit === units.stk) { %>
-                            – <%= t.quantity %> stk
-                        <% } %>
-
-                        – <%= t.monthlyPrice.toFixed(2) %> kr./måned
-                    </li>
                 <% }) %>
-            </ul>
+            </section>
+
+            <hr>
         <% } %>
 
-        <!-- ⭐ TOTALPRIS (LIVE) -->
+        <!-- ⭐ OPGAVER UDEN RUM -->
+        <% if (noRoomTasks.length > 0) { %>
+            <section>
+                <h3>Opgaver uden rum</h3>
+
+                <ul>
+                    <% noRoomTasks.forEach(t => { %>
+                        <li>
+                            <strong><%= t.name %></strong>
+                            – <%= frequencyLabels[t.frequency] %>
+                            – <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
+
+                            <% if (t.description && t.description.trim().length > 0) { %>
+                                <div><em><%= t.description %></em></div>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>
+            </section>
+
+            <hr>
+        <% } %>
+
+        <!-- ⭐ AD HOC / VINDUER / EFTER AFTALE -->
+        <% if (adHocTasks.length > 0) { %>
+            <section>
+                <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
+
+                <ul>
+                    <% adHocTasks.forEach(t => { %>
+                        <li>
+                            <strong><%= t.name %></strong>
+                            – <strong><%= t.customPrice %> kr pr gang</strong>
+
+                            <% if (t.description && t.description.trim().length > 0) { %>
+                                <div><em><%= t.description %></em></div>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>
+            </section>
+
+            <hr>
+        <% } %>
+
+        <!-- ⭐ FORBRUGSVARER -->
+        <% if (consumables.length > 0) { %>
+            <section>
+                <h3>Tilkøb – Forbrugsvarer</h3>
+
+                <ul>
+                    <% consumables.forEach(c => { %>
+                        <li>
+                            <strong><%= c.name %></strong>
+                            – <%= c.customPrice %> kr pr stk
+                            – <%= c.quantity %> stk
+
+                            <% if (c.description && c.description.trim().length > 0) { %>
+                                <div><em><%= c.description %></em></div>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                </ul>
+
+                <p><em>Faktureres efter forbrug</em></p>
+            </section>
+
+            <hr>
+        <% } %>
+
+        <!-- ⭐ TOTALPRIS MED TILLÆG OG RABAT -->
         <div class="offer-total-box" style="margin-top:1rem;">
             <h3>Totalpris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
@@ -83,44 +170,17 @@
 
     <hr>
 
-    <!-- ⭐ TILKØB – FORBRUGSVARER -->
-    <% if (consumables && consumables.length > 0) { %>
-        <section class="offer-summary">
-            <h3>Tilkøb – Forbrugsvarer</h3>
-
-            <ul>
-                <% consumables.forEach(c => { %>
-                    <li>
-                        <strong><%= c.name %></strong>
-                        – <%= c.pricePerUnit %> kr pr stk
-                        – <%= c.quantity %> stk
-
-                        <% if (c.description && c.description.trim().length > 0) { %>
-                            <div><em><%= c.description %></em></div>
-                        <% } %>
-                    </li>
-                <% }) %>
-            </ul>
-
-            <p><em>Faktureres efter forbrug</em></p>
-        </section>
-
-        <hr>
-    <% } %>
-
-    <!-- Hele formularen -->
+    <!-- ⭐ FORMULAR -->
     <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
 
         <input type="hidden" name="planId" value="<%= planId %>">
 
-        <!-- Avanceret knap -->
         <button class="button"
                 type="button"
                 onclick="document.getElementById('advanced').classList.toggle('hidden')">
             Avanceret
         </button>
 
-        <!-- Avanceret sektion -->
         <div id="advanced" class="hidden" style="margin-top: 1rem;">
 
             <label>Drift- og miljøtillæg (%)</label>
@@ -146,7 +206,14 @@
             Generér tilbud
         </button>
 
+        <button class="button-secondary"
+                hx-get="/newPlan/tasks/list?planId=<%= planId %>"
+                hx-target="#content"
+                hx-push-url="true">
+            Tilbage til opgaver
+        </button>
     </form>
+
 </article>
 
 <style>

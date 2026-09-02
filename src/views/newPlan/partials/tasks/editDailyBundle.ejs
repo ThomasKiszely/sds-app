@@ -65,18 +65,29 @@
                 <input type="number"
                        name="duration_<%= task._id %>"
                        value="<%= task.durationPerUnit %>"
-                       step="0.01" min="0">
+                       step="0.01" min="0"
+                       hx-post="/newPlan/tasks/preview/<%= task._id %>"
+                       hx-trigger="change"
+                       hx-include="closest form"
+                       hx-target="#price_<%= task._id %>">
 
                 <label>Fast pris (valgfrit)</label>
                 <input type="number"
                        name="custom_<%= task._id %>"
                        value="<%= task.customPrice ?? '' %>"
-                       min="0">
+                       min="0"
+                       hx-post="/newPlan/tasks/preview/<%= task._id %>"
+                       hx-trigger="change"
+                       hx-include="closest form"
+                       hx-target="#price_<%= task._id %>">
 
                 <label>Beskrivelse</label>
                 <textarea name="description_<%= task._id %>" rows="3"><%= task.description %></textarea>
 
-                <p><strong>Aktuel pris:</strong> <%= task.monthlyPrice %> kr./måned</p>
+                <p>
+                    <strong>Aktuel pris:</strong>
+                    <span id="price_<%= task._id %>"><%= task.monthlyPrice %> kr.</span>
+                </p>
             </section>
 
             <hr>

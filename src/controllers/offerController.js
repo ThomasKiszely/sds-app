@@ -1,6 +1,9 @@
 const offerService = require("../services/offerService");
 const cleaningTaskService = require("../services/cleaningTaskService");
 const pdfService = require("../services/pdfService");
+const customerService = require("../services/customerService");
+const { parseAddress } = require("../utils/addressUtil");
+
 
 async function pdfOffer(req, res, next) {
     try {
@@ -30,9 +33,18 @@ async function viewOffer(req, res, next) {
 
         const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
 
+        const customer = await customerService.getCustomerById(offer.customerId);
+        const { street, zip, city } = parseAddress(customer.customerAddress);
+
+        console.log("Logger her: Street " + street + ", Zip: " + zip + ", City: " + city);
+
         return res.render("offers/view", {
             offer,
             tasks,
+            customer,
+            street,
+            zip,
+            city,
             user: req.session.user
         });
     } catch (err) {

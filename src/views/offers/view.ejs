@@ -1,14 +1,141 @@
-<article class="standard wizard-step">
-    <h2>Tilbud</h2>
+<article class="standard offer-document">
 
-    <p>Subtotal: <%= offer.subtotalBeforeDiscount %> kr</p>
-    <p>Rabat: <%= offer.discountAmount %> kr</p>
-    <p>Drift og miljøtillæg: <%= offer.environmentalFeeAmount %> kr</p>
-    <h3>Total: <%= offer.totalPrice %> kr</h3>
+    <!-- ⭐ HEADER -->
+    <header>
+        <h2>SDS Rengøring – Tilbud</h2>
+
+        <!-- ⭐ Kundeoplysninger -->
+        <p><strong><%= customer.customerName %></strong></p>
+        <p><%= street %></p>
+
+        <% if (zip || city) { %>
+            <p><%= zip %> <%= city %></p>
+        <% } %>
+
+        <p style="margin-top: 1rem;">
+            Att.: <strong><%= customer.contactPerson.name %></strong>
+        </p>
+
+        <p style="margin-top: 1rem;">
+            Næstved, <%= offer.createdAt.toLocaleDateString("da-DK") %>
+        </p>
+    </header>
+
 
     <hr>
 
-    <a href="/offers/<%= offer._id %>/pdf" class="button-link">
-        Download PDF
-    </a>
+    <!-- ⭐ INTRO -->
+    <section>
+        <p>
+            Hej <%= customer.contactPerson.name %>,
+        </p>
+
+        <p>
+            Som aftalt sender jeg hermed et tilbud på baggrund af den fremsendte rengøringsplan.
+        </p>
+    </section>
+
+    <hr>
+
+    <!-- ⭐ FAST PRIS -->
+    <section>
+        <h3>Fast pris for rengøring</h3>
+
+        <p>
+            Den samlede pris for rengøring jf. rengøringsplanen andrager:
+        </p>
+
+        <p style="font-size: 1.3rem; font-weight: bold;">
+            <%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. ekskl. moms pr. måned
+        </p>
+
+        <% if (offer.snapshot.plan.discountPercent > 0) { %>
+            <p>Rabat: <%= offer.snapshot.plan.discountAmount.toFixed(2) %> kr</p>
+        <% } %>
+
+        <% if (offer.snapshot.plan.environmentalFeePercent > 0) { %>
+            <p>Drift- og miljøtillæg: <%= offer.snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr</p>
+        <% } %>
+    </section>
+
+    <hr>
+
+    <!-- ⭐ EKSTRA OPGAVER -->
+    <section>
+        <h3>Ekstra opgaver</h3>
+
+        <p>
+            Ekstra opgaver som fremgår af planen faktureres efter timepris + materialer.
+        </p>
+
+        <p>
+            Timepris: <strong><%= offer.snapshot.plan.hourlyRate %> kr. ekskl. moms</strong>
+        </p>
+    </section>
+
+    <hr>
+
+    <!-- ⭐ FORBRUGSVARER -->
+    <% if (offer.snapshot.consumables.length > 0) { %>
+        <section>
+            <h3>Forbrugsvarer</h3>
+
+            <ul>
+                <% offer.snapshot.consumables.forEach(c => { %>
+                    <li>
+                        <strong><%= c.name %></strong>
+                        – <%= c.quantity %> stk
+                        – <%= c.pricePerUnit %> kr pr stk ekskl. moms
+                        <% if (c.description) { %>
+                            <div><em><%= c.description %></em></div>
+                        <% } %>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <p><em>Faktureres efter forbrug</em></p>
+        </section>
+
+        <hr>
+    <% } %>
+
+    <!-- ⭐ Hvad prisen indeholder -->
+    <section>
+        <h3>Hvad prisen indeholder</h3>
+
+        <p>
+            Ovenstående rengøringsvederlag indeholder løn til medarbejdere, feriepenge,
+            ATP, rengøringsmidler, drift- og miljøtillæg samt andre omkostninger der er
+            forbundet med at servicere jer, herunder egenkontrol.
+        </p>
+    </section>
+
+    <hr>
+
+    <!-- ⭐ AFSLUTNING -->
+    <section>
+        <p>
+            Hvis der er spørgsmål eller ønsker om yderligere information, er du
+            selvfølgelig velkommen til at kontakte mig.
+        </p>
+
+        <p style="margin-top: 2rem;">
+            Med venlig hilsen<br>
+            <strong><%= user.fullName %></strong><br>
+            SDS Rengøring<br>
+            <%= user.address %><br>
+            <%= user.phoneNumber %>
+        </p>
+
+    </section>
+
+    <hr>
+
+    <!-- ⭐ PDF -->
+    <p>
+        <a href="/offers/<%= offer._id %>/pdf" class="button-link">
+            Download PDF
+        </a>
+    </p>
+
 </article>

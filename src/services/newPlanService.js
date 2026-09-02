@@ -158,10 +158,10 @@ async function previewTaskPrice(taskId, body) {
         return [body.days];
     })();
 
-    // ⭐ NYT: Forbrugsvarer skal bruge customPrice
-    const customPrice = body.customPrice !== undefined
-        ? Number(body.customPrice)
-        : task.customPrice;
+    const customPrice =
+        body.customPrice === "" || body.customPrice === undefined
+            ? task.customPrice
+            : Number(body.customPrice);
 
     const tempTask = {
         ...task.toObject(),
@@ -170,13 +170,14 @@ async function previewTaskPrice(taskId, body) {
         quantity,
         durationPerUnit,
         days: daysNormalized,
-        customPrice   // VIGTIGT
+        customPrice
     };
 
     const { monthlyPrice } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
 
     return Math.round(monthlyPrice);
 }
+
 
 
 
@@ -273,6 +274,7 @@ async function getOfferStep4ViewModel(planId) {
         discountPercent,
         environmentalFee,
         subtotal: totals.subtotal,
+        monthlyTotal: totals.subtotal,
         discountAmount: totals.discountAmount,
         environmentalFeeAmount: totals.environmentalFeeAmount,
         total: totals.total
@@ -316,7 +318,6 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
 async function updateDailyBundle(planId, body) {
 
     const roomName = body.roomName;
-
     const amount = Number(body.amount);
 
     // ⭐ Bemærkninger for rummet
@@ -326,89 +327,68 @@ async function updateDailyBundle(planId, body) {
         .map(n => n.trim())
         .filter(n => n.length > 0);
 
-// ⭐ Hent planen
+    // ⭐ Hent planen
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const hourlyRate = plan.hourlyRate;
 
-// ⭐ Fjern gamle entry
+    // ⭐ Opdater roomNotes
     const filtered = plan.roomNotes.filter(r => r.roomName !== roomName);
-
-// ⭐ Tilføj opdateret entry
-    filtered.push({
-        roomName,
-        notes: notesArray
-    });
-
-// ⭐ Gem via repo
+    filtered.push({ roomName, notes: notesArray });
     await cleaningPlanService.updateCleaningPlan(planId, { roomNotes: filtered });
 
+    // ⭐ Hent SDS-opgaver for rummet
+    const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
 
-    // ⭐ Hent dage pr kategori
-    const daysS = Array.isArray(body.days_soignering)
-        ? body.days_soignering
-        : (body.days_soignering ? [body.days_soignering] : []);
-
-    const daysG = Array.isArray(body.days_gulv)
-        ? body.days_gulv
-        : (body.days_gulv ? [body.days_gulv] : []);
-
-    const daysI = Array.isArray(body.days_inventar)
-        ? body.days_inventar
-        : (body.days_inventar ? [body.days_inventar] : []);
-
+    // ⭐ Fælles felter
     const frequency = body.frequency || frequencies.weekly;
 
-    // Varighed pr enhed
-    const durS = Number(body.duration_soignering);
-    const durG = Number(body.duration_gulv);
-    const durI = Number(body.duration_inventar);
-
-    // Custom priser
-    const customS = body.custom_soignering ? Number(body.custom_soignering) : null;
-    const customG = body.custom_gulv ? Number(body.custom_gulv) : null;
-    const customI = body.custom_inventar ? Number(body.custom_inventar) : null;
-
-    // ⭐ Find SDS-opgaver for rummet
-    const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
+    const daysNormalized = (() => {
+        if (!body.days) return [];
+        if (Array.isArray(body.days)) return body.days;
+        return [body.days];
+    })();
 
     for (const task of sdsTasks) {
 
-        let duration = task.durationPerUnit;
-        let customPrice = task.customPrice;
-        let days = task.days;
+        // ⭐ Individuelle felter (MATCHER EJS)
+        const durationPerUnit = Number(body[`duration_${task._id}`] ?? task.durationPerUnit);
+        const customPrice = body[`custom_${task._id}`] ? Number(body[`custom_${task._id}`]) : null;
+        const description = body[`description_${task._id}`] || "";
 
-        if (task.category === categoryTypes.daily) {
-            duration = durS;
-            customPrice = customS;
-            days = daysS;
-        }
+        // ⭐ Saml opdateret task
+        const updatedTask = {
+            ...task.toObject(),
+            roomName,
+            amount,
+            days: daysNormalized,
+            frequency,
+            durationPerUnit,
+            customPrice,
+            description
+        };
 
-        if (task.category === categoryTypes.floor) {
-            duration = durG;
-            customPrice = customG;
-            days = daysG;
-        }
+        // ⭐ Beregn priser
+        const prices = calculateTaskMonthlyPrice(updatedTask, hourlyRate);
 
-        if (task.category === categoryTypes.inventory) {
-            duration = durI;
-            customPrice = customI;
-            days = daysI;
-        }
-
+        // ⭐ Gem task
         await cleaningTaskService.updateCleaningTask(task._id, {
             roomName,
             amount,
-            days,
+            days: daysNormalized,
             frequency,
-            durationPerUnit: duration,
+            durationPerUnit,
             customPrice,
-            description: body[`description_${task._id}`] || ""
+            description,
+            ...prices
         });
     }
 
+    // ⭐ Recalculate plan total
     await cleaningPlanService.recalculatePlanTotal(planId);
 
     return true;
 }
+
 
 async function createDailyBundle(planId, body) {
 

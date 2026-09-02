@@ -190,7 +190,6 @@ async function viewPlan(req, res, next) {
 
         const hourlyRate = plan.hourlyRate;
 
-        console.log("LOGGER HER: ", plan, tasks, hourlyRate);
         // Tilføj priser til tasks
         const enrichedTasks = tasks.map(t => {
             const plain = t.toObject();

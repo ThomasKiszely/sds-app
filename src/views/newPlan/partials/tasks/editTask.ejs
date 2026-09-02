@@ -6,276 +6,90 @@
             hx-patch="/newPlan/tasks/<%= task._id %>/update"
             hx-target="#taskArea"
             hx-swap="innerHTML"
-            class="edit-task-form"
+            class="task-edit-form"
     >
 
-        <!-- Navn -->
-        <section>
-            <label for="task-name">Opgavens navn</label>
-            <input
-                    type="text"
-                    id="task-name"
-                    name="name"
-                    value="<%= task.name %>"
-                    hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                    hx-trigger="change"
-                    hx-target="#taskPrice"
-                    hx-swap="innerHTML"
-            >
-        </section>
-        <hr>
+        <input type="hidden" name="planId" value="<%= task.planId %>">
 
-        <!-- Lokale -->
-        <section>
-            <label for="roomName">Lokale</label>
-            <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" >
-        </section>
-        <hr>
+        <!-- ⭐ Navn -->
+        <label for="name">Navn</label>
+        <input type="text" id="name" name="name" value="<%= task.name %>" required>
 
-        <!-- Kategori -->
-        <section>
-            <p>Kategori: <strong><%= categoryLabels[task.category] %></strong></p>
-        </section>
-        <hr>
+        <!-- ⭐ Rum -->
+        <label for="roomName">Rum (valgfrit)</label>
+        <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>">
 
-        <!-- Fast pris -->
-        <section>
-            <label for="customPrice">Fast pris (valgfrit)</label>
-            <input
-                    type="number"
-                    id="customPrice"
-                    name="customPrice"
-                    value="<%= task.customPrice ?? '' %>"
-                    min="0"
-                    hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                    hx-trigger="change"
-                    hx-target="#taskPrice"
-                    hx-swap="innerHTML"
-            >
-        </section>
-        <hr>
+        <!-- ⭐ Dage -->
+        <h3>Dage</h3>
+        <% Object.keys(days).forEach(key => { %>
+            <label class="checkbox-row">
+                <input type="checkbox"
+                       name="days"
+                       value="<%= days[key] %>"
+                        <%= task.days.includes(days[key]) ? "checked" : "" %>>
+                <span><%= daysLabels[key] %></span>
+            </label>
+        <% }) %>
 
-        <!-- Prisvisning -->
-        <section>
-            <h3>Pris</h3>
-            <p id="taskPrice"><%= task.monthlyPrice %> kr./måned</p>
-        </section>
-        <hr>
+        <!-- ⭐ Frekvens -->
+        <label for="frequency">Frekvens</label>
+        <select id="frequency" name="frequency">
+            <% Object.keys(frequencies).forEach(key => { %>
+                <option value="<%= frequencies[key] %>"
+                        <%= task.frequency === frequencies[key] ? "selected" : "" %>>
+                    <%= frequencyLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
 
-        <!-- Dage -->
-        <% if (task.category !== categoryTypes.consumables) { %>
-            <section>
-                <h3>Dage</h3>
+        <!-- ⭐ Varighed -->
+        <label for="durationPerUnit">Varighed pr enhed (minutter)</label>
+        <input type="number"
+               id="durationPerUnit"
+               name="durationPerUnit"
+               value="<%= task.durationPerUnit %>"
+               step="0.01" min="0"
+               hx-post="/newPlan/tasks/<%= task._id %>/preview"
+               hx-trigger="change"
+               hx-include="closest form"
+               hx-target="#taskPrice">
 
-                <!-- Daglig-knap -->
-                <button
-                        type="button"
-                        class="button"
-                        onclick="setDailyWeekdays()"
-                >
-                    Daglig (Man–Fre)
-                </button>
+        <!-- ⭐ Custom pris -->
+        <label for="customPrice">Fast pris (valgfrit)</label>
+        <input type="number"
+               id="customPrice"
+               name="customPrice"
+               value="<%= task.customPrice ?? '' %>"
+               min="0"
+               hx-post="/newPlan/tasks/<%= task._id %>/preview"
+               hx-trigger="change"
+               hx-include="closest form"
+               hx-target="#taskPrice">
 
-                <% Object.keys(days).forEach(key => { %>
-                    <label class="checkbox-row">
-                        <input
-                                type="checkbox"
-                                name="days"
-                                value="<%= days[key] %>"
-                                data-days-button="true"
-                                <%= task.days.includes(days[key]) ? "checked" : "" %>
+        <!-- ⭐ Beskrivelse -->
+        <label for="description">Beskrivelse</label>
+        <textarea id="description" name="description" rows="3"><%= task.description %></textarea>
 
-                                hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                                hx-trigger="change"
-                                hx-target="#taskPrice"
-                                hx-swap="innerHTML"
-                        >
-                        <span><%= daysLabels[key] %></span>
-                    </label>
-                <% }) %>
-            </section>
-            <hr>
-        <% } %>
+        <!-- ⭐ Pris -->
+        <p>
+            <strong>Aktuel pris:</strong>
+            <span id="taskPrice">
+                <% if (task.monthlyPrice > 0) { %>
+                    <%= task.monthlyPrice.toFixed(2) %> kr./måned
+                <% } else { %>
+                    <%= task.customPrice %> kr pr gang
+                <% } %>
+            </span>
+        </p>
 
-        <!-- Mængde / antal -->
-        <% if (task.unit === units.m2 || task.unit === units.lbm) { %>
-            <section>
-                <label for="amount"><%= unitsLabels[task.unit] %></label>
-                <input
-                        type="number"
-                        id="amount"
-                        name="amount"
-                        value="<%= task.amount %>"
-                        min="0"
+        <button type="submit" class="button">Gem opgave</button>
 
-                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                        hx-trigger="change"
-                        hx-target="#taskPrice"
-                        hx-swap="innerHTML"
-                        oninput="updateDuration()"
-                >
-            </section>
-            <hr>
-
-        <% } else if (task.unit === units.stk) { %>
-
-            <section>
-                <label for="quantity"><%= unitsLabels[task.unit] %></label>
-                <input
-                        type="number"
-                        id="quantity"
-                        name="quantity"
-                        value="<%= task.quantity %>"
-                        min="1"
-
-                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                        hx-trigger="change"
-                        hx-target="#taskPrice"
-                        hx-swap="innerHTML"
-                        oninput="updateDuration()"
-                >
-            </section>
-            <hr>
-
-        <% } %>
-
-        <!-- Frekvens -->
-        <% if (task.category !== categoryTypes.consumables) { %>
-            <section>
-                <label for="frequency">Frekvens</label>
-                <select
-                        id="frequency"
-                        name="frequency"
-
-                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                        hx-trigger="change"
-                        hx-target="#taskPrice"
-                        hx-swap="innerHTML"
-                >
-                    <% Object.keys(frequencies).forEach(key => { %>
-                        <option
-                                value="<%= frequencies[key] %>"
-                                <%= task.frequency === frequencies[key] ? "selected" : "" %>
-                        >
-                            <%= frequencyLabels[key] %>
-                        </option>
-                    <% }) %>
-                </select>
-            </section>
-            <hr>
-        <% } %>
-
-        <!-- Beskrivelse -->
-        <section>
-            <label for="description">Beskrivelse</label>
-            <textarea
-                    id="description"
-                    name="description"
-                    rows="3"
-                    hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                    hx-trigger="change"
-                    hx-target="#taskPrice"
-                    hx-swap="innerHTML"
-            ><%= task.description %></textarea>
-        </section>
-        <hr>
-
-        <!-- Varighed pr enhed -->
-        <% if (task.category !== categoryTypes.consumables) { %>
-            <section>
-                <label for="durationPerUnit">Varighed (pr enhed i minutter)</label>
-                <input
-                        type="number"
-                        id="durationPerUnit"
-                        name="durationPerUnit"
-                        value="<%= task.durationPerUnit %>"
-                        step="0.01"
-                        min="0"
-                        hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                        hx-trigger="change"
-                        hx-target="#taskPrice"
-                        hx-swap="innerHTML"
-                        oninput="updateDuration()"
-                >
-            </section>
-            <hr>
-        <% } %>
-
-        <!-- Samlet varighed -->
-        <% if (task.category !== categoryTypes.consumables) { %>
-            <section>
-                <h3>Varighed pr gang</h3>
-                <p id="taskDuration">
-                    <% let totalDuration = task.durationPerUnit;
-                        if (task.unit === units.stk) {
-                            totalDuration = task.durationPerUnit * task.quantity;
-                        } else if (task.unit === units.m2 || task.unit === units.lbm) {
-                            totalDuration = task.durationPerUnit * task.amount;
-                        }
-                    %>
-                    <%= totalDuration %> min
-                </p>
-            </section>
-            <hr>
-        <% } %>
-
-        <!-- Actions -->
-        <section class="form-actions">
-
-            <button type="submit" class="button" hx-include="[name=planId]">
-                Gem opgave
-            </button>
-
-            <%
-            const categoryRoute = {
-                daily: "daily",
-                extra: "extra",
-                consumables: "consumables",
-                windows: "windows"
-            }[task.category];
-            %>
-
-            <button
-                    class="button-secondary"
-                    hx-get="/newPlan/tasks/<%= categoryRoute %>?planId=<%= task.planId %>"
-                    hx-target="#taskArea">
-                Tilbage
-            </button>
-
-        </section>
+        <button class="button-secondary"
+                hx-get="/newPlan/tasks/list?planId=<%= task.planId %>"
+                hx-target="#taskArea">
+            Tilbage
+        </button>
 
     </form>
 
 </article>
-
-<script>
-    function updateDuration() {
-        const duration = Number(document.querySelector('[name="durationPerUnit"]').value) || 0;
-        const amount = Number(document.querySelector('[name="amount"]')?.value) || 0;
-        const quantity = Number(document.querySelector('[name="quantity"]')?.value) || 0;
-
-        let total = duration;
-
-        <% if (task.unit === units.stk) { %>
-        total = duration * quantity;
-        <% } else if (task.unit === units.m2 || task.unit === units.lbm) { %>
-        total = duration * amount;
-        <% } %>
-
-        document.querySelector('#taskDuration').innerText = total + " min";
-    }
-
-    function setDailyWeekdays() {
-        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-
-        const boxes = document.querySelectorAll('input[name="days"][data-days-button="true"]');
-
-        boxes.forEach(cb => {
-            cb.checked = weekdays.includes(cb.value);
-        });
-
-        boxes.forEach(cb => {
-            htmx.trigger(cb, 'change');
-        });
-    }
-</script>

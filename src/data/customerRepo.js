@@ -1,7 +1,6 @@
 const Customer = require('../models/Customer');
 
 async function createCustomer(data) {
-    console.log(data);
     const newCustomer = new Customer(data);
     return await newCustomer.save();
 }
@@ -44,10 +43,11 @@ async function listCustomers({ filter, search, sort, page, pageSize }) {
             { phoneNumber: regex },
             { customerEmail: regex },
             { customerNumber: regex },
-            { city: regex },
-            { contactPerson: regex },
-            { notes: regex }
+            { "contactPerson.name": regex },
+            { "contactPerson.email": regex },
+            { "contactPerson.phone": regex }
         ];
+
 
         // Hvis søgeordet er et tal → søg i CVR, zip, kundenummer
         if (!isNaN(search)) {

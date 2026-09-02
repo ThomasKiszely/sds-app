@@ -11,14 +11,14 @@ module.exports.frequencies = {
 }
 
 module.exports.frequencyMultipliers = {
-    weekly: 4,
-    biweekly: 2,
+    weekly: 4.33,
+    biweekly: 2.165,
     monthly: 1,
-    quarterly: 1/3,
-    semiannual: 1/6,
-    annual: 1/12,
+    quarterly: 0.33,
+    semiannual: 0.165,
+    annual: 0.083,
     adHoc: 0,
-    windows: 1,
+    windows: 0,
     efterAftale: 0
 };
 

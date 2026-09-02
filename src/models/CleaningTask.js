@@ -36,7 +36,13 @@ const cleaningTaskSchema = new mongoose.Schema({
     },
 
     // NYT: kopieres fra template
-    durationPerUnit: { type: Number, required: true },
+    durationPerUnit: {
+        type: Number,
+        required: function () {
+            return this.category !== categoryTypes.consumables;
+        },
+        default: 0
+    },
 
     // ⭐ NYT: mængde (m2, lbm, stk)
     amount: { type: Number, default: 0 },
@@ -47,7 +53,10 @@ const cleaningTaskSchema = new mongoose.Schema({
     frequency: {
         type: String,
         enum: Object.values(frequencies),
-        required: true
+        required: function () {
+            return this.category !== categoryTypes.consumables;
+        },
+        default: null
     },
 
     days: {
