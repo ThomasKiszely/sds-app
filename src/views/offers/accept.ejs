@@ -1,10 +1,28 @@
-<h1>Acceptér tilbud</h1>
+<article class="standard">
 
-<p>Tilbud total: <%= offer.total %> kr.</p>
+    <h1>Acceptér tilbud</h1>
 
-<form method="POST">
-    <label>Navn</label>
-    <input type="text" name="customerName" required>
+    <p>
+        Du er ved at acceptere tilbuddet for:
+        <strong><%= customer.customerName %></strong><br>
+        <%= street %><br>
+        <%= zip %> <%= city %>
+    </p>
 
-    <button type="submit">Acceptér tilbud</button>
-</form>
+    <p>
+        Den samlede pris for rengøringen er:
+        <strong><%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. pr. måned</strong>
+        ekskl. moms.
+    </p>
+
+    <form method="POST">
+        <label for="name">Dit navn</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Din email</label>
+        <input type="email" id="email" name="email" required>
+
+        <button type="submit">Accepter tilbud</button>
+    </form>
+
+</article>

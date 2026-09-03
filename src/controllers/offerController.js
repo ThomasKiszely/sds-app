@@ -2,6 +2,7 @@ const offerService = require("../services/offerService");
 const cleaningTaskService = require("../services/cleaningTaskService");
 const pdfService = require("../services/pdfService");
 const customerService = require("../services/customerService");
+const constractService = require("../services/contractService");
 const { parseAddress } = require("../utils/addressUtil");
 
 
@@ -12,10 +13,19 @@ async function pdfOffer(req, res, next) {
 
         const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
 
+        const customer = await customerService.getCustomerById(offer.customerId);
+        const { street, zip, city } = parseAddress(customer.customerAddress);
+
         const signatureLink =
             `${req.protocol}://${req.get("host")}/offers/${offer._id}/accept?token=${offer.signatureToken}`;
 
-        const pdfBuffer = await pdfService.generateOfferPdf(offer, tasks, signatureLink);
+        const pdfBuffer = await pdfService.generateOfferPdf(
+            offer,
+            tasks,
+            customer,
+            { street, zip, city },
+            signatureLink
+        );
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", "attachment; filename=tilbud.pdf");
@@ -74,27 +84,70 @@ async function acceptView(req, res, next) {
             return res.status(403).send("Ugyldigt eller udløbet link");
         }
 
-        return res.render("offers/accept", { offer });
+        const customer = await customerService.getCustomerById(offer.customerId);
+        const { street, zip, city } = parseAddress(customer.customerAddress);
+
+        return res.render("offers/accept", {
+            offer,
+            customer,
+            street,
+            zip,
+            city
+        });
+
     } catch (err) {
         next(err);
     }
 }
 
+
 async function acceptOffer(req, res, next) {
     try {
-        const offer = await offerService.acceptOffer(
-            req.params.id,
+        const offerId = req.params.id;
+
+        // ⭐ 1. Hent tilbud
+        const offer = await offerService.getOfferById(offerId);
+        if (!offer) {
+            return next({ isUserError: true, message: "Tilbud findes ikke" });
+        }
+
+        // ⭐ 2. Token check
+        if (offer.signatureToken !== req.query.token) {
+            return next({ isUserError: true, message: "Ugyldigt eller udløbet link" });
+        }
+
+        // ⭐ 3. Status check
+        if (offer.status !== "sent") {
+            return next({ isUserError: true, message: "Tilbuddet kan ikke accepteres" });
+        }
+
+        // ⭐ 4. Accepter tilbuddet
+        const updatedOffer = await offerService.acceptOffer(
+            offerId,
             {
                 name: req.body.name,
                 email: req.body.email
             }
         );
 
-        return res.render("offers/accepted", { offer });
+        // ⭐ 5. Generér kontrakt automatisk
+        await contractService.generateContract({
+            planId: updatedOffer.planId,
+            offerId: updatedOffer._id,
+            generatedBy: "system"
+        });
+
+        // ⭐ 6. Vis accepted.ejs
+        return res.render("offers/accepted", {
+            offer: updatedOffer
+        });
+
     } catch (err) {
         next(err);
     }
 }
+
+
 
 module.exports = {
     viewOffer,

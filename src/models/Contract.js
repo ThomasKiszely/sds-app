@@ -1,30 +1,51 @@
 const mongoose = require("mongoose");
+const { paymentTerms } = require("../utils/paymentTerms");
 
 const contractSchema = new mongoose.Schema({
+    customerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer",
+        required: true
+    },
 
-    // Reference til det accepterede tilbud
+    planId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CleaningPlan",
+        required: true
+    },
+
     offerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Offer",
-        required: true
+        required: false
     },
 
-    // Snapshot af hele tilbuddet (plan + tasks)
     snapshot: {
-        type: mongoose.Schema.Types.Mixed,
+        type: Object,
         required: true
     },
 
-    // Underskriftsinformation
-    signedByName: String,
-    signedByEmail: String,
-    signedAt: Date,
+    paymentTerms: {
+        type: String,
+        enum: Object.keys(paymentTerms),
+        required: true
+    },
 
-    // Token til verificering (samme som i Offer)
-    signatureToken: String
 
-}, {
-    timestamps: true
+    generatedAt: {
+        type: Date,
+        default: Date.now
+    },
+
+    generatedBy: {
+        type: String,
+        default: "system"
+    },
+
+    isActive: {
+        type: Boolean,
+        default: true
+    }
 });
 
 module.exports = mongoose.model("Contract", contractSchema);

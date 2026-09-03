@@ -66,7 +66,7 @@
 
 <div class="header">
     <div class="company-info">
-        <strong>SDS</strong><br>
+        <strong>SDS Rengøring</strong><br>
         Maglemølle 25<br>
         4700 Næstved<br>
         CVR: 12345678<br>
@@ -75,18 +75,46 @@
     </div>
 
     <h1>Tilbud</h1>
-    <p>Tilbudsnummer: <%= offer._id %><br>
-        Dato: <%= new Date().toLocaleDateString("da-DK") %></p>
+    <p>
+        Tilbudsnummer: <%= offer._id %><br>
+        Dato: <%= offer.createdAt.toLocaleDateString("da-DK") %>
+    </p>
 </div>
 
 <div class="customer-info">
     <h2>Kunde</h2>
     <p>
-        <strong><%= customer.name %></strong><br>
-        <%= customer.address %><br>
-        <%= customer.zip %> <%= customer.city %><br>
-        Email: <%= customer.email %>
+        <strong><%= customer.customerName %></strong><br>
+        <%= street %><br>
+        <%= zip %> <%= city %><br>
+        Email: <%= customer.customerEmail %><br>
+        Kontaktperson: <%= customer.contactPerson.name %>
     </p>
+</div>
+
+<div class="section">
+    <h2>Fast pris for rengøring</h2>
+
+    <p>
+        Den samlede pris for rengøring jf. rengøringsplanen andrager:
+    </p>
+
+    <p style="font-size: 1.3rem; font-weight: bold;">
+        <%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. ekskl. moms pr. måned
+    </p>
+
+    <% if (offer.snapshot.plan.discountPercent > 0) { %>
+        <p class="discount">
+            Rabat: <%= offer.snapshot.plan.discountAmount.toFixed(2) %> kr
+        </p>
+    <% } %>
+
+    <% if (offer.snapshot.plan.environmentalFeePercent > 0) { %>
+        <p>
+            Drift- og miljøtillæg:
+            <%= offer.snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr
+        </p>
+    <% } %>
 </div>
 
 <div class="section tasks">
@@ -99,7 +127,7 @@
         <h3>Daglig</h3>
         <ul>
             <% groups.daily.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.price * t.quantity %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
             <% }) %>
         </ul>
     <% } %>
@@ -108,7 +136,7 @@
         <h3>Ekstra</h3>
         <ul>
             <% groups.extra.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.price * t.quantity %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
             <% }) %>
         </ul>
     <% } %>
@@ -116,8 +144,12 @@
     <% if (groups.consumables.length) { %>
         <h3>Forbrugsvare</h3>
         <ul>
-            <% groups.consumables.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.price * t.quantity %> kr.</li>
+            <% groups.consumables.forEach(c => { %>
+                <li>
+                    <strong><%= c.name %></strong>
+                    – <%= c.quantity %> stk
+                    – <%= c.pricePerUnit %> kr pr stk ekskl. moms
+                </li>
             <% }) %>
         </ul>
     <% } %>
@@ -126,22 +158,10 @@
         <h3>Vinduespudsning</h3>
         <ul>
             <% groups.windows.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.price * t.quantity %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
             <% }) %>
         </ul>
     <% } %>
-</div>
-
-<div class="section total-box">
-    <p>Subtotal: <%= subtotal %> kr.</p>
-
-    <% if (discountPercent > 0) { %>
-        <p class="discount">Rabat (<%= discountPercent %>%): -<%= discountAmount %> kr.</p>
-    <% } %>
-
-    <p>Drift og miljøtillæg (<%= environmentalFee %>%): <%= environmentalFeeAmount %> kr.</p>
-
-    <h2>Total: <%= total %> kr.</h2>
 </div>
 
 <div class="section">

@@ -1,0 +1,46 @@
+<article class="standard wizard-step">
+
+    <h2>Kontrakter for plan</h2>
+
+    <div class="button-row">
+        <button hx-post="/contracts/<%= planId %>/generate" hx-target="#content">
+            Generér ny kontrakt
+        </button>
+    </div>
+
+    <table class="standard-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Dato</th>
+            <th>Genereret af</th>
+            <th>Status</th>
+            <th>PDF</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% contracts.forEach(contract => { %>
+            <tr>
+                <td><%= contract._id %></td>
+                <td><%= contract.generatedAt.toLocaleDateString("da-DK") %></td>
+                <td><%= contract.generatedBy %></td>
+                <td>
+                    <% if (contract.isActive) { %>
+                        <span style="color: green; font-weight: bold;">Aktiv</span>
+                    <% } else { %>
+                        <span style="color: gray;">Historisk</span>
+                    <% } %>
+                </td>
+                <td>
+                    <a href="/contracts/<%= contract._id %>/pdf" class="button">
+                        Download PDF
+                    </a>
+
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+</article>

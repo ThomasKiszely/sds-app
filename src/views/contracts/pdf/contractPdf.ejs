@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Rengøringskontrakt</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+        .signature-block {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-line {
+            margin-top: 40px;
+            border-top: 1px solid #000;
+            width: 250px;
+            padding-top: 5px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Rengøringskontrakt</h1>
+
+<div class="section">
+    <h2>Kontraktens parter</h2>
+
+    <p><span class="label">Leverandør:</span><br>
+        Service Division Sjælland<br>
+        Maglemølle 25<br>
+        4700 Næstved<br>
+        Tlf.: 72 41 10 01
+    </p>
+
+    <p><span class="label">Kunde:</span><br>
+        <%= snapshot.customer.name %><br>
+        <%= snapshot.customer.address %><br>
+        <%= snapshot.customer.zip %> <%= snapshot.customer.city %><br>
+        <%= snapshot.customer.email %>
+    </p>
+</div>
+
+<div class="section">
+    <h2>Rengøringsadresse</h2>
+    <p><%= snapshot.customer.address %></p>
+</div>
+
+<div class="section">
+    <h2>Rengøringen</h2>
+    <p>Rengøring udføres jf. rengøringsvejledning.</p>
+
+    <p>
+        <span class="label">Pris pr. uge:</span>
+        <%= snapshot.plan.totalMonthlyPrice %> kr. + miljøomkostninger
+    </p>
+</div>
+
+<div class="section">
+    <h2>Forbrugsvare</h2>
+    <p>Service Division Sjælland forpligter sig til:</p>
+    <ul>
+        <li>Rengøring af aftalte områder på aftalte dage.</li>
+        <li>Tavshedspligt vedrørende fortrolige oplysninger.</li>
+    </ul>
+
+    <p>Kunden forpligter sig til:</p>
+    <ul>
+        <li>At give adgang til alle nødvendige rum.</li>
+        <li>At stille rengøringsrum til rådighed.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>Særlige bestemmelser</h2>
+
+    <p>Alle priser tillægges gældende moms (25%).</p>
+    <p><strong>Betalingsbetingelser:</strong> <%= paymentTermLabels[paymentTerms] %></p>
+    <p>Der udføres ikke rengøring på danske helligdage. Kunden kan aftale erstatningsrengøring.</p>
+    <p>Ad hoc-opgaver faktureres med 325 kr. pr. time ekskl. moms.</p>
+    <p>Prisen reguleres årligt efter nettoprisindekset.</p>
+    <p>Kontrakten kan opsiges af begge parter med <%= snapshot.plan.terminationNoticeLabel %> varsel.</p>
+</div>
+
+<div class="section">
+    <h2>Aftalens ikrafttræden</h2>
+    <p>Denne aftale træder i kraft ved accept.</p>
+
+    <% if (snapshot.acceptedAt) { %>
+        <p><span class="label">Accepteret af:</span> <%= snapshot.acceptedByName %> (<%= snapshot.acceptedByEmail %>)</p>
+        <p><span class="label">Dato:</span> <%= snapshot.acceptedAt.toLocaleDateString("da-DK") %></p>
+    <% } %>
+</div>
+
+<div class="signature-block">
+    <div>
+        <div class="signature-line"></div>
+        Kunden (underskrift)
+    </div>
+
+    <div>
+        <div class="signature-line"></div>
+        Leverandør (underskrift)
+    </div>
+</div>
+
+<div class="footer">
+    Service Division Sjælland · Maglemølle 25 · 4700 Næstved · Tlf.: 72 41 10 01
+</div>
+
+</body>
+</html>

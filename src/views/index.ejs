@@ -21,11 +21,13 @@
     <%- include('partials/indexContent', { user }) %>
 
     <% if (loadMe) { %>
-        <button id="__loadMeBtn" style="display:none"
-                hx-get="/me" hx-target="#content" hx-swap="innerHTML"></button>
-        <script>
-            document.getElementById('__loadMeBtn').click();
-        </script>
+        <button id="__loadMeBtn"
+                style="display:none"
+                hx-get="/me"
+                hx-target="#content"
+                hx-swap="innerHTML"
+                hx-trigger="load">
+        </button>
     <% } %>
 </main>
 
@@ -49,11 +51,9 @@
         }, 3000);
     }
 
-    // HTMX success toast (HX-Trigger)
     document.body.addEventListener("toast", (event) => {
         let message = event.detail;
 
-        // Hvis HTMX pakker teksten ind i et objekt (f.eks. { value: "..." })
         if (typeof message === "object" && message !== null) {
             message = message.value || message.message || JSON.stringify(message);
         }
@@ -61,12 +61,10 @@
         showCenterToast(message);
     });
 
-    // HTMX error toast
     document.body.addEventListener("htmx:responseError", (event) => {
         const xhr = event.detail.xhr;
 
-        // 1) Hvis serveren sendte en tekstbesked → vis den
-        if (xhr.responseText && typeof xhr.responseText === "string") {
+        if (xhr && xhr.responseText && typeof xhr.responseText === "string") {
             const clean = xhr.responseText.replace(/<[^>]+>/g, "").trim();
             if (clean.length > 0) {
                 showCenterToast(clean);
@@ -74,66 +72,20 @@
             }
         }
 
-        // 2) Hvis serveren sendte JSON → vis message-feltet
         try {
-            const json = JSON.parse(xhr.responseText);
+            const json = xhr && JSON.parse(xhr.responseText);
             if (json && json.message) {
                 showCenterToast(json.message);
                 return;
             }
         } catch (_) {}
 
-        // 3) Fallback
         showCenterToast("Der opstod en fejl");
     });
 </script>
 
-<!-- History back button logic -->
-<script>
-    let htmxHistory = [{
-        targetId: "content",
-        html: document.querySelector('#content').innerHTML,
-        scroll: 0
-    }];
-
-    document.body.addEventListener('htmx:afterSwap', (evt) => {
-        const target = evt.detail.target;
-
-        // Gem KUN content og taskArea
-        if (target.id !== "content" && target.id !== "taskArea") {
-            return;
-        }
-
-        const entry = {
-            targetId: target.id,
-            html: target.innerHTML,
-            scroll: window.scrollY
-        };
-
-        htmxHistory.push(entry);
-    });
-
-    function htmxBack() {
-        if (htmxHistory.length <= 1) {
-            return; // ingen steder at gå tilbage til
-        }
-
-        // Fjern nuværende view
-        htmxHistory.pop();
-
-        // Gå til forrige view
-        const last = htmxHistory[htmxHistory.length - 1];
-        const target = document.getElementById(last.targetId);
-
-        if (!target) return;
-
-        target.innerHTML = last.html;
-        window.scrollTo(0, last.scroll);
-
-        htmx.process(target);
-    }
-</script>
-
+<script src="/js/history.js"></script>
+<script src="/js/topbar.js"></script>
 
 </body>
 </html>

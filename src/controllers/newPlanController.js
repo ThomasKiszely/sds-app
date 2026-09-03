@@ -11,7 +11,8 @@ const { days, daysLabels } = require("../utils/dayEnum");
 const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
 const { frequencyMultipliers } = require("../utils/frequencyEnum");
-
+const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
+const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
 
 // ------------------------------------------------------------
 // STEP 1: Vælg kunde
@@ -384,7 +385,12 @@ async function step4_offer(req, res) {
         categoryLabels,
         categoryTypes,
         daysLabels,
-        frequencyMultipliers
+        frequencyMultipliers,
+        paymentTerms,
+        paymentTermLabels,
+        currentPaymentTerms: vm.paymentTerms,
+        terminationNotice,
+        terminationNoticeLabels,
     });
 }
 
@@ -446,13 +452,25 @@ async function saveOffer(req, res) {
     const offer = await offerService.createOffer(
         req.body.planId,
         {
-            discountPercent: Number(req.body.discountPercent),
-            environmentalFeePercent: Number(req.body.environmentalFee)
+            discountPercent: Number(req.body.discountPercent || 0),
+            environmentalFeePercent: Number(req.body.environmentalFee || 0),
+            paymentTerms: req.body.paymentTerms,
+            terminationNotice: req.body.terminationNotice,
         }
     );
 
-    res.redirect(`/offers/${offer._id}/view`);
+    // ⭐ HTMX-SPECIFIK REDIRECT MED TARGET = "#content"
+    res.setHeader("HX-Location", JSON.stringify({
+        path: `/offers/${offer._id}/view`,
+        target: "#content",
+        swap: "innerHTML"
+    }));
+
+    return res.status(200).end();
 }
+
+
+
 
 async function tasks_editDailyBundle(req, res) {
     try {

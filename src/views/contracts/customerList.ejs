@@ -1,0 +1,44 @@
+<article class="standard wizard-step">
+
+    <h2>Kontrakter for <%= customer.customerName %></h2>
+
+    <p>
+        <strong>Adresse:</strong> <%= customer.customerAddress %><br>
+        <strong>Email:</strong> <%= customer.customerEmail %>
+    </p>
+
+    <table class="standard-table">
+        <thead>
+        <tr>
+            <th>Plan</th>
+            <th>Dato</th>
+            <th>Genereret af</th>
+            <th>Status</th>
+            <th>PDF</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% contracts.forEach(contract => { %>
+            <tr>
+                <td><%= contract.planId %></td>
+                <td><%= contract.generatedAt.toLocaleDateString("da-DK") %></td>
+                <td><%= contract.generatedBy %></td>
+                <td>
+                    <% if (contract.isActive) { %>
+                        <span style="color: green; font-weight: bold;">Aktiv</span>
+                    <% } else { %>
+                        <span style="color: gray;">Historisk</span>
+                    <% } %>
+                </td>
+                <td>
+                    <button hx-get="/contracts/<%= contract._id %>/pdf" hx-target="#content">
+                        Download PDF
+                    </button>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+</article>

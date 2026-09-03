@@ -87,14 +87,33 @@
             Opret nyt tilbud
         </button>
 
-        <button
-                hx-get="/offers?planId=<%= plan._id %>/view"
-                hx-target="#content">
-            Se alle tilbud for planen
-        </button>
+<!--        <button-->
+<!--                hx-get="/offers?planId=<%= plan._id %>/view"-->
+<!--                hx-target="#content">-->
+<!--            Se alle tilbud for planen-->
+<!--        </button>-->
     </section>
 
     <hr>
+
+    <hr>
+
+    <section class="plan-contracts">
+        <h3>Kontrakter</h3>
+
+        <button
+                hx-get="/contracts/<%= plan._id %>/list"
+                hx-target="#content">
+            Se kontrakter
+        </button>
+
+        <button
+                hx-post="/contracts/<%= plan._id %>/generate"
+                hx-target="#content">
+            Generér kontrakt
+        </button>
+    </section>
+
 
     <!-- PLAN STATUS -->
     <section class="plan-status">

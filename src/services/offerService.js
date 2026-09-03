@@ -5,12 +5,14 @@ const { userError } = require("../utils/userError");
 const crypto = require("crypto");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 const { categoryTypes } = require("../utils/categoryEnum");
+const { terminationNotice: terminationNoticeEnum, terminationNoticeLabels } = require("../utils/terminationNotice");
+
 
 async function getOfferById(id) {
     return await offerRepo.findById(id);
 }
 
-async function createOffer(planId, { discountPercent = 0, environmentalFeePercent = 4 }) {
+async function createOffer(planId, { discountPercent = 0, environmentalFeePercent = 4, paymentTerms, terminationNotice }) {
     const plan = await cleaningPlanRepo.findById(planId);
     if (!plan) throw userError("Rengøringsplanen findes ikke");
 
@@ -59,7 +61,9 @@ async function createOffer(planId, { discountPercent = 0, environmentalFeePercen
             indexRegulationPercent: plan.indexRegulationPercent,
             totalMonthlyPrice: totals.total,
 
-            paymentTerms: plan.paymentTerms
+            paymentTerms: plan.paymentTerms,
+            terminationNotice: terminationNotice || terminationNoticeEnum.month3,
+            terminationNoticeLabel: terminationNoticeLabels[terminationNotice || terminationNoticeEnum.month3],
         },
 
         // Normale opgaver
@@ -99,7 +103,9 @@ async function createOffer(planId, { discountPercent = 0, environmentalFeePercen
         planId,
         snapshot,
         status: "sent",
-        signatureToken
+        signatureToken,
+        paymentTerms: paymentTerms || plan.paymentTerms,
+        terminationNotice: terminationNotice || terminationNoticeEnum.month3,
     });
 
     return offer;

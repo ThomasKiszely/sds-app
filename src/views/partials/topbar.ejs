@@ -1,48 +1,49 @@
 <header class="topbar">
     <div class="topbar-left">
-        <button class="hamburger"
-                onclick="document.querySelector('.dropdown').classList.toggle('open')">
-            ☰ Menu
-        </button>
+        <button class="hamburger">☰ Menu</button>
     </div>
 
     <div class="topbar-right">
         <span class="username"
               hx-get="/me"
-              hx-target="#content"
-              hx-swap="innerHTML"
-              onclick="document.querySelector('.dropdown').classList.remove('open')">
+              hx-target="#content">
             <%= user.userName %>
         </span>
 
-        <button onclick="htmxBack()">Tilbage</button>
+        <button id="topbarBackBtn">Tilbage</button>
     </div>
 
     <nav class="dropdown">
-        <button hx-get="/indexContent" hx-target="#content"
-                onclick="document.querySelector('.dropdown').classList.remove('open')">
+        <button class="dropdown-item"
+                hx-get="/indexContent"
+                hx-target="#content">
             Forside
         </button>
 
-        <button hx-get="/customers" hx-target="#content"
-                onclick="document.querySelector('.dropdown').classList.remove('open')">
+        <button class="dropdown-item"
+                hx-get="/customers"
+                hx-target="#content">
             Kunder
         </button>
 
-        <button hx-get="/cleaningTaskTemplates/page" hx-target="#content"
-                onclick="document.querySelector('.dropdown').classList.remove('open')">
+        <button class="dropdown-item"
+                hx-get="/cleaningTaskTemplates/page"
+                hx-target="#content">
             Opgaver
         </button>
 
         <% if (user.role === 'admin') { %>
-            <button hx-get="/admin" hx-target="#content"
-                    onclick="document.querySelector('.dropdown').classList.remove('open')">
+            <button class="dropdown-item"
+                    hx-get="/admin"
+                    hx-target="#content">
                 Admin
             </button>
         <% } %>
-        <button hx-get="/logout" hx-target="#content"
-                onclick="document.querySelector('.dropdown').classList.remove('open')">
+
+        <button class="dropdown-item"
+                hx-get="/logout"
+                hx-target="#content">
             Log ud
-            </button>
+        </button>
     </nav>
 </header>

@@ -4,40 +4,18 @@
 
     <section class="offer-summary">
 
-        <!-- ⭐ Samlet månedlig pris -->
         <h3>Samlet månedlig pris</h3>
         <p class="plan-total"><strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong></p>
 
         <hr>
 
-        <h3>Faste opgaver (pris pr måned)</h3>
-
         <%
-        // ⭐ Opdel tasks i sektioner
-
-        const roomTasks = tasks.filter(t =>
-                t.roomName &&
-                t.roomName.trim() !== "" &&
-                t.monthlyPrice > 0
-        );
-
-        const noRoomTasks = tasks.filter(t =>
-                (!t.roomName || t.roomName.trim() === "") &&
-                t.monthlyPrice > 0
-        );
-
-        const adHocTasks = tasks.filter(t =>
-                t.monthlyPrice === 0 &&
-                t.customPrice != null &&
-                t.category !== categoryTypes.consumables
-        );
-
-        const consumables = tasks.filter(t =>
-                t.category === categoryTypes.consumables
-        );
+        const roomTasks = tasks.filter(t => t.roomName && t.roomName.trim() !== "" && t.monthlyPrice > 0);
+        const noRoomTasks = tasks.filter(t => (!t.roomName || t.roomName.trim() === "") && t.monthlyPrice > 0);
+        const adHocTasks = tasks.filter(t => t.monthlyPrice === 0 && t.customPrice != null && t.category !== categoryTypes.consumables);
+        const consumables = tasks.filter(t => t.category === categoryTypes.consumables);
         %>
 
-        <!-- ⭐ RUM -->
         <% if (roomTasks.length > 0) { %>
             <section>
                 <h3>Rum</h3>
@@ -62,7 +40,6 @@
                         <li>
                             <strong><%= t.name %></strong>
 
-                            <!-- Dage + frekvens -->
                             <div>
                                 <% (t.days || []).forEach(d => { %>
                                     <%= daysLabels[d] %>
@@ -70,7 +47,6 @@
                                 – <%= frequencyLabels[t.frequency] %>
                             </div>
 
-                            <!-- ⭐ Pris pr måned -->
                             <div>
                                 <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
                             </div>
@@ -88,7 +64,6 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ OPGAVER UDEN RUM -->
         <% if (noRoomTasks.length > 0) { %>
             <section>
                 <h3>Opgaver uden rum</h3>
@@ -111,7 +86,6 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ AD HOC / VINDUER / EFTER AFTALE -->
         <% if (adHocTasks.length > 0) { %>
             <section>
                 <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
@@ -133,7 +107,6 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ FORBRUGSVARER -->
         <% if (consumables.length > 0) { %>
             <section>
                 <h3>Tilkøb – Forbrugsvarer</h3>
@@ -158,7 +131,6 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ TOTALPRIS MED TILLÆG OG RABAT -->
         <div class="offer-total-box" style="margin-top:1rem;">
             <h3>Totalpris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
@@ -170,7 +142,7 @@
 
     <hr>
 
-    <!-- ⭐ FORMULAR -->
+    <!-- FORM – alt i samme form, så det sendes med -->
     <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
 
         <input type="hidden" name="planId" value="<%= planId %>">
@@ -202,11 +174,36 @@
                    hx-swap="innerHTML">
         </div>
 
+        <label>Betalingsbetingelser</label>
+        <select name="paymentTerms"
+                hx-post="/newPlan/offer/preview"
+                hx-trigger="change"
+                hx-target="#offerTotal"
+                hx-swap="innerHTML">
+
+            <% Object.keys(paymentTermLabels).forEach(key => { %>
+                <option value="<%= key %>"
+                        <%= (currentPaymentTerms === key ? "selected" : "") %>>
+                    <%= paymentTermLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label for="terminationNotice">Opsigelsesfrist</label>
+        <select name="terminationNotice" id="terminationNotice">
+            <% Object.keys(terminationNoticeLabels).forEach(key => { %>
+                <option value="<%= key %>" <%= (terminationNotice === key ? "selected" : "") %>>
+                    <%= terminationNoticeLabels[key] %>
+                </option>
+            <% }) %>
+        </select>
+
         <button type="submit" class="button" style="margin-top: 1rem;">
             Generér tilbud
         </button>
 
         <button class="button-secondary"
+                type="button"
                 hx-get="/newPlan/tasks/list?planId=<%= planId %>"
                 hx-target="#content"
                 hx-push-url="true">

@@ -1,0 +1,25 @@
+<article class="standard wizard-step">
+
+    <h2>Kontrakt genereret</h2>
+
+    <p>Kontrakten er nu oprettet og gemt.</p>
+
+    <p>
+        <strong>Kontrakt ID:</strong> <%= contract._id %><br>
+        <strong>Plan ID:</strong> <%= contract.planId %><br>
+        <strong>Genereret af:</strong> <%= contract.generatedBy %><br>
+        <strong>Dato:</strong> <%= contract.generatedAt.toLocaleDateString("da-DK") %>
+    </p>
+
+    <div class="button-row">
+        <a href="/contracts/<%= contract._id %>/pdf" class="button">
+            Download PDF
+        </a>
+
+
+        <button hx-get="/contracts/<%= contract.planId %>/list" hx-target="#content">
+            Se alle kontrakter for planen
+        </button>
+    </div>
+
+</article>

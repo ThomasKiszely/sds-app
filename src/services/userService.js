@@ -219,7 +219,6 @@ async function updateUser(id, { fullName, role, position, phoneNumber, email, ad
 }
 
 async function login(userName, password) {
-
     // 1. Find bruger
     const user = await userRepo.findByName(userName);
     if (!user) {

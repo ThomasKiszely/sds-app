@@ -12,6 +12,7 @@ const { frequencies, frequencyMultipliers } = require("../utils/frequencyEnum");
 const { units } = require("../utils/unitEnum");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
+const { paymentTerms } = require("../utils/paymentTerms");
 
 
 
@@ -277,7 +278,8 @@ async function getOfferStep4ViewModel(planId) {
         monthlyTotal: totals.subtotal,
         discountAmount: totals.discountAmount,
         environmentalFeeAmount: totals.environmentalFeeAmount,
-        total: totals.total
+        total: totals.total,
+        paymentTerms: plan.paymentTerms || paymentTerms.netto14
     };
 }
 
