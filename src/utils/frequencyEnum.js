@@ -1,36 +1,32 @@
+// SDS-opgaver bruger weekly, biweekly, monthly.
+// Alt andet bruger none, adHoc, windows, efterAftale — som IKKE påvirker pris.
+
 module.exports.frequencies = {
     weekly: "weekly",
     biweekly: "biweekly",
     monthly: "monthly",
-    quarterly: "quarterly",
-    semiannual: "semiannual",
-    annual: "annual",
+    none: "none",
     adHoc: "adHoc",
     windows: "windows",
-    efterAftale: "efterAftale",
-}
+    efterAftale: "efterAftale"
+};
 
 module.exports.frequencyMultipliers = {
-    weekly: 4.33,
-    biweekly: 2.165,
+    weekly: 4,
+    biweekly: 2,
     monthly: 1,
-    quarterly: 0.33,
-    semiannual: 0.165,
-    annual: 0.083,
+    none: 0,
     adHoc: 0,
     windows: 0,
     efterAftale: 0
 };
 
-
 module.exports.frequencyLabels = {
     weekly: "Ugentlig",
     biweekly: "Hver anden uge",
     monthly: "Månedlig",
-    quarterly: "Kvartalsvis",
-    semiannual: "Halvårlig",
-    annual: "Årlig",
+    none: "Ingen fast frekvens",
     adHoc: "Ad hoc",
     windows: "Vinduespudsning",
-    efterAftale: "Efter aftale",
-}
+    efterAftale: "Efter aftale"
+};

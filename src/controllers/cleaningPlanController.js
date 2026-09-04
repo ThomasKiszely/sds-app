@@ -1,6 +1,8 @@
 const cleaningPlanService = require('../services/cleaningPlanService');
 const cleaningTaskService = require('../services/cleaningTaskService');
 const locationService = require('../services/locationService');
+const customerService = require('../services/customerService');
+const { groupSdsTasksByRoom } = require('../utils/groupedUtil');
 
 async function createCleaningPlan(req, res, next) {
     try {
@@ -185,27 +187,83 @@ async function viewPlan(req, res, next) {
     try {
         const { planId } = req.params;
 
+        // ⭐ Hent planen
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        if (!plan) return res.status(404).send("Plan ikke fundet");
+
+        // ⭐ Hent tasks
         const tasks = await cleaningPlanService.getTasksForPlan(planId);
 
+        // ⭐ Beregn priser
         const hourlyRate = plan.hourlyRate;
-
-        // Tilføj priser til tasks
         const enrichedTasks = tasks.map(t => {
             const plain = t.toObject();
             const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
             return { ...plain, ...prices };
         });
 
-        return res.render('plans/view', {
+        // ⭐ Gruppér rum (bundles)
+        const grouped = groupSdsTasksByRoom(enrichedTasks);
+
+// ⭐ Tilføj "other" så PDF ikke crasher
+        for (const roomName of Object.keys(grouped)) {
+            grouped[roomName].other = enrichedTasks.filter(t =>
+                t.roomName === roomName &&
+                ![
+                    categoryTypes.daily,
+                    categoryTypes.floor,
+                    categoryTypes.inventory
+                ].includes(t.category)
+            );
+        }
+
+        // ⭐ Øvrige opgaver (uden programkode)
+        const noRoomTasks = enrichedTasks.filter(t =>
+            (!t.roomName || t.roomName.trim() === "") &&
+            t.monthlyPrice > 0
+        );
+
+        const adHocTasks = enrichedTasks.filter(t =>
+            t.monthlyPrice === 0 &&
+            t.customPrice != null &&
+            t.category !== "consumables"
+        );
+
+        const consumables = enrichedTasks.filter(t =>
+            t.category === "consumables"
+        );
+
+        // ⭐ Kunde + adresse
+        const customer = await customerService.getCustomerById(plan.customerId);
+        const { street, zip, city } = require("../utils/addressUtil").parseAddress(customer.customerAddress);
+
+        // ⭐ Labels til EJS
+        const { daysLabels } = require("../utils/dayEnum");
+        const { frequencyLabels } = require("../utils/frequencyEnum");
+
+        // ⭐ Send ALT til view’et
+        return res.render("plans/view", {
             plan,
             tasks: enrichedTasks,
+            grouped,
+            roomNotes: plan.roomNotes,
+            noRoomTasks,
+            adHocTasks,
+            consumables,
+            customer,
+            street,
+            zip,
+            city,
+            daysLabels,
+            frequencyLabels,
             user: req.session.user
         });
+
     } catch (err) {
         next(err);
     }
 }
+
 
 
 module.exports = {

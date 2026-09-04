@@ -75,4 +75,10 @@
     .nav-group button {
         width: 100%;
     }
+    /* Fjern kun ordene "Navn" og "Handlinger" i mobil */
+    .customer-plans-table td[data-label="Navn"]::before,
+    .customer-plans-table td[data-label="Handlinger"]::before {
+        content: "" !important;
+    }
 }
+

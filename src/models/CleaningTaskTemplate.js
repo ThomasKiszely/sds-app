@@ -32,7 +32,7 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
 
     isConsumable: { type: Boolean, default: false },
 
-    pricePerUnit: { type: Number, default: null },
+    customPrice: { type: Number, default: null },
 
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },

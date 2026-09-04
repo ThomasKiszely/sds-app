@@ -6,8 +6,7 @@
             class="button"
             hx-get="/newPlan/tasks/dailyBundle/create?planId=<%= plan._id %>"
             hx-target="#taskArea"
-            hx-swap="innerHTML"
-    >
+            hx-swap="innerHTML">
         Opret daglig opgave (bundle)
     </button>
 
@@ -19,7 +18,7 @@
                 <span><%= t.description %></span>
 
                 <button class="button small"
-                        hx-post="/newPlan/tasks/add"
+                        hx-get="/newPlan/tasks/create"
                         hx-target="#taskArea"
                         hx-include="[name=planId]"
                         hx-vals='{"templateId": "<%= t._id %>"}'>
@@ -33,23 +32,20 @@
 
     <h3>Valgte opgaver</h3>
 
-    <!-- ⭐ Rumbaseret visning -->
+    <!-- ⭐ NY: Samlet bundle pr rum -->
     <% for (const roomName in grouped) { %>
         <section class="task-room-group">
 
-            <!-- ⭐ Rum + programkode -->
             <h4>
                 <strong><%= roomName %></strong>
                 <span class="program-code">(Kode: <%= grouped[roomName].programCode %>)</span>
             </h4>
 
+            <!-- ⭐ Vis SDS-opgaver samlet -->
             <ul class="task-list-room">
-
-                <!-- ⭐ SDS-opgaver -->
                 <% grouped[roomName].sds.forEach(task => { %>
                     <li class="task-item sds-task">
 
-                        <!-- ⭐ Tekst -->
                         <div class="task-info">
                             <strong><%= task.name %></strong>
 
@@ -62,32 +58,39 @@
 
                             <div class="task-meta">
                                 Pris pr måned:
-                                <strong><%= task.monthlyPrice %> kr.</strong>
+                                <strong>
+                                    <%= task.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
+                                </strong>
                             </div>
-                        </div>
 
-                        <!-- ⭐ Knapper -->
-                        <div class="task-actions">
-                            <button class="button small"
-                                    hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= plan._id %>&roomName=<%= roomName %>"
-                                    hx-target="#taskArea"
-                                    hx-swap="innerHTML">
-                                Rediger bundle
-                            </button>
-
-                            <button class="button small danger"
-                                    hx-delete="/newPlan/tasks/dailyBundle/delete?planId=<%= plan._id %>&roomName=<%= roomName %>"
-                                    hx-target="#taskArea">
-                                Slet opgaver
-                            </button>
+                            <% if (task.description && task.description.trim().length > 0) { %>
+                                <div class="task-description"><em><%= task.description %></em></div>
+                            <% } %>
                         </div>
 
                     </li>
                 <% }) %>
-
             </ul>
 
+            <!-- ⭐ Kun én knap pr bundle -->
+            <div class="task-actions">
+                <button class="button small"
+                        hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= plan._id %>&roomName=<%= roomName %>"
+                        hx-target="#taskArea"
+                        hx-swap="innerHTML">
+                    Rediger bundle
+                </button>
+
+                <button class="button small danger"
+                        hx-delete="/newPlan/tasks/dailyBundle/delete?planId=<%= plan._id %>&roomName=<%= roomName %>"
+                        hx-target="#taskArea">
+                    Slet bundle
+                </button>
+            </div>
+
         </section>
+
+        <hr>
     <% } %>
 
 </article>

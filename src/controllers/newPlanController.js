@@ -13,6 +13,8 @@ const { units, unitsLabels } = require("../utils/unitEnum");
 const { frequencyMultipliers } = require("../utils/frequencyEnum");
 const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
 const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
+const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
+
 
 // ------------------------------------------------------------
 // STEP 1: Vælg kunde
@@ -138,7 +140,7 @@ async function tasks_daily(req, res) {
         return { ...plain, ...prices };
     });
 
-    const grouped = newPlanService.groupTasksByRoom(tasks);
+    const grouped = groupSdsTasksByRoom(tasks);
 
     return res.render("newPlan/partials/tasks/daily", {
         plan,
@@ -228,33 +230,6 @@ async function tasks_windows(req, res) {
 }
 
 
-// ------------------------------------------------------------
-// TASKS: Add / Edit / Update / Delete / Preview / List
-// ------------------------------------------------------------
-async function tasks_add(req, res) {
-    try {
-        const task = await newPlanService.addTaskFromTemplate(
-            req.body.planId,
-            req.body.templateId
-        );
-
-        return res.render("newPlan/partials/tasks/editTask", {
-            task,
-            days,
-            daysLabels,
-            frequencies,
-            frequencyLabels,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes
-        });
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
-    }
-}
 
 async function tasks_edit(req, res) {
     try {
@@ -289,7 +264,7 @@ async function tasks_update(req, res) {
     try {
         const vm = await newPlanService.updateTask(req.params.taskId, req.body);
 
-        const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+        const grouped = groupSdsTasksByRoom(vm.tasks);
 
         return res.render("newPlan/partials/tasks/taskList", {
             ...vm,
@@ -323,7 +298,7 @@ async function tasks_delete(req, res) {
     try {
         const vm = await newPlanService.deleteTask(req.params.taskId);
 
-        const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+        const grouped = groupSdsTasksByRoom(vm.tasks);
 
         return res.render("newPlan/partials/tasks/taskList", {
             ...vm,
@@ -347,7 +322,7 @@ async function tasks_delete(req, res) {
 async function tasks_list(req, res) {
     const vm = await newPlanService.listTasks(req.query.planId);
 
-    const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+    const grouped = groupSdsTasksByRoom(vm.tasks);
 
     return res.render("newPlan/partials/tasks/taskList", {
         ...vm,
@@ -369,7 +344,7 @@ async function tasks_list(req, res) {
 async function step4_offer(req, res) {
     const vm = await newPlanService.getOfferStep4ViewModel(req.query.planId);
 
-    const grouped = newPlanService.groupTasksByRoom(vm.tasks);
+    const grouped = groupSdsTasksByRoom(vm.tasks);
 
     const consumables = vm.tasks.filter(t => t.category === categoryTypes.consumables);
     const normalTasks = vm.tasks.filter(t => t.category !== categoryTypes.consumables);
@@ -413,7 +388,7 @@ async function tasks_updateDailyBundle(req, res) {
             return { ...plain, ...prices };
         });
 
-        const grouped = newPlanService.groupTasksByRoom(tasks);
+        const grouped = groupSdsTasksByRoom(tasks);
 
         return res.render("newPlan/partials/tasks/daily", {
             plan,
@@ -584,7 +559,7 @@ async function tasks_saveDailyBundle(req, res) {
             return { ...plain, ...prices };
         });
 
-        const grouped = newPlanService.groupTasksByRoom(tasks);
+        const grouped = groupSdsTasksByRoom(tasks);
 
         return res.render("newPlan/partials/tasks/daily", {
             plan,
@@ -607,6 +582,66 @@ async function tasks_saveDailyBundle(req, res) {
     }
 }
 
+async function tasks_create(req, res) {
+    const template = await cleaningTaskTemplateService.findTemplateById(req.query.templateId);
+
+    const task = {
+        _id: null,
+        planId: req.query.planId,
+        templateId: template._id,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        unit: template.unit,
+        durationPerUnit: template.durationPerUnit,
+        frequency: template.frequency,
+        amount: template.amount ?? 0,
+        roomName: template.roomName ?? "",
+        customPrice: template.customPrice ?? null,
+        quantity: template.quantity ?? 1,
+        days: template.days ?? [],
+    };
+
+    if (template.category === categoryTypes.consumables) {
+        return res.render("newPlan/partials/tasks/editConsumable", { task });
+    }
+
+    return res.render("newPlan/partials/tasks/editTask", {
+        task,
+        days,
+        daysLabels,
+        frequencies,
+        frequencyLabels,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes
+    });
+}
+
+
+async function tasks_save(req, res) {
+    const task = await newPlanService.addTaskFromTemplate(
+        req.body.planId,
+        req.body.templateId,
+        req.body // hvis du vil bruge brugerens ændringer
+    );
+
+    const vm = await newPlanService.listTasks(req.body.planId);
+    const grouped = groupSdsTasksByRoom(vm.tasks);
+
+    return res.render("newPlan/partials/tasks/taskList", {
+        ...vm,
+        grouped,
+        units,
+        unitsLabels,
+        categoryLabels,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels,
+        frequencyMultipliers
+    });
+}
 
 
 module.exports = {
@@ -617,7 +652,6 @@ module.exports = {
     savePlan,
     step3_tasks,
     tasks_daily,
-    tasks_add,
     tasks_edit,
     tasks_update,
     step4_offer,
@@ -633,4 +667,6 @@ module.exports = {
     tasks_editDailyBundle,
     tasks_createDailyBundle,
     tasks_saveDailyBundle,
+    tasks_create,
+    tasks_save
 };

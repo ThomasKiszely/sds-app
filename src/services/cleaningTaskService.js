@@ -48,7 +48,7 @@ async function createCleaningTask(planId, data) {
     const template = await cleaningTaskTemplateRepo.findTemplateById(data.templateId);
     ensureExists(template, "Opgave-skabelon blev ikke fundet.");
 
-    const roomName = data.roomName ?? "Ukendt lokale";
+    const roomName = data.roomName ?? "";
 
     const isConsumable =
         template.isConsumable === true ||

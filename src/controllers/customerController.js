@@ -2,6 +2,26 @@ const customerService = require("../services/customerService");
 const cleaningPlanService = require("../services/cleaningPlanService");
 const locationService = require("../services/locationService");
 
+function renderCustomerList(req, res, customers, total) {
+    const filter = req.query.filter || "active";
+    const search = req.query.search || "";
+    const sort = req.query.sort || "name";
+    const page = Number(req.query.page) || 1;
+    const pageSize = 20;
+
+    return res.render("customers/list", {
+        customers,
+        user: req.session.user,
+        filter,
+        search,
+        sort,
+        page,
+        pageSize,
+        total
+    });
+}
+
+
 // -----------------------------
 // API ENDPOINTS (JSON)
 // -----------------------------
@@ -55,20 +75,23 @@ async function deleteCustomer(req, res, next) {
         const filter = req.query.filter || "active";
         const search = req.query.search || "";
         const sort = req.query.sort || "name";
+        const page = Number(req.query.page) || 1;
+        const pageSize = 20;
 
-        const customers = await customerService.listCustomers(filter, search, sort);
-
-        return res.render("customers/list", {
-            customers,
-            user: req.session.user,
+        const { customers, total } = await customerService.listCustomers(
             filter,
             search,
-            sort
-        });
+            sort,
+            page,
+            pageSize
+        );
+
+        return renderCustomerList(req, res, customers, total);
     } catch (error) {
         next(error);
     }
 }
+
 
 async function reactivateCustomer(req, res, next) {
     try {
@@ -77,16 +100,18 @@ async function reactivateCustomer(req, res, next) {
         const filter = req.query.filter || "inactive";
         const search = req.query.search || "";
         const sort = req.query.sort || "name";
+        const page = Number(req.query.page) || 1;
+        const pageSize = 20;
 
-        const customers = await customerService.listCustomers(filter, search, sort);
-
-        return res.render("customers/list", {
-            customers,
-            user: req.session.user,
+        const { customers, total } = await customerService.listCustomers(
             filter,
             search,
-            sort
-        });
+            sort,
+            page,
+            pageSize
+        );
+
+        return renderCustomerList(req, res, customers, total);
     } catch (error) {
         next(error);
     }
@@ -125,16 +150,7 @@ async function listCustomers(req, res, next) {
             pageSize
         );
 
-        return res.render("customers/list", {
-            customers,
-            user: req.session.user,
-            filter,
-            search,
-            sort,
-            page,
-            pageSize,
-            total
-        });
+        return renderCustomerList(req, res, customers, total);
     } catch (error) {
         next(error);
     }
@@ -199,18 +215,30 @@ async function customerPlans(req, res, next) {
     }
 }
 
-
-
 async function createCustomerView(req, res, next) {
     try {
         const customer = await customerService.createCustomer(req.body);
-        const customers = await customerService.listCustomers();
 
-        if ( req.body.flow === "newPlan") {
-            return res.redirect(`/newPlan/plan?customerId=${customer._id}`)
+        if (req.body.flow === "newPlan") {
+            return res.redirect(`/newPlan/plan?customerId=${customer._id}`);
         }
 
-        return res.render("customers/list", { customers, user: req.session.user });
+        const filter = req.query.filter || "active";
+        const search = req.query.search || "";
+        const sort = req.query.sort || "name";
+        const page = Number(req.query.page) || 1;
+        const pageSize = 20;
+
+        const { customers, total } = await customerService.listCustomers(
+            filter,
+            search,
+            sort,
+            page,
+            pageSize
+        );
+
+        return renderCustomerList(req, res, customers, total);
+
     } catch (error) {
         return res.status(400).send(error.message);
     }

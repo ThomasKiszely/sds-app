@@ -132,7 +132,7 @@
         <% } %>
 
         <div class="offer-total-box" style="margin-top:1rem;">
-            <h3>Totalpris inkl drift og miljøtillæg</h3>
+            <h3>Månedlig pris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
                 <%= total.toFixed(2) %> kr.
             </div>
@@ -204,11 +204,12 @@
 
         <button class="button-secondary"
                 type="button"
-                hx-get="/newPlan/tasks/list?planId=<%= planId %>"
-                hx-target="#content"
-                hx-push-url="true">
+                hx-get="/newPlan/tasks?planId=<%= planId %>"
+                hx-target="#content">
             Tilbage til opgaver
         </button>
+
+
     </form>
 
 </article>

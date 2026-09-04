@@ -2,7 +2,7 @@ const offerService = require("../services/offerService");
 const cleaningTaskService = require("../services/cleaningTaskService");
 const pdfService = require("../services/pdfService");
 const customerService = require("../services/customerService");
-const constractService = require("../services/contractService");
+const contractService = require("../services/contractService");
 const { parseAddress } = require("../utils/addressUtil");
 
 

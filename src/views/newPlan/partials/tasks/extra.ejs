@@ -8,7 +8,7 @@
                 <span><%= t.description %></span>
 
                 <button class="button small"
-                        hx-post="/newPlan/tasks/add"
+                        hx-get="/newPlan/tasks/create"
                         hx-target="#taskArea"
                         hx-include="[name=planId]"
                         hx-vals='{"templateId": "<%= t._id %>"}'>
@@ -27,7 +27,7 @@
             <li class="task-item">
 
                 <strong><%= task.name %></strong>
-                – <%= task.monthlyPrice %> kr.
+                – <%= (task.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
 
                 <% if (task.description && task.description.trim().length > 0) { %>
                     <div><em><%= task.description %></em></div>
@@ -50,6 +50,5 @@
             </li>
         <% }) %>
     </ul>
-
 
 </article>

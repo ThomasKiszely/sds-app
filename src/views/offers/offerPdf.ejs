@@ -120,14 +120,24 @@
 <div class="section tasks">
     <h2>Opgaver</h2>
 
-    <% const groups = { daily: [], extra: [], consumables: [], windows: [] }; %>
-    <% tasks.forEach(t => groups[t.category].push(t)); %>
+    <%
+    const groups = { daily: [], extra: [], consumables: [], windows: [] };
+    tasks.forEach(t => {
+        const cat = t.category;
+        if (groups[cat]) {
+            groups[cat].push(t);
+        } else {
+            // Hvis t.category ikke matcher nøglerne ovenfor, kan den lægges under f.eks. extra
+            groups.extra.push(t);
+        }
+    });
+    %>
 
     <% if (groups.daily.length) { %>
         <h3>Daglig</h3>
         <ul>
             <% groups.daily.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice || t.monthlyPrice || 0 %> kr.</li>
             <% }) %>
         </ul>
     <% } %>
@@ -136,13 +146,13 @@
         <h3>Ekstra</h3>
         <ul>
             <% groups.extra.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice || t.monthlyPrice || 0 %> kr.</li>
             <% }) %>
         </ul>
     <% } %>
 
     <% if (groups.consumables.length) { %>
-        <h3>Forbrugsvare</h3>
+        <h3>Forbrugsvarer</h3>
         <ul>
             <% groups.consumables.forEach(c => { %>
                 <li>
@@ -158,7 +168,7 @@
         <h3>Vinduespudsning</h3>
         <ul>
             <% groups.windows.forEach(t => { %>
-                <li><strong><%= t.name %></strong> — <%= t.totalPrice %> kr.</li>
+                <li><strong><%= t.name %></strong> — <%= t.totalPrice || t.monthlyPrice || 0 %> kr.</li>
             <% }) %>
         </ul>
     <% } %>

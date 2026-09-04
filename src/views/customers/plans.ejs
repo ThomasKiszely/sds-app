@@ -1,11 +1,12 @@
 <article class="standard">
 
     <h1>Rengøringsplaner for kunde</h1>
-
     <nav class="nav-group">
-        <button hx-get="/customers" hx-target="#content">
-            Tilbage til kunder
-        </button>
+    <button
+            hx-get="/newPlan/plan?customerId=<%= customerId %>"
+            hx-target="#content">
+        Opret ny rengøringsplan
+    </button>
     </nav>
 
     <% if (plans.length === 0) { %>
@@ -20,11 +21,11 @@
 
     <% } else { %>
 
-        <table class="responsive-table">
-            <thead>
+        <table class="responsive-table customer-plans-table">
+        <thead>
             <tr>
                 <th>Navn</th>
-                <th>Totalpris</th>
+                <th>Pris</th>
                 <th>Status</th>
                 <th>Handlinger</th>
             </tr>
@@ -40,8 +41,8 @@
                     </td>
 
 
-                    <td data-label="Totalpris">
-                        <%= plan.totalMonthlyPrice %> kr
+                    <td data-label="Pris">
+                        <%= plan.totalMonthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
                     </td>
 
                     <td data-label="Status">
@@ -84,12 +85,12 @@
 
         <hr>
 
-        <button
-                hx-get="/newPlan/plan?customerId=<%= customerId %>"
-                hx-target="#content">
-            Opret ny rengøringsplan
-        </button>
 
     <% } %>
+    <nav class="nav-group">
+        <button hx-get="/customers" hx-target="#content">
+            Tilbage til kunder
+        </button>
+    </nav>
 
 </article>

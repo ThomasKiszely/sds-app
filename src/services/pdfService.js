@@ -3,11 +3,11 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 async function generateOfferPdf(offer, tasks, customer, address, signatureLink) {
-    const templatePath = path.join(__dirname, "../views/pdf/offerPdf.ejs");
+    const templatePath = path.join(__dirname, "../views/offers/offerPdf.ejs");
 
     const html = await ejs.renderFile(templatePath, {
         offer,
-        tasks,
+        tasks: tasks || [],
         customer,
         street: address.street,
         zip: address.zip,
@@ -17,15 +17,18 @@ async function generateOfferPdf(offer, tasks, customer, address, signatureLink) 
 
     const browser = await puppeteer.launch({
         headless: "new",
-        args: ["--no-sandbox"]
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    // ✅ domcontentloadedforhindrer timeout-fejl
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
 
     const pdfBuffer = await page.pdf({
         format: "A4",
-        printBackground: true
+        printBackground: true,
+        margin: { top: "15mm", bottom: "15mm", left: "15mm", right: "15mm" }
     });
 
     await browser.close();

@@ -59,46 +59,47 @@ async function createPlan({ customerId, locationId, nameFromUI, description }) {
 // ------------------------------------------------------------
 async function addTaskFromTemplate(planId, templateId) {
     const template = await cleaningTaskTemplateService.findTemplateById(templateId);
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
-    // ⭐ FORBRUGSVARE (tilkøb – ikke en del af planens pris)
+    // ⭐ FORBRUGSVARE
     if (template.isConsumable === true) {
         return await cleaningTaskService.createCleaningTask(planId, {
             templateId,
             name: template.name,
             description: template.description,
             category: categoryTypes.consumables,
-
-            // ⭐ Forbrugsvarer har altid unit = stk
             unit: units.stk,
 
-            // ⭐ Pris pr stk
-            customPrice: Number(template.pricePerUnit),
+            // ⭐ Brug customPrice (ikke pricePerUnit)
+            customPrice: Number(template.customPrice ?? 0),
 
-            // ⭐ Ingen varighed, ingen frekvens, ingen SDS, ingen dage
             durationPerUnit: 0,
             frequency: null,
-            days: [],
+            days: template.days ?? [],
 
-            // ⭐ Standardværdier
-            amount: 0,
-            quantity: 1,
-            roomName: "Ukendt lokale",
+            amount: template.amount ?? 0,
+            quantity: template.quantity ?? 1,
+            roomName: template.roomName ?? "",
         });
     }
 
-    // ⭐ ALMINDELIG OPERATION (som før)
+    // ⭐ ALMINDELIGE OPERATIONER (extra, adHoc, windows, etc.)
     return await cleaningTaskService.createCleaningTask(planId, {
         templateId,
         name: template.name,
         description: template.description,
         category: template.category,
         unit: template.unit,
+
         durationPerUnit: template.durationPerUnit,
         frequency: template.frequency,
-        amount: 0,
-        quantity: 1,
-        roomName: "Ukendt lokale",
+        days: template.days ?? [],
+
+        // ⭐ VIGTIGT: brug customPrice fra template
+        customPrice: Number(template.customPrice ?? 0),
+
+        amount: template.amount ?? 0,
+        quantity: template.quantity ?? 1,
+        roomName: template.roomName ?? "",
     });
 }
 
@@ -491,7 +492,7 @@ async function createDailyBundle(planId, body) {
     return true;
 }
 
-
+/*
 function groupTasksByRoom(tasks) {
     const rooms = {};
 
@@ -527,7 +528,7 @@ function groupTasksByRoom(tasks) {
 
     return rooms;
 }
-
+*/
 
 
 module.exports = {
@@ -542,5 +543,4 @@ module.exports = {
     getOfferPreview,
     updateDailyBundle,
     createDailyBundle,
-    groupTasksByRoom
 };

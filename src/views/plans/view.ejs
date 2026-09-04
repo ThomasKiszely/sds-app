@@ -1,134 +1,165 @@
-<article class="standard wizard-step">
+<article class="standard cleaning-plan">
 
-    <h2>Rengøringsplan</h2>
+    <!-- ⭐ PROGRAMKODE-FORKLARING -->
+    <section class="programcode-info">
+        <h2>Forklaring på programkoder</h2>
+        <p>Alle lokaler der skal rengøres, er forsynet med en programkode. Programkoder aflæses som vist herunder.</p>
 
-    <section class="plan-info">
-        <h3><%= plan.name %></h3>
+        <table class="programcode-table">
+            <thead>
+            <tr>
+                <th>5</th>
+                <th>2</th>
+                <th>1</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Det første ciffer angiver antal gange per uge rengøringspersonalet er i lokalet (soignering)</td>
+                <td>Det andet ciffer angiver det antal gange per uge, der udføres grundig rengøring af gulv i lokalet.</td>
+                <td>Det tredje ciffer angiver det antal gange per uge der udføres grundig rengøring af inventar i lokalet</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 
-        <% if (plan.description) { %>
-            <p><%= plan.description %></p>
-        <% } %>
+    <hr>
 
-        <p><strong>Total pris:</strong> <%= plan.totalMonthlyPrice %> kr</p>
+    <!-- ⭐ LOKALEFORTEGNELSE -->
+    <section class="room-list">
+        <h2>Lokalefortegnelse og Programkoder</h2>
 
-        <p>
-            <strong>Status:</strong>
-            <% if (plan.isActive) { %>
-                Aktiv
-            <% } else { %>
-                Inaktiv
+        <table class="room-table">
+            <thead>
+            <tr>
+                <th>Lokalebetegnelse</th>
+                <th>Programkode</th>
+                <th>Bemærkninger</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <% for (const roomName in grouped) { %>
+
+                <%
+                    const programCode = grouped[roomName].programCode;
+                    const notesEntry = roomNotes.find(r => r.roomName === roomName);
+                    const notes = notesEntry ? notesEntry.notes : [];
+                %>
+
+                <tr>
+                    <td><%= roomName %></td>
+                    <td><%= programCode %></td>
+                    <td>
+                        <% if (notes.length > 0) { %>
+                            <% notes.forEach(n => { %>
+                                <div><%= n %></div>
+                            <% }) %>
+                        <% } %>
+                    </td>
+                </tr>
+
             <% } %>
+
+            </tbody>
+        </table>
+    </section>
+
+    <hr>
+
+    <!-- ⭐ RENGØRINGSINSTRUKTION -->
+    <section class="instructions">
+        <h2>Rengøringsinstruktion</h2>
+
+        <h3>Hver gang udføres (1. ciffer i programkoden)</h3>
+        <p><strong>Inventarrengøring:</strong><br>
+            Udluftning – Vinduer lukkes efter endt rengøring<br>
+            Papirkurve tømmes<br>
+            Nye pletter fjernes<br>
+            Skifte klude og hviskestykker i køkken
+        </p>
+
+        <p><strong>Inventarrengøring sanitære områder:</strong><br>
+            Håndvaske, armatur, spejle, hylder, dørgreb mv. rengøres<br>
+            Toilet og anden sanitet rengøres<br>
+            Opfyldning af forbrugsvare<br>
+            Udskift madam/skraldepose
+        </p>
+
+        <p><strong>Gulvrengøring:</strong><br>
+            Tæpper støvsuges der hvor det er nødvendigt<br>
+            Hårde gulve støvsuges hvor det er nødvendigt<br>
+            Gulve i sanitære områder støvsuges og vaskes hver gang
+        </p>
+
+        <h3>Ved grundig gulvrengøring (2. ciffer)</h3>
+        <p>
+            Tæpper støvsuges grundigt fra væg til væg<br>
+            Hårde gulve støvsuges/tørmoppes og vaskes fra væg til væg
+        </p>
+
+        <h3>Ved grundig inventarrengøring (3. ciffer)</h3>
+        <p>
+            Skriveborde og øvrige borde rengøres grundigt<br>
+            Lavthængende lamper, vindueskarme, dørgreb rengøres<br>
+            Hylder, skærme, reoler mv. indtil 180 cm rengøres<br>
+            Aftørring kaffeautomat<br>
+            Aftørring af borde<br>
+            Stole i kantine efterses
         </p>
     </section>
 
     <hr>
 
-    <!-- ACCEPT INFO -->
-    <% if (plan.acceptedOfferId) { %>
-        <section class="plan-accept-info">
-            <h3>Tilbud accepteret</h3>
+    <!-- ⭐ ØVRIGE OPGAVER (uden programkode) -->
+    <section class="other-tasks">
+        <h2>Øvrige opgaver</h2>
 
-            <p><strong>Af:</strong> <%= plan.acceptedByName %> (<%= plan.acceptedByEmail %>)</p>
-            <p><strong>Dato:</strong> <%= plan.acceptedAt.toLocaleDateString("da-DK") %></p>
-
-            <p><strong>Tilbudsnummer:</strong> <%= plan.acceptedOfferId %></p>
-
-            <div class="button-row">
-                <button hx-get="/offers/<%= plan.acceptedOfferId %>/view" hx-target="#content">
-                    Se tilbud
-                </button>
-
-                <button hx-get="/offers/<%= plan.acceptedOfferId %>/pdf" hx-target="#content">
-                    Download PDF
-                </button>
-            </div>
-        </section>
-
-        <hr>
-    <% } %>
-
-    <!-- TASKS -->
-    <section class="plan-tasks">
-        <h3>Opgaver</h3>
-
-        <% if (tasks.length === 0) { %>
-            <p>Ingen opgaver tilføjet endnu.</p>
-        <% } else { %>
-            <ul class="task-list">
-                <% tasks.forEach(task => { %>
-                    <li class="task-item">
-                        <strong><%= task.name %></strong>
-                        <span><%= task.monthlyPrice %> kr</span>
-
+        <!-- ⭐ Opgaver uden rum -->
+        <% if (noRoomTasks.length > 0) { %>
+            <h3>Opgaver uden rum</h3>
+            <ul>
+                <% noRoomTasks.forEach(t => { %>
+                    <li>
+                        <strong><%= t.name %></strong>
+                        – <%= frequencyLabels[t.frequency] %>
+                        – <%= t.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr./måned
+                        <% if (t.description) { %><div><em><%= t.description %></em></div><% } %>
                     </li>
                 <% }) %>
             </ul>
+            <hr>
         <% } %>
 
-        <button
-                hx-get="/newPlan/tasks?planId=<%= plan._id %>"
-                hx-target="#content">
-            Tilføj/rediger opgaver
-        </button>
+        <!-- ⭐ Ad hoc -->
+        <% if (adHocTasks.length > 0) { %>
+            <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
+            <ul>
+                <% adHocTasks.forEach(t => { %>
+                    <li>
+                        <strong><%= t.name %></strong>
+                        – <%= (t.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr pr gang
+                        <% if (t.description) { %><div><em><%= t.description %></em></div><% } %>
+                    </li>
+                <% }) %>
+            </ul>
+            <hr>
+        <% } %>
 
-
-
-    </section>
-
-    <hr>
-
-    <!-- TILBUD -->
-    <section class="plan-offers">
-        <h3>Tilbud</h3>
-
-        <button
-                hx-get="/newPlan/offer?planId=<%= plan._id %>"
-                hx-target="#content">
-            Opret nyt tilbud
-        </button>
-
-<!--        <button-->
-<!--                hx-get="/offers?planId=<%= plan._id %>/view"-->
-<!--                hx-target="#content">-->
-<!--            Se alle tilbud for planen-->
-<!--        </button>-->
-    </section>
-
-    <hr>
-
-    <hr>
-
-    <section class="plan-contracts">
-        <h3>Kontrakter</h3>
-
-        <button
-                hx-get="/contracts/<%= plan._id %>/list"
-                hx-target="#content">
-            Se kontrakter
-        </button>
-
-        <button
-                hx-post="/contracts/<%= plan._id %>/generate"
-                hx-target="#content">
-            Generér kontrakt
-        </button>
-    </section>
-
-
-    <!-- PLAN STATUS -->
-    <section class="plan-status">
-        <% if (plan.isActive) { %>
-            <button
-                    hx-delete="/cleaningPlans/<%= plan._id %>?context=planView"
-                    hx-target="#content">
-                Deaktiver plan
-            </button>
-        <% } else { %>
-            <button
-                    hx-patch="/cleaningPlans/<%= plan._id %>?context=planView/reactivate"
-                    hx-target="#content">
-                Reaktiver plan
-            </button>
+        <!-- ⭐ Forbrugsvarer -->
+        <% if (consumables.length > 0) { %>
+            <h3>Tilkøb – Forbrugsvarer</h3>
+            <ul>
+                <% consumables.forEach(c => { %>
+                    <li>
+                        <strong><%= c.name %></strong>
+                        – <%= (c.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr pr stk
+                        – <%= c.quantity %> stk
+                        <% if (c.description) { %><div><em><%= c.description %></em></div><% } %>
+                    </li>
+                <% }) %>
+            </ul>
+            <p><em>Faktureres efter forbrug</em></p>
         <% } %>
     </section>
 

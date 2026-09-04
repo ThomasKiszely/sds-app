@@ -153,8 +153,17 @@ async function showTemplatePage(req, res) {
 }
 
 async function showCreateForm(req, res) {
+    const emptyTemplate = {
+        durationPerUnit: "",
+        pricePerUnit: "",
+        unit: "",
+        frequency: "",
+        category: req.query.category || null
+    };
+
     return res.render("cleaningTaskTemplates/create", {
-        category: req.query.category || null,
+        template: emptyTemplate,
+        category: emptyTemplate.category,
         categoryTypes,
         categoryLabels,
         units,
@@ -163,6 +172,7 @@ async function showCreateForm(req, res) {
         frequencyLabels
     });
 }
+
 
 function showConsumableFields(req, res) {
     const category = req.query.category || null;
@@ -176,7 +186,16 @@ function showConsumableFields(req, res) {
 function showTaskFields(req, res) {
     const category = req.query.category || null;
 
+    const emptyTemplate = {
+        durationPerUnit: "",
+        pricePerUnit: "",
+        unit: "",
+        frequency: "",
+        category
+    };
+
     res.render("cleaningTaskTemplates/partials/taskFields", {
+        template: emptyTemplate,
         category,
         categoryTypes,
         units,

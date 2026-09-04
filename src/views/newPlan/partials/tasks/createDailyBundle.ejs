@@ -40,13 +40,7 @@
             <input type="number" name="custom_soignering" min="0">
 
             <label>Dage</label>
-            <button
-                    type="button"
-                    class="button"
-                    onclick="setDailyWeekdays('days_soignering')"
-            >
-                Daglig (Man–Fre)
-            </button>
+            <button type="button" class="button" data-weekdays="days_soignering">Daglig (Man–Fre)</button>
 
 
         <% Object.keys(days).forEach(key => { %>
@@ -88,13 +82,7 @@
             <input type="number" name="custom_gulv" min="0">
 
             <label>Dage</label>
-            <button
-                    type="button"
-                    class="button"
-                    onclick="setDailyWeekdays('days_gulv')"
-            >
-                Daglig (Man–Fre)
-            </button>
+            <button type="button" class="button" data-weekdays="days_gulv">Daglig (Man–Fre)</button>
 
         <% Object.keys(days).forEach(key => { %>
                 <label class="checkbox-row">
@@ -135,13 +123,7 @@
             <input type="number" name="custom_inventar" min="0">
 
             <label>Dage</label>
-            <button
-                    type="button"
-                    class="button"
-                    onclick="setDailyWeekdays('days_inventar')"
-            >
-                Daglig (Man–Fre)
-            </button>
+            <button type="button" class="button" data-weekdays="days_inventar">Daglig (Man–Fre)</button>
 
         <% Object.keys(days).forEach(key => { %>
                 <label class="checkbox-row">
@@ -181,19 +163,3 @@
 
 </article>
 
-
-<script>
-    function setDailyWeekdays(fieldName) {
-        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-
-        const selector = `input[name="${fieldName}"][data-days-button="true"]`;
-        const boxes = document.querySelectorAll(selector);
-
-        boxes.forEach(cb => {
-            cb.checked = weekdays.includes(cb.value);
-        });
-
-        // Hvis du senere vil have HTMX preview:
-        // boxes.forEach(cb => htmx.trigger(cb, 'change'));
-    }
-</script>

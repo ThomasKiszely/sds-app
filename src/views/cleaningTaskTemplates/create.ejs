@@ -25,7 +25,15 @@
 
         <!-- Dynamiske felter -->
         <div id="taskFields">
-            <%- include("./partials/taskFields") %>
+            <%- include("./partials/taskFields", {
+            template,
+            category,
+            categoryTypes,
+            units,
+            unitsLabels,
+            frequencies,
+            frequencyLabels
+            }) %>
         </div>
 
         <button type="submit">Gem</button>

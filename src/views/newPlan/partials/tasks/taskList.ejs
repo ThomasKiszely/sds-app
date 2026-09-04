@@ -2,70 +2,32 @@
 
         <!-- ⭐ Samlet månedlig pris -->
         <h3>Samlet månedlig pris</h3>
-        <p class="plan-total"><strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong></p>
+        <p class="plan-total">
+                <strong>
+                        <%= monthlyTotal.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr./måned
+                </strong>
+        </p>
 
         <hr>
 
         <h3>Valgte opgaver</h3>
 
-        <%
-        // ⭐ Opdel tasks i sektioner
+        <!-- ⭐ 1: SDS‑BUNDLES (som rengøringsplanen) -->
+        <% for (const roomName in grouped) { %>
+                <section class="task-room-group">
 
-        // Faste opgaver i rum (monthlyPrice > 0)
-        const roomTasks = tasks.filter(t =>
-                t.roomName &&
-                t.roomName.trim() !== "" &&
-                t.monthlyPrice > 0
-        );
-
-        // Faste opgaver uden rum (monthlyPrice > 0)
-        const noRoomTasks = tasks.filter(t =>
-                (!t.roomName || t.roomName.trim() === "") &&
-                t.monthlyPrice > 0
-        );
-
-        // Ad hoc / vinduer / efter aftale (monthlyPrice = 0, customPrice > 0)
-        const adHocTasks = tasks.filter(t =>
-                t.monthlyPrice === 0 &&
-                t.customPrice != null &&
-                t.category !== categoryTypes.consumables
-        );
-
-        // Forbrugsvarer
-        const consumables = tasks.filter(t =>
-                t.category === categoryTypes.consumables
-        );
-        %>
-
-        <!-- ⭐ RUM -->
-        <% if (roomTasks.length > 0) { %>
-                <section>
-                        <h3>Rum</h3>
-
-                        <%
-                                // Gruppér opgaver efter rum
-                                const rooms = {};
-                                roomTasks.forEach(t => {
-                                        if (!rooms[t.roomName]) rooms[t.roomName] = [];
-                                        rooms[t.roomName].push(t);
-                                });
-                        %>
-
-                        <% Object.keys(rooms).forEach(room => {
-                                const tasksInRoom = rooms[room];
-                                const programCode = grouped[room]?.programCode || "";
-                        %>
-
-                        <h4><%= room %> (<%= programCode %>)</h4>
+                        <h4>
+                                <strong><%= roomName %></strong>
+                                <span class="program-code">(Kode: <%= grouped[roomName].programCode %>)</span>
+                        </h4>
 
                         <ul class="task-list-room">
-                                <% tasksInRoom.forEach(task => { %>
-                                        <li class="task-item">
+                                <% grouped[roomName].sds.forEach(task => { %>
+                                        <li class="task-item sds-task">
 
                                                 <div class="task-info">
                                                         <strong><%= task.name %></strong>
 
-                                                        <!-- Dage + frekvens -->
                                                         <div class="task-days">
                                                                 <% (task.days || []).forEach(d => { %>
                                                                         <%= daysLabels[d] %>
@@ -73,10 +35,11 @@
                                                                 – <%= frequencyLabels[task.frequency] %>
                                                         </div>
 
-                                                        <!-- ⭐ Pris pr måned -->
                                                         <div class="task-meta">
                                                                 Pris pr måned:
-                                                                <strong><%= task.monthlyPrice.toFixed(2) %> kr.</strong>
+                                                                <strong>
+                                                                        <%= task.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
+                                                                </strong>
                                                         </div>
 
                                                         <% if (task.description && task.description.trim().length > 0) { %>
@@ -84,31 +47,38 @@
                                                         <% } %>
                                                 </div>
 
-                                                <div class="task-actions">
-                                                        <button class="button small"
-                                                                hx-get="/newPlan/tasks/<%= task._id %>/edit"
-                                                                hx-target="#taskArea">
-                                                                Rediger
-                                                        </button>
-
-                                                        <button class="button small danger"
-                                                                hx-delete="/newPlan/tasks/<%= task._id %>/delete"
-                                                                hx-target="#taskArea">
-                                                                Slet
-                                                        </button>
-                                                </div>
-
                                         </li>
                                 <% }) %>
                         </ul>
 
-                        <% }) %>
+                        <!-- ⭐ Kun én knap pr bundle -->
+                        <div class="task-actions">
+                                <button class="button small"
+                                        hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= planId %>&roomName=<%= roomName %>"
+                                        hx-target="#taskArea"
+                                        hx-swap="innerHTML">
+                                        Rediger bundle
+                                </button>
+
+                                <button class="button small danger"
+                                        hx-delete="/newPlan/tasks/dailyBundle/delete?planId=<%= planId %>&roomName=<%= roomName %>"
+                                        hx-target="#taskArea">
+                                        Slet bundle
+                                </button>
+                        </div>
+
                 </section>
 
                 <hr>
         <% } %>
 
-        <!-- ⭐ OPGAVER UDEN RUM (faste opgaver) -->
+
+        <!-- ⭐ 2: Opgaver uden rum -->
+        <% const noRoomTasks = tasks.filter(t =>
+                (!t.roomName || t.roomName.trim() === "") &&
+                t.monthlyPrice > 0
+        ); %>
+
         <% if (noRoomTasks.length > 0) { %>
                 <section>
                         <h3>Opgaver uden rum</h3>
@@ -120,9 +90,7 @@
                                                 <div class="task-info">
                                                         <strong><%= t.name %></strong>
                                                         – <%= frequencyLabels[t.frequency] %>
-
-                                                        <!-- ⭐ Pris pr måned -->
-                                                        – <%= t.monthlyPrice.toFixed(2) %> kr./måned
+                                                        – <%= t.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr./måned
 
                                                         <% if (t.description && t.description.trim().length > 0) { %>
                                                                 <div><em><%= t.description %></em></div>
@@ -151,7 +119,14 @@
                 <hr>
         <% } %>
 
-        <!-- ⭐ AD HOC / VINDUER / EFTER AFTALE -->
+
+        <!-- ⭐ 3: Pris pr gang (Ad hoc / Vinduer / Efter aftale) -->
+        <% const adHocTasks = tasks.filter(t =>
+                t.monthlyPrice === 0 &&
+                t.customPrice != null &&
+                t.category !== categoryTypes.consumables
+        ); %>
+
         <% if (adHocTasks.length > 0) { %>
                 <section>
                         <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
@@ -162,7 +137,7 @@
 
                                                 <div class="task-info">
                                                         <strong><%= t.name %></strong>
-                                                        – <%= t.customPrice %> kr pr gang
+                                                        – <%= (t.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr pr gang
 
                                                         <% if (t.description && t.description.trim().length > 0) { %>
                                                                 <div><em><%= t.description %></em></div>
@@ -191,7 +166,10 @@
                 <hr>
         <% } %>
 
-        <!-- ⭐ FORBRUGSVARER -->
+
+        <!-- ⭐ 4: Forbrugsvarer -->
+        <% const consumables = tasks.filter(t => t.category === categoryTypes.consumables); %>
+
         <% if (consumables.length > 0) { %>
                 <section>
                         <h3>Tilkøb – Forbrugsvarer</h3>
@@ -202,7 +180,7 @@
 
                                                 <div class="task-info">
                                                         <strong><%= c.name %></strong>
-                                                        – <%= c.customPrice %> kr pr stk
+                                                        – <%= (c.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr pr stk
                                                         – <%= c.quantity %> stk
 
                                                         <% if (c.description && c.description.trim().length > 0) { %>
