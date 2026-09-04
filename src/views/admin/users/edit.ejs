@@ -1,9 +1,9 @@
 <article class="standard admin-user-edit-page">
     <h1>Rediger bruger</h1>
 
-    <form hx-put="/users/<%= user.id %>" hx-target="#content">
+    <form hx-patch="/users/<%= user.id %>/user" hx-target="#content">
 
-        <label>Fulde navn</label>
+    <label>Fulde navn</label>
         <input type="text" name="fullName" value="<%= user.fullName %>" required>
 
         <label>Stilling</label>

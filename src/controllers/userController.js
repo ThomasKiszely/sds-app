@@ -173,30 +173,50 @@ async function getUserById(req, res, next) {
     }
 }
 
-// -----------------------------------------------------
-// Opdater bruger (API)
+
 async function updateUser(req, res, next) {
     try {
         const { id } = req.params;
         const { fullName, role, position, phoneNumber, email, address } = req.body;
         const adminId = req.session.user.id;
 
-        const updated = await userService.updateUser(
+        await userService.updateUser(
             id,
             { fullName, role, position, phoneNumber, email, address },
             adminId
         );
 
-        return res.status(200).json({
-            success: true,
-            message: "Bruger opdateret",
-            user: updated
+        // Hent alle brugere igen, så listen er opdateret
+        const users = await userService.getAllUsers();
+
+        // Send toast til HTMX
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: "Bruger opdateret"
+        }));
+
+        // Returnér HTML til hx-target
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
         });
 
     } catch (error) {
-        next(error);
+
+        // Send fejl-toast
+        res.setHeader("HX-Trigger", JSON.stringify({
+            toast: error.message
+        }));
+
+        // Vis listen igen
+        const users = await userService.getAllUsers();
+
+        return res.render("admin/users", {
+            users,
+            sessionUserId: req.session.user.id
+        });
     }
 }
+
 
 
 // -----------------------------------------------------

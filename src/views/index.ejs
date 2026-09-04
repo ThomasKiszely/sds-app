@@ -34,56 +34,8 @@
 <!-- Toast containers -->
 <div id="toast-center"></div>
 
-<!-- Toast logic -->
-<script>
-    function showCenterToast(message) {
-        const container = document.getElementById("toast-center");
 
-        const toast = document.createElement("div");
-        toast.className = "toast-center";
-        toast.textContent = message;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add("hide");
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    }
-
-    document.body.addEventListener("toast", (event) => {
-        let message = event.detail;
-
-        if (typeof message === "object" && message !== null) {
-            message = message.value || message.message || JSON.stringify(message);
-        }
-
-        showCenterToast(message);
-    });
-
-    document.body.addEventListener("htmx:responseError", (event) => {
-        const xhr = event.detail.xhr;
-
-        if (xhr && xhr.responseText && typeof xhr.responseText === "string") {
-            const clean = xhr.responseText.replace(/<[^>]+>/g, "").trim();
-            if (clean.length > 0) {
-                showCenterToast(clean);
-                return;
-            }
-        }
-
-        try {
-            const json = xhr && JSON.parse(xhr.responseText);
-            if (json && json.message) {
-                showCenterToast(json.message);
-                return;
-            }
-        } catch (_) {}
-
-        showCenterToast("Der opstod en fejl");
-    });
-</script>
-
+<script src="/js/toast.js"></script>
 <script src="/js/history.js"></script>
 <script src="/js/topbar.js"></script>
 
