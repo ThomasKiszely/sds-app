@@ -624,7 +624,7 @@ async function tasks_save(req, res) {
     const task = await newPlanService.addTaskFromTemplate(
         req.body.planId,
         req.body.templateId,
-        req.body // hvis du vil bruge brugerens ændringer
+        req.body   // ⭐ nu bliver brugerens data brugt
     );
 
     const vm = await newPlanService.listTasks(req.body.planId);
@@ -642,6 +642,16 @@ async function tasks_save(req, res) {
         frequencyMultipliers
     });
 }
+
+async function tasks_previewNew(req, res) {
+   try {
+        const price = await newPlanService.previewNewTaskPrice(req.body);
+        return res.send(`${price} kr.`);
+    } catch (error) {
+        return res.send("Fejl");
+    }
+}
+
 
 
 module.exports = {
@@ -668,5 +678,6 @@ module.exports = {
     tasks_createDailyBundle,
     tasks_saveDailyBundle,
     tasks_create,
-    tasks_save
+    tasks_save,
+    tasks_previewNew,
 };

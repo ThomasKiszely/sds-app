@@ -1,19 +1,19 @@
 <article class="standard wizard-step">
 
-    <h1>Rediger opgave</h1>
+    <h1><%= task._id ? "Rediger opgave" : "Tilføj opgave" %></h1>
 
     <form
     <% if (task._id) { %>
         hx-patch="/newPlan/tasks/<%= task._id %>/update"
     <% } else { %>
         hx-post="/newPlan/tasks/save"
-        <% } %>
+            <% } %>
         hx-target="#taskArea"
         hx-swap="innerHTML"
         class="task-edit-form"
     >
 
-    <input type="hidden" name="planId" value="<%= task.planId %>">
+        <input type="hidden" name="planId" value="<%= task.planId %>">
         <input type="hidden" name="templateId" value="<%= task.templateId %>">
 
         <!-- ⭐ Navn -->
@@ -31,7 +31,7 @@
             Daglig (Man–Fre)
         </button>
 
-    <% Object.keys(days).forEach(key => { %>
+        <% Object.keys(days).forEach(key => { %>
             <label class="checkbox-row">
                 <input type="checkbox"
                        name="days"
@@ -41,10 +41,21 @@
             </label>
         <% }) %>
 
-
         <!-- ⭐ Frekvens -->
         <label for="frequency">Frekvens</label>
-        <select id="frequency" name="frequency">
+        <select id="frequency" name="frequency"
+        <% if (task._id) { %>
+                hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                hx-trigger="change"
+                hx-include="closest form"
+                hx-target="#taskPrice"
+        <% } else { %>
+                hx-post="/newPlan/tasks/previewNew"
+                hx-trigger="change"
+                hx-include="closest form"
+                hx-target="#taskPrice"
+                <% } %>
+        >
             <% Object.keys(frequencies).forEach(key => { %>
                 <option value="<%= frequencies[key] %>"
                         <%= task.frequency === frequencies[key] ? "selected" : "" %>>
@@ -65,6 +76,11 @@
                hx-trigger="change"
                hx-include="closest form"
                hx-target="#taskPrice"
+        <% } else { %>
+               hx-post="/newPlan/tasks/previewNew"
+               hx-trigger="change"
+               hx-include="closest form"
+               hx-target="#taskPrice"
                 <% } %>
         >
 
@@ -80,6 +96,11 @@
                hx-trigger="change"
                hx-include="closest form"
                hx-target="#taskPrice"
+        <% } else { %>
+               hx-post="/newPlan/tasks/previewNew"
+               hx-trigger="change"
+               hx-include="closest form"
+               hx-target="#taskPrice"
                 <% } %>
         >
 
@@ -89,9 +110,20 @@
                    id="quantity"
                    name="quantity"
                    value="<%= task.quantity ?? 1 %>"
-                   min="1">
+                   min="1"
+            <% if (task._id) { %>
+                   hx-post="/newPlan/tasks/<%= task._id %>/preview"
+                   hx-trigger="change"
+                   hx-include="closest form"
+                   hx-target="#taskPrice"
+            <% } else { %>
+                   hx-post="/newPlan/tasks/previewNew"
+                   hx-trigger="change"
+                   hx-include="closest form"
+                   hx-target="#taskPrice"
+                    <% } %>
+            >
         <% } %>
-
 
         <!-- ⭐ Beskrivelse -->
         <label for="description">Beskrivelse</label>
@@ -113,9 +145,6 @@
 
             </span>
         </p>
-
-
-
 
         <button type="submit" class="button">Gem opgave</button>
 

@@ -36,6 +36,7 @@ router.get("/tasks/:taskId/edit", requireLogin, newPlanController.tasks_edit);
 router.post("/tasks/:taskId/preview", requireLogin, newPlanController.tasks_preview);
 router.delete("/tasks/:taskId/delete", requireLogin, newPlanController.tasks_delete);
 router.patch("/tasks/:taskId/update", requireLogin, newPlanController.tasks_update);
+router.post("/tasks/previewNew", requireLogin, newPlanController.tasks_previewNew);
 
 // Step 4: Lav tilbud
 router.get("/offer", requireLogin, newPlanController.step4_offer);

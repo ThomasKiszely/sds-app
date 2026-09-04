@@ -57,50 +57,42 @@ async function createPlan({ customerId, locationId, nameFromUI, description }) {
 // ------------------------------------------------------------
 // 2. ADD TASK FROM TEMPLATE
 // ------------------------------------------------------------
-async function addTaskFromTemplate(planId, templateId) {
+async function addTaskFromTemplate(planId, templateId, body) {
     const template = await cleaningTaskTemplateService.findTemplateById(templateId);
 
-    // ⭐ FORBRUGSVARE
-    if (template.isConsumable === true) {
-        return await cleaningTaskService.createCleaningTask(planId, {
-            templateId,
-            name: template.name,
-            description: template.description,
-            category: categoryTypes.consumables,
-            unit: units.stk,
-
-            // ⭐ Brug customPrice (ikke pricePerUnit)
-            customPrice: Number(template.customPrice ?? 0),
-
-            durationPerUnit: 0,
-            frequency: null,
-            days: template.days ?? [],
-
-            amount: template.amount ?? 0,
-            quantity: template.quantity ?? 1,
-            roomName: template.roomName ?? "",
-        });
-    }
-
-    // ⭐ ALMINDELIGE OPERATIONER (extra, adHoc, windows, etc.)
-    return await cleaningTaskService.createCleaningTask(planId, {
+    // ⭐ Merge template + body
+    const merged = {
         templateId,
-        name: template.name,
-        description: template.description,
+        name: body.name ?? template.name,
+        description: body.description ?? template.description,
         category: template.category,
         unit: template.unit,
 
-        durationPerUnit: template.durationPerUnit,
-        frequency: template.frequency,
-        days: template.days ?? [],
+        // ⭐ Varighed
+        durationPerUnit: Number(body.durationPerUnit ?? template.durationPerUnit ?? 0),
 
-        // ⭐ VIGTIGT: brug customPrice fra template
-        customPrice: Number(template.customPrice ?? 0),
+        // ⭐ Frekvens
+        frequency: body.frequency ?? template.frequency ?? null,
 
-        amount: template.amount ?? 0,
-        quantity: template.quantity ?? 1,
-        roomName: template.roomName ?? "",
-    });
+        // ⭐ Dage
+        days: (() => {
+            if (body.days === undefined) return template.days ?? [];
+            if (Array.isArray(body.days)) return body.days;
+            return [body.days];
+        })(),
+
+        // ⭐ Mængder
+        amount: Number(body.amount ?? template.amount ?? 0),
+        quantity: Number(body.quantity ?? template.quantity ?? 1),
+
+        // ⭐ Rum
+        roomName: body.roomName ?? template.roomName ?? "",
+
+        // ⭐ Pris
+        customPrice: Number(body.customPrice ?? template.customPrice ?? 0),
+    };
+
+    return await cleaningTaskService.createCleaningTask(planId, merged);
 }
 
 
@@ -180,6 +172,39 @@ async function previewTaskPrice(taskId, body) {
     return Math.round(monthlyPrice);
 }
 
+
+async function previewNewTaskPrice(body) {
+    const template = await cleaningTaskTemplateService.findTemplateById(body.templateId);
+    const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(body.planId);
+
+    const tempTask = {
+        ...template.toObject(),
+
+        durationPerUnit: Number(body.durationPerUnit ?? template.durationPerUnit ?? 0),
+        frequency: body.frequency ?? template.frequency ?? null,
+
+        days: (() => {
+            if (!body.days) return template.days ?? [];
+            if (Array.isArray(body.days)) return body.days;
+            return [body.days];
+        })(),
+
+        amount: Number(body.amount ?? template.amount ?? 0),
+        quantity: Number(body.quantity ?? template.quantity ?? 1),
+
+        customPrice: Number(body.customPrice ?? template.customPrice ?? 0),
+    };
+
+    const { monthlyPrice } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
+
+    // ⭐ Hvis opgaven har en månedlig pris → brug den
+    if (monthlyPrice > 0) {
+        return Math.round(monthlyPrice);
+    }
+
+    // ⭐ Ellers → brug fast pris pr gang
+    return Number(tempTask.customPrice ?? 0);
+}
 
 
 
@@ -543,4 +568,5 @@ module.exports = {
     getOfferPreview,
     updateDailyBundle,
     createDailyBundle,
+    previewNewTaskPrice
 };
