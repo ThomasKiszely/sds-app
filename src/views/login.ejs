@@ -22,6 +22,8 @@
         <% } %>
 
         <form action="/users/login" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
             <label for="userName">Brugernavn</label>
             <input type="text" id="userName" name="userName" required>
 

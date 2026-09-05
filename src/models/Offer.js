@@ -46,7 +46,8 @@ const offerSchema = new mongoose.Schema({
     acceptedByEmail: String,
     acceptedAt: Date,
 
-    signatureToken: String
+    signatureToken: String,
+    signatureTokenExpiresAt: Date
 
 }, {
     timestamps: true   // ← VIGTIGT: opdaterer createdAt + updatedAt automatisk

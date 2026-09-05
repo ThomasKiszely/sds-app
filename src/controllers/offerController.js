@@ -11,6 +11,16 @@ async function pdfOffer(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
+        // ⭐ PDF token check
+        if (!offer.signatureToken || !offer.signatureTokenExpiresAt) {
+            return res.status(400).send("Tilbuddet har ikke et gyldigt acceptlink");
+        }
+
+        if (offer.signatureTokenExpiresAt < Date.now()) {
+            return res.status(410).send("Acceptlinket er udløbet");
+        }
+
+
         const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
 
         const customer = await customerService.getCustomerById(offer.customerId);
@@ -80,8 +90,13 @@ async function acceptView(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
+        // ⭐ Token check
         if (offer.signatureToken !== req.query.token) {
-            return res.status(403).send("Ugyldigt eller udløbet link");
+            return res.status(403).render("offers/invalid");
+        }
+
+        if (offer.signatureTokenExpiresAt < Date.now()) {
+            return res.status(410).render("offers/invalid");
         }
 
         const customer = await customerService.getCustomerById(offer.customerId);
@@ -92,7 +107,8 @@ async function acceptView(req, res, next) {
             customer,
             street,
             zip,
-            city
+            city,
+            csrfToken: req.csrfToken()
         });
 
     } catch (err) {
@@ -113,7 +129,15 @@ async function acceptOffer(req, res, next) {
 
         // ⭐ 2. Token check
         if (offer.signatureToken !== req.query.token) {
-            return next({ isUserError: true, message: "Ugyldigt eller udløbet link" });
+            return res.status(403).render("offers/invalid");
+        }
+
+        if (offer.signatureTokenExpiresAt < Date.now()) {
+            return res.status(410).render("offers/invalid");
+        }
+
+        if (!req.body._csrf) {
+            return res.status(403).render("offers/invalid");
         }
 
         // ⭐ 3. Status check
@@ -139,7 +163,7 @@ async function acceptOffer(req, res, next) {
 
         // ⭐ 6. Vis accepted.ejs
         return res.render("offers/accepted", {
-            offer: updatedOffer
+            offer: updatedOffer,
         });
 
     } catch (err) {

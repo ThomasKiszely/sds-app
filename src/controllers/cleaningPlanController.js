@@ -3,6 +3,7 @@ const cleaningTaskService = require('../services/cleaningTaskService');
 const locationService = require('../services/locationService');
 const customerService = require('../services/customerService');
 const { groupSdsTasksByRoom } = require('../utils/groupedUtil');
+const { categoryTypes } = require('../utils/categoryEnum');
 
 async function createCleaningPlan(req, res, next) {
     try {

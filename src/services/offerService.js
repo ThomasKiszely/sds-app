@@ -104,6 +104,7 @@ async function createOffer(planId, { discountPercent = 0, environmentalFeePercen
         snapshot,
         status: "sent",
         signatureToken,
+        signatureTokenExpiresAt: Date.now() + (14 * 24 * 60 * 60 * 1000),
         paymentTerms: paymentTerms || plan.paymentTerms,
         terminationNotice: terminationNotice || terminationNoticeEnum.month3,
     });
@@ -132,6 +133,8 @@ async function acceptOffer(offerId, { name, email }) {
     if (offer.status !== "sent") {
         throw userError("Kun sendte tilbud kan accepteres");
     }
+    offer.signatureToken = null;
+    offer.signatureTokenExpiresAt = null;
 
     offer.status = "accepted";
     offer.acceptedByName = name;

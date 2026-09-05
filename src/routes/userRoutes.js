@@ -7,6 +7,7 @@ const { validateUserId } = require('../middlewares/validateUserId');
 const { validateUserUpdate } = require('../middlewares/validateUserUpdate');
 const { validateLogin } = require('../middlewares/validateLogin');
 const { requireLogin } = require('../middlewares/requireLogin');
+const { lookupLimiter } = require('../middlewares/lookupLimiter');
 
 
 router.post('/logout', requireLogin, userController.logout);
@@ -19,7 +20,7 @@ router.patch('/:id/role', requireAdmin, validateUserId, userController.updateUse
 router.patch('/:id/user', requireAdmin, validateUserId, validateUserUpdate, userController.updateUser);
 router.delete('/:id/permanent', requireAdmin, validateUserId, userController.deleteUser);
 router.delete('/:id', requireAdmin, validateUserId, userController.deactivateUser);
-router.get('/:id', requireAdmin, validateUserId, userController.getUserById);
+router.get('/:id', requireAdmin, validateUserId, lookupLimiter, userController.getUserById);
 
 router.get('/', requireAdmin, userController.listUsers);
 

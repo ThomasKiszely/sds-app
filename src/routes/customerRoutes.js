@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const customerController = require('../controllers/customerController');
 const locationController = require("../controllers/locationController");
-const {validateLocation} = require("../middlewares/validateLocation");
+const { validateLocation } = require("../middlewares/validateLocation");
+const { lookupLimiter } = require('../middlewares/lookupLimiter');
 
 router.get('/:id/details', customerController.customerDetails);
 router.get('/:id/edit', customerController.editCustomerForm);
@@ -12,7 +13,7 @@ router.post("/:customerId/locations", validateLocation, locationController.creat
 router.put("/customers/:id/reactivate", customerController.reactivateCustomer);
 
 router.delete('/:id', customerController.deleteCustomer);
-router.get('/:id', customerController.getCustomer);
+router.get('/:id', lookupLimiter, customerController.getCustomer);
 router.patch('/:id', customerController.updateCustomer);
 router.post('/api', customerController.createCustomer);
 router.get('/', customerController.listCustomers);

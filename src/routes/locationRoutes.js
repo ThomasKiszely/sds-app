@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const locationController = require("../controllers/locationController");
 const { validateLocation } = require("../middlewares/validateLocation");
+const { lookupLimiter } = require('../middlewares/lookupLimiter');
 
 // Liste over lokationer for en kunde
 router.get(
@@ -19,6 +20,7 @@ router.get(
 // Lokationsdetaljer
 router.get(
     "/:id",
+    lookupLimiter,
     locationController.locationDetails
 );
 

@@ -1,6 +1,7 @@
 const customerService = require("../services/customerService");
 const cleaningPlanService = require("../services/cleaningPlanService");
 const locationService = require("../services/locationService");
+const contractService = require("../services/contractService");
 
 function renderCustomerList(req, res, customers, total) {
     const filter = req.query.filter || "active";
@@ -197,12 +198,17 @@ async function customerPlans(req, res, next) {
         for (const loc of locations) {
             const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
 
-            // Brug toObject() så du ikke ødelægger Mongoose-dokumentet
-            plans.push(...locPlans.map(p => ({
-                ...p.toObject(),
-                location: loc
-            })));
+            for (const p of locPlans) {
+                const contract = await contractService.listContractsForPlan(p._id); // ← NYT
+
+                plans.push({
+                    ...p.toObject(),
+                    location: loc,
+                    contract // ← NYT
+                });
+            }
         }
+
 
         return res.render("customers/plans", {
             customerId,

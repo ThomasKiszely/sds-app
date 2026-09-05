@@ -1,12 +1,13 @@
 <article class="standard">
 
     <h1>Rengøringsplaner for kunde</h1>
+
     <nav class="nav-group">
-    <button
-            hx-get="/newPlan/plan?customerId=<%= customerId %>"
-            hx-target="#content">
-        Opret ny rengøringsplan
-    </button>
+        <button
+                hx-get="/newPlan/plan?customerId=<%= customerId %>"
+                hx-target="#content">
+            Opret ny rengøringsplan
+        </button>
     </nav>
 
     <% if (plans.length === 0) { %>
@@ -22,7 +23,7 @@
     <% } else { %>
 
         <table class="responsive-table customer-plans-table">
-        <thead>
+            <thead>
             <tr>
                 <th>Navn</th>
                 <th>Pris</th>
@@ -40,9 +41,11 @@
                         <small><%= plan.location.address %></small>
                     </td>
 
-
                     <td data-label="Pris">
-                        <%= plan.totalMonthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
+                        <%= plan.totalMonthlyPrice.toLocaleString("da-DK", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) %> kr
                     </td>
 
                     <td data-label="Status">
@@ -61,6 +64,36 @@
                                 hx-target="#content">
                             Se plan
                         </button>
+
+                        <!-- TILBUD -->
+                        <% if (plan.acceptedOfferId) { %>
+                            <button
+                                    hx-get="/offers/<%= plan.acceptedOfferId %>/view"
+                                    hx-target="#content">
+                                Se tilbud
+                            </button>
+                        <% } else { %>
+                            <button
+                                    hx-get="/offers/new?planId=<%= plan._id %>"
+                                    hx-target="#content">
+                                Opret tilbud
+                            </button>
+                        <% } %>
+
+                        <!-- KONTRAKT -->
+                        <% if (plan.contract) { %>
+                            <button
+                                    hx-get="/contracts/<%= plan.contract._id %>/view"
+                                    hx-target="#content">
+                                Se kontrakt
+                            </button>
+                        <% } else { %>
+                            <button
+                                    hx-get="/contracts/new?planId=<%= plan._id %>"
+                                    hx-target="#content">
+                                Opret kontrakt
+                            </button>
+                        <% } %>
 
                         <!-- DEAKTIVER / AKTIVÉR -->
                         <% if (plan.isActive) { %>
@@ -85,8 +118,8 @@
 
         <hr>
 
-
     <% } %>
+
     <nav class="nav-group">
         <button hx-get="/customers" hx-target="#content">
             Tilbage til kunder

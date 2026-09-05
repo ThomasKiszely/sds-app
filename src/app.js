@@ -2,6 +2,13 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+// Security & Utility
+const session = require('express-session');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const csrf = require('csurf');
+const { ipKeyGenerator } = require("express-rate-limit");
+
 // Routers
 const userRouter = require('./routes/userRoutes');
 const customerRouter = require('./routes/customerRoutes');
@@ -23,30 +30,62 @@ const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
 
-// Services
-const cron = require('node-cron');
-const { runInflationCatchUp } = require('./cron/inflation');
-const { connectToMongo } = require('./services/db');
-connectToMongo();
-
-// Security
-const session = require('express-session');
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const { ipKeyGenerator } = require("express-rate-limit");
-
-
-// ⭐ View engine
+// ⭐ 1. View Engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// ⭐ Railway / proxy support = 1
-app.set("trust proxy", false);
+// ⭐ 2. Proxy (Railway)
+app.set("trust proxy", 1);
 
-// ⭐ Security headers
-app.use(helmet());
+// ⭐ 3. Helmet Security Headers (Tidligt i chain)
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            useDefaults: true,
+            directives: {
+                "script-src": ["'self'"],
+                "style-src": ["'self'", "'unsafe-inline'"],
+                "img-src": ["'self'", "data:"],
+                "connect-src": ["'self'"],
+            }
+        }
+    })
+);
 
-// ⭐ Rate limiting
+// ⭐ 4. Statiske filer (Før Session & CSRF for bedre performance)
+app.use(express.static(path.join(__dirname, '../public'), { extensions: ['html'] }));
+
+// ⭐ 5. Body parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ⭐ 6. Session
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        rolling: true,
+        cookie: {
+            httpOnly: true,
+            secure: false, // Railway håndterer HTTPS foran
+            sameSite: 'lax',
+            maxAge: 1000 * 60 * 60 * 24 * 7
+        }
+    })
+);
+
+// ⭐ 7. CSRF (Kræver session)
+app.use(csrf());
+
+// ⭐ 8. Global data til views
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    res.locals.user = req.session ? req.session.user : null;
+    next();
+});
+
+// ⭐ 9. Rate limiting
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 300,
@@ -54,7 +93,6 @@ const globalLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: ipKeyGenerator
 });
-
 app.use(globalLimiter);
 
 const acceptLimiter = rateLimit({
@@ -65,7 +103,6 @@ const acceptLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: ipKeyGenerator
 });
-
 app.use("/offers/:id/accept", acceptLimiter);
 
 const loginLimiter = rateLimit({
@@ -76,37 +113,15 @@ const loginLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: ipKeyGenerator
 });
-
 app.use("/users/login", loginLimiter);
 
-// ⭐ Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ⭐ Logger
+// ⭐ 10. Logger
 app.use(log);
 
-// ⭐ Static files
-app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
-
-// ⭐ Session
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    rolling: true,
-    cookie: {
-        httpOnly: true,
-        secure: false, // Railway håndterer HTTPS
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 60 * 24 * 7
-    }
-}));
-
-// ⭐ Global middleware
+// ⭐ 11. Custom Middleware
 app.use(mustChangePassword);
 
-// ⭐ Routes
+// ⭐ 12. Routes
 app.use('/', viewRouter);
 app.use('/newPlan', newPlanRouter);
 app.use('/offers', offerRouter);
@@ -122,7 +137,7 @@ app.use('/contracts', requireLogin, contractRouter);
 
 app.use('/users', userRouter);
 
-// ⭐ Error handling
+// ⭐ 13. Error Handling
 app.use(notFound);
 app.use(errorHandler);
 
