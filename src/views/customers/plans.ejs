@@ -66,9 +66,9 @@
                         </button>
 
                         <!-- TILBUD -->
-                        <% if (plan.acceptedOfferId) { %>
+                        <% if (plan.offerId) { %>
                             <button
-                                    hx-get="/offers/<%= plan.acceptedOfferId %>/view"
+                                    hx-get="/offers/<%= plan.offerId %>/view"
                                     hx-target="#content">
                                 Se tilbud
                             </button>
@@ -80,16 +80,17 @@
                             </button>
                         <% } %>
 
+
                         <!-- KONTRAKT -->
                         <% if (plan.contract) { %>
                             <button
-                                    hx-get="/contracts/<%= plan.contract._id %>/view"
+                                    hx-get="/contracts/<%= plan._id %>/list"
                                     hx-target="#content">
                                 Se kontrakt
                             </button>
                         <% } else { %>
                             <button
-                                    hx-get="/contracts/new?planId=<%= plan._id %>"
+                                    hx-post="/contracts/<%= plan._id %>/generate"
                                     hx-target="#content">
                                 Opret kontrakt
                             </button>

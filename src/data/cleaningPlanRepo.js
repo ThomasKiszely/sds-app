@@ -17,7 +17,6 @@ async function findByCustomerId(customerId) {
 }
 
 
-
 async function findAllActive() {
     return CleaningPlan.find({ isActive: true }).sort({ createdAt: -1 });
 }

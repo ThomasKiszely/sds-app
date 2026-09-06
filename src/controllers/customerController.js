@@ -199,7 +199,7 @@ async function customerPlans(req, res, next) {
             const locPlans = await cleaningPlanService.getPlansForLocation(loc._id);
 
             for (const p of locPlans) {
-                const contract = await contractService.listContractsForPlan(p._id); // ← NYT
+                const contract = await contractService.findByPlanId(p._id);
 
                 plans.push({
                     ...p.toObject(),

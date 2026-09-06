@@ -57,7 +57,7 @@ const cleaningPlanSchema = new mongoose.Schema({
     },
 
     // ⭐ Tilbud der er accepteret
-    acceptedOfferId: {
+    offerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Offer",
         default: null

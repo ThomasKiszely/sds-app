@@ -4,12 +4,22 @@ const pdfService = require("../services/pdfService");
 const customerService = require("../services/customerService");
 const contractService = require("../services/contractService");
 const { parseAddress } = require("../utils/addressUtil");
+const { makePdfFilename } = require("../utils/pdfFilenameUtil");
 
 
 async function pdfOffer(req, res, next) {
     try {
-        const offer = await offerService.getOfferById(req.params.id);
+        const offerId = req.params.id;
+
+        // ⭐ Hent tilbud
+        let offer = await offerService.getOfferById(offerId);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
+
+        // ⭐ Hvis tilbuddet stadig er draft → markér som sendt
+        if (offer.status === "draft") {
+            await offerService.sendOffer(offerId);
+            offer = await offerService.getOfferById(offerId); // hent igen med opdateret status
+        }
 
         // ⭐ PDF token check
         if (!offer.signatureToken || !offer.signatureTokenExpiresAt) {
@@ -20,9 +30,7 @@ async function pdfOffer(req, res, next) {
             return res.status(410).send("Acceptlinket er udløbet");
         }
 
-
         const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
-
         const customer = await customerService.getCustomerById(offer.customerId);
         const { street, zip, city } = parseAddress(customer.customerAddress);
 
@@ -37,8 +45,11 @@ async function pdfOffer(req, res, next) {
             signatureLink
         );
 
+        // ⭐ Dynamisk SDS-filnavn
+        const filename = makePdfFilename("tilbud", customer.customerName);
+
         res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", "attachment; filename=tilbud.pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
         res.send(pdfBuffer);
 
     } catch (err) {

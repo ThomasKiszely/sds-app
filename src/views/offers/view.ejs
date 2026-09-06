@@ -2,6 +2,30 @@
 
     <!-- ⭐ HEADER -->
     <header>
+
+        <!-- ⭐ STATUS (kun i HTML, ikke i PDF) -->
+        <% if (offer.status === "accepted") { %>
+            <p style="padding: 0.5rem; background: #e6ffe6; border-left: 4px solid #33aa33;">
+                <strong>Tilbud accepteret</strong><br>
+                Accepteret af: <%= offer.acceptedByName %> (<%= offer.acceptedByEmail %>)<br>
+                Dato: <%= offer.acceptedAt.toLocaleDateString("da-DK") %>
+            </p>
+
+        <% } else if (offer.status === "sent") { %>
+            <p style="padding: 0.5rem; background: #e6f3ff; border-left: 4px solid #3399ff;">
+                <strong>Tilbud sendt</strong><br>
+                Sendt: <%= offer.updatedAt.toLocaleDateString("da-DK") %>
+            </p>
+
+        <% } else { %>
+            <p style="padding: 0.5rem; background: #fff4e6; border-left: 4px solid #ff9900;">
+                <strong>Tilbud oprettet</strong><br>
+                Dette tilbud er endnu ikke sendt til kunden.
+            </p>
+        <% } %>
+
+
+
         <h2>SDS Rengøring – Tilbud</h2>
 
         <!-- ⭐ Kundeoplysninger -->

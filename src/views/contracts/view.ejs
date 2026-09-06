@@ -1,0 +1,72 @@
+<article class="standard contract-view">
+
+    <h1>Rengøringskontrakt</h1>
+
+    <section>
+        <h2>Kontraktens parter</h2>
+
+        <p><strong>Leverandør:</strong><br>
+            Service Division Sjælland<br>
+            Maglemølle 25<br>
+            4700 Næstved<br>
+            Tlf.: 72 41 10 01
+        </p>
+
+        <p><strong>Kunde:</strong><br>
+            <%= contract.snapshot.customer.name %><br>
+            <%= contract.snapshot.customer.address %><br>
+            <%= contract.snapshot.customer.zip %> <%= contract.snapshot.customer.city %><br>
+            <%= contract.snapshot.customer.email %>
+        </p>
+    </section>
+
+    <section>
+        <h2>Rengøringsadresse</h2>
+        <p><%= contract.snapshot.customer.address %></p>
+    </section>
+
+    <section>
+        <h2>Rengøringen</h2>
+        <p>Rengøring udføres jf. rengøringsvejledning.</p>
+
+        <p>
+            <strong>Pris pr. uge:</strong>
+            <%= contract.snapshot.plan.totalMonthlyPrice %> kr. + miljøomkostninger
+        </p>
+    </section>
+
+    <section>
+        <h2>Særlige bestemmelser</h2>
+
+        <p>Alle priser tillægges gældende moms (25%).</p>
+
+        <p><strong>Betalingsbetingelser:</strong> <%= paymentTermLabels[contract.paymentTerms] %></p>
+
+        <p>
+            <strong>Ad hoc‑opgaver:</strong>
+            Faktureres med <%= contract.snapshot.plan.hourlyRate %> kr. pr. time ekskl. moms.
+        </p>
+
+        <p>Kontrakten kan opsiges med <%= contract.snapshot.plan.terminationNoticeLabel %> varsel.</p>
+    </section>
+
+
+    <section>
+        <h2>Aftalens ikrafttræden</h2>
+        <% if (contract.snapshot.acceptedAt) { %>
+            <p><strong>Accepteret af:</strong> <%= contract.snapshot.acceptedByName %> (<%= contract.snapshot.acceptedByEmail %>)</p>
+            <p><strong>Dato:</strong> <%= contract.snapshot.acceptedAt.toLocaleDateString("da-DK") %></p>
+        <% } else { %>
+            <p>Kontrakten er genereret, men tilbuddet er ikke accepteret.</p>
+        <% } %>
+    </section>
+
+    <hr>
+
+    <p>
+        <a href="/contracts/<%= contract._id %>/pdf" class="button-link" target="_blank" hx-boost="false">
+            Download PDF
+        </a>
+    </p>
+
+</article>

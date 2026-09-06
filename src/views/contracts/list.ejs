@@ -11,7 +11,7 @@
     <table class="standard-table">
         <thead>
         <tr>
-            <th>ID</th>
+            <th>Se kontrakt</th>
             <th>Dato</th>
             <th>Genereret af</th>
             <th>Status</th>
@@ -19,10 +19,17 @@
         </tr>
         </thead>
 
-        <tbody>
+        <tbody
         <% contracts.forEach(contract => { %>
             <tr>
-                <td><%= contract._id %></td>
+                <td>
+                    <button
+                            hx-get="/contracts/<%= contract._id %>/view"
+                            hx-target="#content">
+                        Se kontrakt
+                    </button>
+                </td>
+
                 <td><%= contract.generatedAt.toLocaleDateString("da-DK") %></td>
                 <td><%= contract.generatedBy %></td>
                 <td>

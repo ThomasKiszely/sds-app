@@ -1,6 +1,8 @@
 const contractService = require("../services/contractService");
 const cleaningPlanRepo = require("../data/cleaningPlanRepo");
 const customerService = require("../services/customerService");
+const { paymentTermLabels } = require("../utils/paymentTerms");
+const { makePdfFilename } = require("../utils/pdfFilenameUtil");
 
 // Generér kontrakt
 async function generateContract(req, res, next) {
@@ -35,15 +37,23 @@ async function downloadContractPdf(req, res, next) {
         const contractId = req.params.id;
 
         const pdfBuffer = await contractService.getContractPdf(contractId);
+        const contract = await contractService.getContractById(contractId);
+
+        // ⭐ Dynamisk SDS-filnavn
+        const filename = makePdfFilename(
+            "kontrakt",
+            contract.snapshot.customer.name
+        );
 
         res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", "attachment; filename=kontrakt.pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
         return res.send(pdfBuffer);
 
     } catch (err) {
         next(err);
     }
 }
+
 
 async function listContractsForPlan(req, res, next) {
     try {
@@ -80,9 +90,22 @@ async function listContractsForCustomer(req, res, next) {
     }
 }
 
+async function viewContract(req, res, next) {
+    try {
+        const contract = await contractService.getContractById(req.params.id);
+        if (!contract) return res.status(404).send("Kontrakt ikke fundet");
+
+        return res.render("contracts/view", { contract, paymentTermLabels });
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 module.exports = {
     generateContract,
     listContractsForPlan,
     listContractsForCustomer,
-    downloadContractPdf
+    downloadContractPdf,
+    viewContract
 };

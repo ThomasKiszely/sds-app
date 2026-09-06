@@ -109,6 +109,10 @@ async function createOffer(planId, { discountPercent = 0, environmentalFeePercen
         terminationNotice: terminationNotice || terminationNoticeEnum.month3,
     });
 
+    await cleaningPlanRepo.updateById(planId, {
+        offerId: offer._id
+    });
+
     return offer;
 }
 
@@ -116,8 +120,8 @@ async function sendOffer(offerId) {
     const offer = await offerRepo.findById(offerId);
     if (!offer) throw userError("Tilbud findes ikke");
 
-    if (offer.status !== "draft") {
-        throw userError("Dette tilbud er allerede sendt");
+    if (offer.status === "draft") {
+        await offerService.sendOffer(offerId);
     }
 
     offer.status = "sent";
@@ -144,7 +148,6 @@ async function acceptOffer(offerId, { name, email }) {
     await offerRepo.update(offerId, offer);
 
     await cleaningPlanRepo.updateById(offer.planId, {
-        acceptedOfferId: offerId,
         acceptedAt: offer.acceptedAt,
         acceptedByName: name,
         acceptedByEmail: email

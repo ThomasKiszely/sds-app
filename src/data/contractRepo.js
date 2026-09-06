@@ -16,6 +16,12 @@ async function findByPlanId(planId) {
     return Contract.find({ planId }).sort({ generatedAt: -1 });
 }
 
+async function findOneByPlanId(planId) {
+    return Contract.findOne({ planId }).sort({ generatedAt: -1 });
+}
+
+
+
 async function deactivateContractsForPlan(planId) {
     return Contract.updateMany(
         { planId },
@@ -28,5 +34,6 @@ module.exports = {
     findById,
     findByCustomerId,
     findByPlanId,
-    deactivateContractsForPlan
+    deactivateContractsForPlan,
+    findOneByPlanId
 };

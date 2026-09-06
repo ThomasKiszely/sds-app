@@ -110,7 +110,10 @@
     <p>Alle priser tillægges gældende moms (25%).</p>
     <p><strong>Betalingsbetingelser:</strong> <%= paymentTermLabels[paymentTerms] %></p>
     <p>Der udføres ikke rengøring på danske helligdage. Kunden kan aftale erstatningsrengøring.</p>
-    <p>Ad hoc-opgaver faktureres med 325 kr. pr. time ekskl. moms.</p>
+    <p>
+        Ad hoc‑opgaver faktureres med
+        <%= snapshot.plan.hourlyRate %> kr. pr. time ekskl. moms.
+    </p>
     <p>Prisen reguleres årligt efter nettoprisindekset.</p>
     <p>Kontrakten kan opsiges af begge parter med <%= snapshot.plan.terminationNoticeLabel %> varsel.</p>
 </div>

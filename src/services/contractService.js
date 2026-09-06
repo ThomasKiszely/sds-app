@@ -9,35 +9,35 @@ const {paymentTerms, paymentTermLabels} = require("../utils/paymentTerms");
 // -----------------------------------------------------
 // GENERATE CONTRACT (snapshot + DB record)
 // -----------------------------------------------------
-async function generateContract({ planId, offerId = null, generatedBy = "system" }) {
+async function generateContract({ planId, generatedBy = "system" }) {
 
-    // Hent plan
     const plan = await cleaningPlanRepo.findById(planId);
     if (!plan) throw new Error("Plan findes ikke");
 
-    // Hent kunde
+    if (!plan.offerId) {
+        throw new Error("Planen har ikke et tilbud – kan ikke oprette kontrakt");
+    }
+
+    const offerId = plan.offerId;
+
+    const offer = await offerService.getOfferById(offerId);
+    if (!offer) throw new Error("Tilbud findes ikke");
+
     const customer = await customerService.getCustomerById(plan.customerId);
     if (!customer) throw new Error("Kunde findes ikke");
 
     const { street, zip, city } = parseAddress(customer.customerAddress);
 
-    // Hent offer (hvis der er et)
-    let offer = null;
-    if (offerId) {
-        offer = await offerService.getOfferById(offerId);
-    }
-
-    // Lav snapshot af plan (frossen kontrakt)
     const snapshot = {
         plan: {
             name: plan.name,
             description: plan.description,
             hourlyRate: plan.hourlyRate,
             indexRegulationPercent: plan.indexRegulationPercent,
-            paymentTerms: plan.paymentTerms,
+            paymentTerms: offer.paymentTerms,
             totalMonthlyPrice: plan.totalMonthlyPrice,
-            terminationNotice: offer?.snapshot?.plan?.terminationNotice || null,
-            terminationNoticeLabel: offer?.snapshot?.plan?.terminationNoticeLabel || null,
+            terminationNotice: offer.terminationNotice,
+            terminationNoticeLabel: offer.snapshot.plan.terminationNoticeLabel,
         },
         customer: {
             name: customer.customerName,
@@ -48,28 +48,27 @@ async function generateContract({ planId, offerId = null, generatedBy = "system"
             city
         },
         offerId,
-        acceptedAt: offer?.acceptedAt || null,
-        acceptedByName: offer?.acceptedByName || null,
-        acceptedByEmail: offer?.acceptedByEmail || null
+        acceptedAt: offer.acceptedAt || null,
+        acceptedByName: offer.acceptedByName || null,
+        acceptedByEmail: offer.acceptedByEmail || null
     };
 
-    // Deaktiver gamle kontrakter for denne plan
     await contractRepo.deactivateContractsForPlan(planId);
 
-    // Gem kontrakt i DB (snapshot gemmes)
     const contract = await contractRepo.create({
         customerId: plan.customerId,
         planId,
         offerId,
         generatedBy,
         snapshot,
-        paymentTerms: offer?.paymentTerms,
-        terminationNotice: offer?.terminationNotice,
+        paymentTerms: offer.paymentTerms,
+        terminationNotice: offer.terminationNotice,
         isActive: true
     });
 
     return contract;
 }
+
 
 // -----------------------------------------------------
 // GENERATE PDF (on-the-fly)
@@ -91,16 +90,26 @@ async function getContractPdf(contractId) {
 // LIST CONTRACTS
 // -----------------------------------------------------
 async function listContractsForPlan(planId) {
-    return contractRepo.findByPlanId(planId);
+        return contractRepo.findByPlanId(planId);
 }
 
 async function listContractsForCustomer(customerId) {
     return contractRepo.findByCustomerId(customerId);
 }
 
+async function findByPlanId(planId) {
+    return contractRepo.findOneByPlanId(planId);
+}
+
+async function getContractById(contractId) {
+    return contractRepo.findById(contractId);
+}
+
 module.exports = {
     generateContract,
     getContractPdf,
     listContractsForPlan,
-    listContractsForCustomer
+    listContractsForCustomer,
+    findByPlanId,
+    getContractById
 };
