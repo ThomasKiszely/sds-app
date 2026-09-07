@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function connectToMongo() {
     try {
-        await mongoose.connect(process.env.DB_URL, {
+        await mongoose.connect(process.env.MONGO_URI, {
             serverSelectionTimeoutMS: 5000, // fail hurtigt hvis DB ikke svarer
         });
 
