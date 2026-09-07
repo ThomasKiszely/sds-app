@@ -5,71 +5,84 @@
     <section class="offer-summary">
 
         <h3>Samlet månedlig pris</h3>
-        <p class="plan-total"><strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong></p>
+        <p class="plan-total">
+            <strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong>
+        </p>
 
         <hr>
 
         <%
-        const roomTasks = tasks.filter(t => t.roomName && t.roomName.trim() !== "" && t.monthlyPrice > 0);
-        const noRoomTasks = tasks.filter(t => (!t.roomName || t.roomName.trim() === "") && t.monthlyPrice > 0);
-        const adHocTasks = tasks.filter(t => t.monthlyPrice === 0 && t.customPrice != null && t.category !== categoryTypes.consumables);
+        // ⭐ FAST MÅNEDLIG PRIS
+        const monthlyTasks = tasks.filter(t => t.monthlyPrice > 0);
+
+        // ⭐ PRIS PR GANG
+        const perTimeTasks = tasks.filter(t =>
+                t.monthlyPrice === 0 &&
+                t.category !== categoryTypes.consumables
+        );
+
+        // ⭐ FORBRUGSVARER
         const consumables = tasks.filter(t => t.category === categoryTypes.consumables);
+
+        // ⭐ SDS grupperet pr rum
+        const rooms = {};
+        monthlyTasks.forEach(t => {
+            if (t.roomName && t.roomName.trim() !== "") {
+                if (!rooms[t.roomName]) rooms[t.roomName] = [];
+                rooms[t.roomName].push(t);
+            }
+        });
         %>
 
-        <% if (roomTasks.length > 0) { %>
+        <!-- ⭐ FAST MÅNEDLIG PRIS – SDS pr rum -->
+        <% if (Object.keys(rooms).length > 0) { %>
             <section>
-                <h3>Rum</h3>
+                <h3>Fast månedlig pris – SDS</h3>
 
-                <%
-                    const rooms = {};
-                    roomTasks.forEach(t => {
-                        if (!rooms[t.roomName]) rooms[t.roomName] = [];
-                        rooms[t.roomName].push(t);
-                    });
-                %>
+                <% Object.keys(rooms).forEach(room => { %>
+                    <h4><%= room %> (<%= grouped[room]?.programCode %>)</h4>
 
-                <% Object.keys(rooms).forEach(room => {
-                    const tasksInRoom = rooms[room];
-                    const programCode = grouped[room]?.programCode || "";
-                %>
+                    <ul>
+                        <% rooms[room].forEach(t => { %>
+                            <li>
+                                <strong><%= t.name %></strong>
 
-                <h4><%= room %> (<%= programCode %>)</h4>
+                                <div>
+                                    <% (t.days || []).forEach(d => { %>
+                                        <%= daysLabels[d] %>
+                                    <% }) %>
+                                    – <%= frequencyLabels[t.frequency] %>
+                                </div>
 
-                <ul>
-                    <% tasksInRoom.forEach(t => { %>
-                        <li>
-                            <strong><%= t.name %></strong>
+                                <div>
+                                    <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
+                                </div>
 
-                            <div>
-                                <% (t.days || []).forEach(d => { %>
-                                    <%= daysLabels[d] %>
-                                <% }) %>
-                                – <%= frequencyLabels[t.frequency] %>
-                            </div>
+                                <% if (t.description && t.description.trim().length > 0) { %>
+                                    <div><em><%= t.description %></em></div>
+                                <% } %>
+                            </li>
+                        <% }) %>
+                    </ul>
 
-                            <div>
-                                <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
-                            </div>
-
-                            <% if (t.description && t.description.trim().length > 0) { %>
-                                <div><em><%= t.description %></em></div>
-                            <% } %>
-                        </li>
-                    <% }) %>
-                </ul>
-
+                    <hr>
                 <% }) %>
             </section>
-
-            <hr>
         <% } %>
 
-        <% if (noRoomTasks.length > 0) { %>
+        <!-- ⭐ FAST MÅNEDLIG PRIS – opgaver uden rum -->
+        <%
+        const monthlyNoRoom = monthlyTasks.filter(t =>
+                !t.roomName || t.roomName.trim() === ""
+        );
+        %>
+
+        <% if (monthlyNoRoom.length > 0) { %>
             <section>
-                <h3>Opgaver uden rum</h3>
+                <h3>Fast månedlig pris – øvrige opgaver</h3>
 
                 <ul>
-                    <% noRoomTasks.forEach(t => { %>
+                    <% monthlyNoRoom.forEach(t => { %>
                         <li>
                             <strong><%= t.name %></strong>
                             – <%= frequencyLabels[t.frequency] %>
@@ -81,32 +94,48 @@
                         </li>
                     <% }) %>
                 </ul>
-            </section>
 
-            <hr>
+                <hr>
+            </section>
         <% } %>
 
-        <% if (adHocTasks.length > 0) { %>
+        <!-- ⭐ PRIS PR GANG -->
+        <% if (perTimeTasks.length > 0) { %>
             <section>
-                <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
+                <h3>Pris pr gang – Vinduer / Efter aftale / Ad hoc / Ekstra</h3>
 
                 <ul>
-                    <% adHocTasks.forEach(t => { %>
+                    <% perTimeTasks.forEach(t => { %>
+
+                        <%
+                            const price =
+                                    t.totalPrice != null
+                                            ? Number(t.totalPrice)
+                                            : t.pricePerTime != null && t.pricePerTime > 0
+                                                    ? Number(t.pricePerTime)
+                                                    : t.customPrice != null
+                                                            ? Number(t.customPrice)
+                                                            : 0;
+                        %>
+
                         <li>
                             <strong><%= t.name %></strong>
-                            – <strong><%= t.customPrice %> kr pr gang</strong>
+                            – <%= frequencyLabels[t.frequency] %>
+                            – <strong><%= price.toFixed(2) %> kr pr gang</strong>
 
                             <% if (t.description && t.description.trim().length > 0) { %>
                                 <div><em><%= t.description %></em></div>
                             <% } %>
                         </li>
+
                     <% }) %>
                 </ul>
-            </section>
 
-            <hr>
+                <hr>
+            </section>
         <% } %>
 
+        <!-- ⭐ FORBRUGSVARER -->
         <% if (consumables.length > 0) { %>
             <section>
                 <h3>Tilkøb – Forbrugsvarer</h3>
@@ -115,7 +144,7 @@
                     <% consumables.forEach(c => { %>
                         <li>
                             <strong><%= c.name %></strong>
-                            – <%= c.customPrice %> kr pr stk
+                            – <%= (c.customPrice ?? 0).toFixed(2) %> kr pr stk
                             – <%= c.quantity %> stk
 
                             <% if (c.description && c.description.trim().length > 0) { %>
@@ -126,11 +155,12 @@
                 </ul>
 
                 <p><em>Faktureres efter forbrug</em></p>
-            </section>
 
-            <hr>
+                <hr>
+            </section>
         <% } %>
 
+        <!-- ⭐ Totalpris -->
         <div class="offer-total-box" style="margin-top:1rem;">
             <h3>Månedlig pris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
@@ -142,21 +172,16 @@
 
     <hr>
 
-    <!-- FORM – alt i samme form, så det sendes med -->
+    <!-- ⭐ FORM -->
     <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
-
         <input type="hidden" name="planId" value="<%= planId %>">
 
-        <button class="button"
-                type="button"
-                onclick="document.getElementById('advanced').classList.toggle('hidden')">
-            Avanceret
-        </button>
+        <button class="button" type="button" id="toggleAdvancedBtn">Avanceret</button>
 
         <div id="advanced" class="hidden" style="margin-top: 1rem;">
-
-            <label>Drift- og miljøtillæg (%)</label>
-            <input type="number"
+            <label for="environmentalFee">Drift- og miljøtillæg (%)</label>
+            <input id="environmentalFee"
+                   type="number"
                    name="environmentalFee"
                    value="<%= environmentalFee || 0 %>"
                    hx-post="/newPlan/offer/preview"
@@ -164,8 +189,9 @@
                    hx-target="#offerTotal"
                    hx-swap="innerHTML">
 
-            <label>Rabat (%)</label>
-            <input type="number"
+            <label for="discountPercent">Rabat (%)</label>
+            <input id="discountPercent"
+                   type="number"
                    name="discountPercent"
                    value="<%= discountPercent || 0 %>"
                    hx-post="/newPlan/offer/preview"
@@ -174,13 +200,13 @@
                    hx-swap="innerHTML">
         </div>
 
-        <label>Betalingsbetingelser</label>
-        <select name="paymentTerms"
+        <label for="paymentTerms">Betalingsbetingelser</label>
+        <select id="paymentTerms"
+                name="paymentTerms"
                 hx-post="/newPlan/offer/preview"
                 hx-trigger="change"
                 hx-target="#offerTotal"
                 hx-swap="innerHTML">
-
             <% Object.keys(paymentTermLabels).forEach(key => { %>
                 <option value="<%= key %>"
                         <%= (currentPaymentTerms === key ? "selected" : "") %>>
@@ -190,17 +216,17 @@
         </select>
 
         <label for="terminationNotice">Opsigelsesfrist</label>
-        <select name="terminationNotice" id="terminationNotice">
+        <select id="terminationNotice"
+                name="terminationNotice">
             <% Object.keys(terminationNoticeLabels).forEach(key => { %>
-                <option value="<%= key %>" <%= (terminationNotice === key ? "selected" : "") %>>
+                <option value="<%= key %>"
+                        <%= (terminationNotice === key ? "selected" : "") %>>
                     <%= terminationNoticeLabels[key] %>
                 </option>
             <% }) %>
         </select>
 
-        <button type="submit" class="button" style="margin-top: 1rem;">
-            Generér tilbud
-        </button>
+        <button type="submit" class="button" style="margin-top: 1rem;">Generér tilbud</button>
 
         <button class="button-secondary"
                 type="button"
@@ -208,14 +234,6 @@
                 hx-target="#content">
             Tilbage til opgaver
         </button>
-
-
     </form>
 
 </article>
-
-<style>
-    .hidden {
-        display: none;
-    }
-</style>

@@ -24,8 +24,8 @@ async function step1_customer(req, res) {
 }
 
 async function customerList(req, res) {
-    const result = await customerService.listCustomers();
-    res.render("newPlan/partials/customerList", { customers: result.customers });
+    const customers = await customerService.getActiveCustomers();
+    res.render("newPlan/partials/customerList", { customers });
 }
 
 
@@ -591,7 +591,7 @@ async function tasks_create(req, res) {
         templateId: template._id,
         name: template.name,
         description: template.description,
-        category: template.category,
+        category: template.category, // ⭐ SKAL med her
         unit: template.unit,
         durationPerUnit: template.durationPerUnit,
         frequency: template.frequency,
@@ -619,36 +619,52 @@ async function tasks_create(req, res) {
     });
 }
 
-
 async function tasks_save(req, res) {
-    const task = await newPlanService.addTaskFromTemplate(
-        req.body.planId,
-        req.body.templateId,
-        req.body   // ⭐ nu bliver brugerens data brugt
-    );
+    try {
+        await newPlanService.addTaskFromTemplate(
+            req.body.planId,
+            req.body.templateId,
+            req.body
+        );
 
-    const vm = await newPlanService.listTasks(req.body.planId);
-    const grouped = groupSdsTasksByRoom(vm.tasks);
+        // ⭐ Send en HTMX redirect signal til klienten om at genindlæse listen
+        const vm = await newPlanService.listTasks(req.body.planId);
+        const grouped = groupSdsTasksByRoom(vm.tasks);
 
-    return res.render("newPlan/partials/tasks/taskList", {
-        ...vm,
-        grouped,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        frequencyMultipliers
-    });
+        return res.render("newPlan/partials/tasks/taskList", {
+            ...vm,
+            grouped,
+            units,
+            unitsLabels,
+            categoryLabels,
+            categoryTypes,
+            daysLabels,
+            frequencyLabels,
+            frequencyMultipliers
+        });
+    } catch (error) {
+        console.error("Save Task Error:", error);
+        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message || "Fejl ved gem" }));
+        return res.status(500).end();
+    }
 }
 
+
 async function tasks_previewNew(req, res) {
-   try {
+    try {
         const price = await newPlanService.previewNewTaskPrice(req.body);
-        return res.send(`${price} kr.`);
+
+        // ⭐ HTMX forventer formateret pris
+        if (req.body.category === categoryTypes.consumables) {
+            return res.send(`${price.toFixed(2)} kr pr stk`);
+        } else if (price > 0) {
+            return res.send(`${price.toFixed(2)} kr./måned`);
+        } else {
+            return res.send("0.00 kr.");
+        }
     } catch (error) {
-        return res.send("Fejl");
+        console.error("Preview fejl:", error);
+        return res.send("0.00 kr.");
     }
 }
 

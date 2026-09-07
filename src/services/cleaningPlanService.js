@@ -3,6 +3,8 @@ const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const { ensureExists, userError } = require("../utils/userError");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 const { categoryTypes } = require('../utils/categoryEnum');
+const { getTaskTotalPrice } = require('../utils/taskTotalUtil');
+const { frequencies } = require('../utils/frequencyEnum');
 
 // ------------------------------------------------------------
 // GENBEREGN TOTALPRIS FOR PLAN
@@ -17,12 +19,29 @@ async function recalculatePlanTotal(planId) {
     let subtotal = 0;
 
     for (const t of tasks) {
-        if (t.category === categoryTypes.consumables) continue;  // IGNORÉR FORBRUGSVARER
 
-        const { monthlyPrice } = calculateTaskMonthlyPrice(t, hourlyRate);
-        subtotal += monthlyPrice;
+        // IGNORÉR forbrugsvarer
+        if (t.category === categoryTypes.consumables) continue;
+
+        // IGNORÉR opgaver uden månedlig frekvens
+        if (
+            t.frequency === frequencies.none ||
+            t.frequency === frequencies.adHoc ||
+            t.frequency === frequencies.windows ||
+            t.frequency === frequencies.efterAftale
+        ) {
+            console.log(`Opgave ${t.name} ignoreres i totalberegning, da den ikke har månedlig frekvens.`);
+            continue;
+        }
+
+        // Beregn priser igen
+        const prices = calculateTaskMonthlyPrice(t, hourlyRate);
+
+        // KUN månedlige opgaver skal med
+        if (prices.monthlyPrice > 0) {
+            subtotal += prices.monthlyPrice;
+        }
     }
-
 
     // Rabat
     const discountPercent = plan.discountPercent || 0;
@@ -30,7 +49,7 @@ async function recalculatePlanTotal(planId) {
     const afterDiscount = subtotal - discountAmount;
 
     // Miljøtillæg
-    const environmentalFeePercent = plan.environmentalFeePercent || 4;
+    const environmentalFeePercent = plan.environmentalFeePercent || 0;
     const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
 
     // Total pr måned
@@ -43,7 +62,6 @@ async function recalculatePlanTotal(planId) {
         totalMonthlyPrice
     });
 }
-
 
 // ------------------------------------------------------------
 // OPRET PLAN

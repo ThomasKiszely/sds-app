@@ -81,7 +81,9 @@ async function listCustomers({ filter, search, sort, page, pageSize }) {
 }
 
 
-
+async function getActiveCustomers() {
+    return Customer.find({ isDeleted: false });
+}
 
 
 async function findByCustomerNumber(customerNumber) {
@@ -95,4 +97,5 @@ module.exports = {
     softDeleteCustomer,
     listCustomers,
     findByCustomerNumber,
+    getActiveCustomers
 };

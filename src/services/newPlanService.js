@@ -13,7 +13,7 @@ const { units } = require("../utils/unitEnum");
 const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
 const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
 const { paymentTerms } = require("../utils/paymentTerms");
-
+const { getTaskTotalPrice } = require("../utils/taskTotalUtil");
 
 
 // ------------------------------------------------------------
@@ -68,31 +68,39 @@ async function addTaskFromTemplate(planId, templateId, body) {
         category: template.category,
         unit: template.unit,
 
-        // ⭐ Varighed
         durationPerUnit: Number(body.durationPerUnit ?? template.durationPerUnit ?? 0),
-
-        // ⭐ Frekvens
         frequency: body.frequency ?? template.frequency ?? null,
 
-        // ⭐ Dage
         days: (() => {
             if (body.days === undefined) return template.days ?? [];
             if (Array.isArray(body.days)) return body.days;
             return [body.days];
         })(),
 
-        // ⭐ Mængder
         amount: Number(body.amount ?? template.amount ?? 0),
         quantity: Number(body.quantity ?? template.quantity ?? 1),
 
-        // ⭐ Rum
         roomName: body.roomName ?? template.roomName ?? "",
-
-        // ⭐ Pris
         customPrice: Number(body.customPrice ?? template.customPrice ?? 0),
     };
 
-    return await cleaningTaskService.createCleaningTask(planId, merged);
+    // ⭐ Hent hourlyRate
+    const plan = await cleaningPlanService.findCleaningPlanById(planId);
+    const hourlyRate = plan.hourlyRate;
+
+    // ⭐ Beregn pris (DIN egen prisfunktion)
+    const prices = calculateTaskMonthlyPrice(merged, hourlyRate);
+
+    // ⭐ Merge pris ind i task
+    const pricedTask = { ...merged, ...prices };
+
+    // ⭐ Gem task
+    const task = await cleaningTaskService.createCleaningTask(planId, pricedTask);
+
+    // ⭐ Opdater plan total
+    await cleaningPlanService.recalculatePlanTotal(planId);
+
+    return task;
 }
 
 
@@ -121,8 +129,11 @@ async function updateTask(taskId, body) {
         return { ...plain, ...prices };
     });
 
+    // ⭐ Brug monthlyPrice ELLER pricePerTime
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
+        return sum + getTaskTotalPrice(t);
+    }, 0);
 
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
     const yearlyTotal = monthlyTotal * 12;
 
     return {
@@ -132,7 +143,6 @@ async function updateTask(taskId, body) {
         yearlyTotal
     };
 }
-
 
 // ------------------------------------------------------------
 // 5. PREVIEW TASK PRICE
@@ -174,43 +184,63 @@ async function previewTaskPrice(taskId, body) {
 
 
 async function previewNewTaskPrice(body) {
-    const template = await cleaningTaskTemplateService.findTemplateById(body.templateId);
+    if (!body.planId) return 0;
+
     const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(body.planId);
 
+    // Hent skabelonen hvis templateId er sendt med
+    let template = {};
+    if (body.templateId) {
+        try {
+            template = await cleaningTaskTemplateService.findTemplateById(body.templateId) || {};
+        } catch (e) {
+            template = {};
+        }
+    }
+
+    const customPriceNum =
+        body.customPrice !== "" &&
+        body.customPrice !== undefined &&
+        body.customPrice !== null
+            ? Number(body.customPrice)
+            : null;
+
     const tempTask = {
-        ...template.toObject(),
-
+        category: template.category || body.category,
+        unit: body.unit || template.unit || "stk",
         durationPerUnit: Number(body.durationPerUnit ?? template.durationPerUnit ?? 0),
-        frequency: body.frequency ?? template.frequency ?? null,
-
+        frequency: body.frequency || template.frequency || null,
         days: (() => {
             if (!body.days) return template.days ?? [];
             if (Array.isArray(body.days)) return body.days;
             return [body.days];
         })(),
-
         amount: Number(body.amount ?? template.amount ?? 0),
         quantity: Number(body.quantity ?? template.quantity ?? 1),
-
-        customPrice: Number(body.customPrice ?? template.customPrice ?? 0),
+        customPrice: customPriceNum
     };
 
-    const { monthlyPrice } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
+    const { monthlyPrice, pricePerTime } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
 
-    // ⭐ Hvis opgaven har en månedlig pris → brug den
+    // ⭐ 1) Hvis månedlig pris findes → brug den
     if (monthlyPrice > 0) {
-        return Math.round(monthlyPrice);
+        return monthlyPrice;
     }
 
-    // ⭐ Ellers → brug fast pris pr gang
-    return Number(tempTask.customPrice ?? 0);
-}
+    // ⭐ 2) Ellers → pris pr gang (varighed × mængde × timepris)
+    if (pricePerTime > 0) {
+        return pricePerTime;
+    }
 
+    // ⭐ 3) Ellers → brug customPrice
+    return customPriceNum ?? 0;
+}
 
 
 // ------------------------------------------------------------
 // 6. DELETE TASK
 // ------------------------------------------------------------
+
 async function deleteTask(taskId) {
     const deletedTask = await cleaningTaskService.deleteCleaningTask(taskId);
 
@@ -225,8 +255,11 @@ async function deleteTask(taskId) {
         return { ...plain, ...prices };
     });
 
+    // ⭐ Brug monthlyPrice ELLER pricePerTime
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
+        return sum + getTaskTotalPrice(t);
+    }, 0);
 
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
     const yearlyTotal = monthlyTotal * 12;
 
     return {
@@ -237,38 +270,42 @@ async function deleteTask(taskId) {
     };
 }
 
-
 // ------------------------------------------------------------
 // 7. LIST TASKS
 // ------------------------------------------------------------
+
+
 async function listTasks(planId) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningTaskService.listCleaningTasks(planId);
 
     const hourlyRate = plan.hourlyRate;
 
+    // Samme enrich som step4Offer
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
         const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
-    const yearlyTotal = monthlyTotal * 12;
+    // Samme subtotal-logik som step4Offer
+    const monthlyTasks = enrichedTasks.filter(t => t.monthlyPrice > 0);
+    const monthlyTotal = monthlyTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
 
     return {
         planId,
         tasks: enrichedTasks,
-        monthlyTotal,
-        yearlyTotal
+        monthlyTotal,                 // nu 10.250 kr
+        yearlyTotal: monthlyTotal * 12
     };
 }
+
 
 
 // ------------------------------------------------------------
 // 8. OFFER STEP 4 VIEWMODEL
 // ------------------------------------------------------------
+
 async function getOfferStep4ViewModel(planId) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
@@ -276,38 +313,45 @@ async function getOfferStep4ViewModel(planId) {
 
     const hourlyRate = plan.hourlyRate;
 
+    // ⭐ Enrich tasks
     const enrichedTasks = tasks.map(t => {
         const plain = typeof t.toObject === "function" ? t.toObject() : t;
         const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
-        return { ...plain,
-            ...prices,
-        totalPrice: prices.monthlyPrice
+
+        return {
+            ...plain,
+            ...prices
         };
     });
 
-    const discountPercent = 0;
-    const environmentalFee = systemSettings.environmentalFee;
+    // ⭐ KUN månedlige opgaver skal med i subtotal
+    const monthlyTasks = enrichedTasks.filter(t => t.monthlyPrice > 0);
 
-    const totals = offerService.calculateOfferTotals(
-        enrichedTasks,
-        discountPercent,
-        environmentalFee,
-        hourlyRate
-    );
+    const subtotal = monthlyTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+
+    const discountPercent = plan.discountPercent || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const afterDiscount = subtotal - discountAmount;
+
+    const environmentalFeePercent = systemSettings.environmentalFee || 0;
+    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
+
+    const total = afterDiscount + environmentalFeeAmount;
 
     return {
         planId,
         tasks: enrichedTasks,
         discountPercent,
-        environmentalFee,
-        subtotal: totals.subtotal,
-        monthlyTotal: totals.subtotal,
-        discountAmount: totals.discountAmount,
-        environmentalFeeAmount: totals.environmentalFeeAmount,
-        total: totals.total,
+        environmentalFee: environmentalFeePercent,
+        subtotal,
+        monthlyTotal: subtotal,   // ⭐ korrekt monthlyTotal
+        discountAmount,
+        environmentalFeeAmount,
+        total,
         paymentTerms: plan.paymentTerms || paymentTerms.netto14
     };
 }
+
 
 // ------------------------------------------------------------
 // 9. OFFER PREVIEW
@@ -325,18 +369,23 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
         return {
             ...plain,
             ...prices,
-            totalPrice: prices.monthlyPrice
+            totalPrice: getTaskTotalPrice(prices)   // ⭐ BRUG PRIS PR GANG ELLER MÅNED
         };
     });
 
-    const totals = offerService.calculateOfferTotals(
-        enrichedTasks,
-        discountPercent,
-        environmentalFee,
-        hourlyRate
-    );
+    // ⭐ Beregn subtotal baseret på totalPrice
+    const subtotal = enrichedTasks.reduce((sum, t) => {
+        return sum + t.totalPrice;
+    }, 0);
 
-    return totals.total;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const afterDiscount = subtotal - discountAmount;
+
+    const environmentalFeeAmount = afterDiscount * (environmentalFee / 100);
+
+    const total = afterDiscount + environmentalFeeAmount;
+
+    return total;
 }
 
 

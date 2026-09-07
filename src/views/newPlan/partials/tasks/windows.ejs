@@ -26,8 +26,28 @@
         <% tasks.forEach(task => { %>
             <li class="task-item">
 
+                <%
+                    // ⭐ Robust prisberegning i view’et
+                    const price =
+                            task.totalPrice != null
+                                    ? Number(task.totalPrice)
+                                    : task.monthlyPrice != null && task.monthlyPrice > 0
+                                            ? Number(task.monthlyPrice)
+                                            : task.pricePerTime != null && task.pricePerTime > 0
+                                                    ? Number(task.pricePerTime)
+                                                    : task.customPrice != null
+                                                            ? Number(task.customPrice)
+                                                            : 0;
+                %>
+
                 <strong><%= task.name %></strong>
-                – <%= task.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr.
+
+                – <%= price.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
+                <% if (task.monthlyPrice && task.monthlyPrice > 0) { %>
+                    / måned
+                <% } else { %>
+                    pr gang
+                <% } %>
 
                 <% if (task.description && task.description.trim().length > 0) { %>
                     <div><em><%= task.description %></em></div>

@@ -1,12 +1,20 @@
 <article class="task-edit">
 
-    <h2>Rediger forbrugsvare</h2>
+    <h2><%= task._id ? "Rediger forbrugsvare" : "Tilføj forbrugsvare" %></h2>
 
-    <form hx-patch="/newPlan/tasks/<%= task._id %>/update"
-          hx-target="#taskArea"
-          hx-include="[name=planId]">
+    <form
+    <% if (task._id) { %>
+        hx-patch="/newPlan/tasks/<%= task._id %>/update"
+    <% } else { %>
+        hx-post="/newPlan/tasks/save"
+            <% } %>
+        hx-target="#taskArea"
+        hx-swap="innerHTML"
+        class="task-edit-form"
+    >
 
         <input type="hidden" name="planId" value="<%= task.planId %>">
+        <input type="hidden" name="templateId" value="<%= task.templateId %>">
 
         <div class="form-group">
             <label>Navn</label>

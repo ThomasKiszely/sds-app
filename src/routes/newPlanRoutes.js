@@ -5,9 +5,8 @@ const { requireLogin } = require("../middlewares/requireLogin");
 const newPlanController = require("../controllers/newPlanController");
 
 const { validateObjectId } = require("../middlewares/validateObjectId");
-const validateCleaningPlan  = require("../middlewares/validateCleaningPlan");
+const validateCleaningPlan = require("../middlewares/validateCleaningPlan");
 const validateCleaningTask = require("../middlewares/validateCleaningTask");
-const validateDailyBundle = require("../middlewares/validateDailyBundle");
 const validateOffer = require("../middlewares/validateOffer");
 const validateOfferPreview = require("../middlewares/validateOfferPreview");
 
@@ -32,18 +31,19 @@ router.get("/tasks/create", requireLogin, newPlanController.tasks_create);
 router.post("/tasks/save", requireLogin, validateCleaningTask, newPlanController.tasks_save);
 
 // DAILY BUNDLE
-router.post("/tasks/dailyBundle/update", requireLogin, validateDailyBundle, newPlanController.tasks_updateDailyBundle);
+router.post("/tasks/dailyBundle/update", requireLogin, newPlanController.tasks_updateDailyBundle);
 router.get("/tasks/dailyBundle/edit", requireLogin, newPlanController.tasks_editDailyBundle);
 router.get("/tasks/dailyBundle/create", requireLogin, newPlanController.tasks_createDailyBundle);
-router.post("/tasks/dailyBundle/save", requireLogin, validateDailyBundle, newPlanController.tasks_saveDailyBundle);
+router.post("/tasks/dailyBundle/save", requireLogin, newPlanController.tasks_saveDailyBundle);
 
-// ALMINDELIGE TASKS
+// ⭐ PREVIEW FOR NY OPGAVE (Skal ligge FØR /:taskId ruterne og UDEN validering)
+router.post("/tasks/previewNew", requireLogin, newPlanController.tasks_previewNew);
+
+// ALMINDELIGE TASKS (:taskId parametriserede ruter)
 router.get("/tasks/:taskId/edit", requireLogin, validateObjectId("taskId"), newPlanController.tasks_edit);
 router.post("/tasks/:taskId/preview", requireLogin, validateObjectId("taskId"), newPlanController.tasks_preview);
 router.delete("/tasks/:taskId/delete", requireLogin, validateObjectId("taskId"), newPlanController.tasks_delete);
 router.patch("/tasks/:taskId/update", requireLogin, validateObjectId("taskId"), validateCleaningTask, newPlanController.tasks_update);
-
-router.post("/tasks/previewNew", requireLogin, validateCleaningTask, newPlanController.tasks_previewNew);
 
 // Step 4: Lav tilbud
 router.get("/offer", requireLogin, newPlanController.step4_offer);

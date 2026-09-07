@@ -1,4 +1,3 @@
-// middlewares/lookupLimiter.js
 const rateLimit = require("express-rate-limit");
 const { ipKeyGenerator } = require("express-rate-limit");
 

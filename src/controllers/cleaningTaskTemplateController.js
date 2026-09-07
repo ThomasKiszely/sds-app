@@ -62,7 +62,7 @@ async function updateCleaningTaskTemplate(req, res, next) {
         const updated = await cleaningTaskTemplateService.updateTemplate(id, req.body);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('cleaningTaskTemplates/_listPartial', {
+        return res.render('cleaningTaskTemplates/list', {
             templates,
             categoryLabels,
             unitsLabels,

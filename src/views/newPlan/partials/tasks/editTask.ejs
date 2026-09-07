@@ -13,16 +13,19 @@
         class="task-edit-form"
     >
 
+        <!-- ⭐ Skjulte felter -->
         <input type="hidden" name="planId" value="<%= task.planId %>">
         <input type="hidden" name="templateId" value="<%= task.templateId %>">
+        <input type="hidden" name="category" value="<%= task.category %>">
+        <input type="hidden" name="unit" value="<%= task.unit || 'stk' %>">
 
         <!-- ⭐ Navn -->
         <label for="name">Navn</label>
-        <input type="text" id="name" name="name" value="<%= task.name %>" required>
+        <input type="text" id="name" name="name" value="<%= task.name %>" autocomplete="off" required>
 
         <!-- ⭐ Rum -->
         <label for="roomName">Rum (valgfrit)</label>
-        <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>">
+        <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" autocomplete="off">
 
         <!-- ⭐ Dage -->
         <h3>Dage</h3>
@@ -36,26 +39,23 @@
                 <input type="checkbox"
                        name="days"
                        value="<%= days[key] %>"
-                        <%= (task.days || []).includes(days[key]) ? "checked" : "" %>>
+                        <%= (task.days || []).includes(days[key]) ? "checked" : "" %>
+                       hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
+                       hx-trigger="change"
+                       hx-include="closest form"
+                       hx-target="#taskPrice">
                 <span><%= daysLabels[key] %></span>
             </label>
         <% }) %>
 
         <!-- ⭐ Frekvens -->
         <label for="frequency">Frekvens</label>
-        <select id="frequency" name="frequency"
-        <% if (task._id) { %>
-                hx-post="/newPlan/tasks/<%= task._id %>/preview"
+        <select id="frequency"
+                name="frequency"
+                hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
                 hx-trigger="change"
                 hx-include="closest form"
-                hx-target="#taskPrice"
-        <% } else { %>
-                hx-post="/newPlan/tasks/previewNew"
-                hx-trigger="change"
-                hx-include="closest form"
-                hx-target="#taskPrice"
-                <% } %>
-        >
+                hx-target="#taskPrice">
             <% Object.keys(frequencies).forEach(key => { %>
                 <option value="<%= frequencies[key] %>"
                         <%= task.frequency === frequencies[key] ? "selected" : "" %>>
@@ -64,46 +64,48 @@
             <% }) %>
         </select>
 
+        <!-- ⭐ Mængde -->
+        <label for="amount">Mængde (<%= task.unit || 'stk' %>)</label>
+        <input type="number"
+               id="amount"
+               name="amount"
+               value="<%= task.amount ?? 0 %>"
+               step="0.1"
+               min="0"
+               autocomplete="off"
+               hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
+               hx-trigger="change, keyup delay:300ms"
+               hx-include="closest form"
+               hx-target="#taskPrice">
+
         <!-- ⭐ Varighed -->
         <label for="durationPerUnit">Varighed pr enhed (minutter)</label>
         <input type="number"
                id="durationPerUnit"
                name="durationPerUnit"
                value="<%= task.durationPerUnit %>"
-               step="0.01" min="0"
-        <% if (task._id) { %>
-               hx-post="/newPlan/tasks/<%= task._id %>/preview"
-               hx-trigger="change"
+               step="0.01"
+               min="0"
+               autocomplete="off"
+               hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
+               hx-trigger="change, keyup delay:300ms"
                hx-include="closest form"
-               hx-target="#taskPrice"
-        <% } else { %>
-               hx-post="/newPlan/tasks/previewNew"
-               hx-trigger="change"
-               hx-include="closest form"
-               hx-target="#taskPrice"
-                <% } %>
-        >
+               hx-target="#taskPrice">
 
-        <!-- ⭐ Custom pris -->
+        <!-- ⭐ Fast pris -->
         <label for="customPrice">Fast pris (valgfrit)</label>
         <input type="number"
                id="customPrice"
                name="customPrice"
                value="<%= task.customPrice ?? '' %>"
                min="0"
-        <% if (task._id) { %>
-               hx-post="/newPlan/tasks/<%= task._id %>/preview"
-               hx-trigger="change"
+               autocomplete="off"
+               hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
+               hx-trigger="change, keyup delay:300ms"
                hx-include="closest form"
-               hx-target="#taskPrice"
-        <% } else { %>
-               hx-post="/newPlan/tasks/previewNew"
-               hx-trigger="change"
-               hx-include="closest form"
-               hx-target="#taskPrice"
-                <% } %>
-        >
+               hx-target="#taskPrice">
 
+        <!-- ⭐ Antal (kun consumables) -->
         <% if (task.category === categoryTypes.consumables) { %>
             <label for="quantity">Antal (stk)</label>
             <input type="number"
@@ -111,23 +113,16 @@
                    name="quantity"
                    value="<%= task.quantity ?? 1 %>"
                    min="1"
-            <% if (task._id) { %>
-                   hx-post="/newPlan/tasks/<%= task._id %>/preview"
-                   hx-trigger="change"
+                   autocomplete="off"
+                   hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"
+                   hx-trigger="change, keyup delay:300ms"
                    hx-include="closest form"
-                   hx-target="#taskPrice"
-            <% } else { %>
-                   hx-post="/newPlan/tasks/previewNew"
-                   hx-trigger="change"
-                   hx-include="closest form"
-                   hx-target="#taskPrice"
-                    <% } %>
-            >
+                   hx-target="#taskPrice">
         <% } %>
 
         <!-- ⭐ Beskrivelse -->
         <label for="description">Beskrivelse</label>
-        <textarea id="description" name="description" rows="3"><%= task.description %></textarea>
+        <textarea id="description" name="description" rows="3" autocomplete="off"><%= task.description %></textarea>
 
         <!-- ⭐ Pris -->
         <p>
@@ -135,12 +130,21 @@
             <span id="taskPrice">
 
                 <% if (task.category === categoryTypes.consumables) { %>
-                    <%= (task.customPrice ?? 0).toFixed(2) %> kr pr stk
-                    – <%= task.quantity ?? 1 %> stk
-                <% } else if (task.monthlyPrice > 0) { %>
+
+                    <%= (task.customPrice ?? 0).toFixed(2) %> kr pr stk – <%= task.quantity ?? 1 %> stk
+
+                <% } else if (task.monthlyPrice && task.monthlyPrice > 0) { %>
+
                     <%= task.monthlyPrice.toFixed(2) %> kr./måned
+
+                <% } else if (task.pricePerTime && task.pricePerTime > 0) { %>
+
+                    <%= task.pricePerTime.toFixed(2) %> kr pr gang
+
                 <% } else { %>
-                    <%= (task.customPrice ?? 0).toFixed(2) %> kr pr gang
+
+                    <%= (task.customPrice ?? 0).toFixed(2) %> kr
+
                 <% } %>
 
             </span>
@@ -148,7 +152,8 @@
 
         <button type="submit" class="button">Gem opgave</button>
 
-        <button class="button-secondary"
+        <button type="button"
+                class="button-secondary"
                 hx-get="/newPlan/tasks/list?planId=<%= task.planId %>"
                 hx-target="#taskArea">
             Tilbage

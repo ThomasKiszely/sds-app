@@ -41,9 +41,10 @@
         <% } %>
 
         <button class="dropdown-item"
-                hx-get="/logout"
-                hx-target="#content">
+                hx-post="/users/logout"
+                hx-redirect="/login">
             Log ud
         </button>
+
     </nav>
 </header>

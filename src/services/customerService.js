@@ -102,6 +102,10 @@ async function reactivateCustomer(id) {
     return customerRepo.updateCustomer(id, { isDeleted: false });
 }
 
+async function getActiveCustomers() {
+    return await customerRepo.getActiveCustomers();
+}
+
 module.exports = {
     createCustomer,
     getCustomerById,
@@ -110,4 +114,5 @@ module.exports = {
     listCustomers,
     getPlansForCustomer,
     reactivateCustomer,
+    getActiveCustomers
 };

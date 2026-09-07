@@ -10,7 +10,7 @@
     >
         <input type="hidden" name="planId" value="<%= tasks[0].planId %>">
 
-        <!-- Fælles felter -->
+        <!-- ⭐ FÆLLES FELTER -->
         <section>
             <h2>Fælles oplysninger</h2>
 
@@ -26,41 +26,16 @@
             <textarea name="roomNotes" rows="3"><%= existingNotes.join("\n") %></textarea>
         </section>
 
-        <section>
-            <h3>Dage</h3>
-
-            <button type="button" class="button" onclick="setDailyWeekdays()">Daglig (Man–Fre)</button>
-
-            <% Object.keys(days).forEach(key => { %>
-                <label class="checkbox-row">
-                    <input type="checkbox"
-                           name="days"
-                           value="<%= days[key] %>"
-                            <%= tasks[0].days.includes(days[key]) ? "checked" : "" %>>
-                    <span><%= daysLabels[key] %></span>
-                </label>
-            <% }) %>
-
-            <label for="frequency">Frekvens</label>
-            <select id="frequency" name="frequency">
-                <% Object.keys(frequencies).forEach(key => { %>
-                    <option value="<%= frequencies[key] %>"
-                            <%= tasks[0].frequency === frequencies[key] ? "selected" : "" %>>
-                        <%= frequencyLabels[key] %>
-                    </option>
-                <% }) %>
-            </select>
-        </section>
-
         <hr>
 
-        <!-- Individuelle SDS-opgaver -->
+        <!-- ⭐ INDIVIDUELLE SDS-OPGAVER -->
         <% tasks.forEach(task => { %>
             <section>
                 <h2><%= task.name %></h2>
 
                 <input type="hidden" name="taskIds[]" value="<%= task._id %>">
 
+                <!-- Varighed -->
                 <label>Varighed pr enhed (minutter)</label>
                 <input type="number"
                        name="duration_<%= task._id %>"
@@ -71,6 +46,7 @@
                        hx-include="closest form"
                        hx-target="#price_<%= task._id %>">
 
+                <!-- Fast pris -->
                 <label>Fast pris (valgfrit)</label>
                 <input type="number"
                        name="custom_<%= task._id %>"
@@ -81,9 +57,44 @@
                        hx-include="closest form"
                        hx-target="#price_<%= task._id %>">
 
+                <!-- ⭐ DAGE (INDIVIDUELT) -->
+                <label>Dage</label>
+
+                <button type="button"
+                        class="button"
+                        data-weekdays="days_<%= task._id %>">
+                    Daglig (Man–Fre)
+                </button>
+
+                <% Object.keys(days).forEach(key => { %>
+                    <label class="checkbox-row">
+                        <input
+                                type="checkbox"
+                                name="days_<%= task._id %>"
+                                value="<%= days[key] %>"
+                                data-days-button="true"
+                                <%= (task.days || []).includes(days[key]) ? "checked" : "" %>
+                        >
+                        <span><%= daysLabels[key] %></span>
+                    </label>
+                <% }) %>
+
+                <!-- ⭐ FREKVENS (INDIVIDUELT) -->
+                <label>Frekvens</label>
+                <select name="frequency_<%= task._id %>">
+                    <% Object.keys(frequencies).forEach(key => { %>
+                        <option value="<%= frequencies[key] %>"
+                                <%= task.frequency === frequencies[key] ? "selected" : "" %>>
+                            <%= frequencyLabels[key] %>
+                        </option>
+                    <% }) %>
+                </select>
+
+                <!-- Beskrivelse -->
                 <label>Beskrivelse</label>
                 <textarea name="description_<%= task._id %>" rows="3"><%= task.description %></textarea>
 
+                <!-- Pris -->
                 <p>
                     <strong>Aktuel pris:</strong>
                     <span id="price_<%= task._id %>"><%= task.monthlyPrice %> kr.</span>
@@ -106,10 +117,17 @@
 </article>
 
 <script>
-    function setDailyWeekdays() {
+    function setDailyWeekdaysFor(groupName) {
         const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-        document.querySelectorAll('input[name="days"]').forEach(cb => {
+        document.querySelectorAll(`input[name="${groupName}"]`).forEach(cb => {
             cb.checked = weekdays.includes(cb.value);
         });
     }
+
+    document.querySelectorAll('[data-weekdays]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const group = btn.getAttribute('data-weekdays');
+            setDailyWeekdaysFor(group);
+        });
+    });
 </script>

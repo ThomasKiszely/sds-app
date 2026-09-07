@@ -14,6 +14,8 @@ router.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
 
+
+
 // INDEX
 router.get('/', requireLogin, (req, res) => {
     const loadMe = req.session.loadMe || false;
@@ -61,9 +63,9 @@ router.get('/plans', requireLogin, async (req, res) => {
     res.render('plans', { user: req.session.user });
 });
 
-
+/*
 // TASKS
-router.get('/tasks', async (req, res) => {
+router.get('/tasks', requireLogin, async (req, res) => {
     res.render('tasks/list', { user: req.session.user });
 });
 
@@ -76,6 +78,7 @@ router.get('/tasks/create', requireAdmin, (req, res) => {
         unitsLabels
     });
 });
+*/
 
 router.get('/admin', requireAdmin, (req, res) => {
     res.render('admin/index', { user: req.session.user });
@@ -85,13 +88,13 @@ router.get('/users/create', requireAdmin, (req, res) => {
     res.render('admin/users/create');
 });
 
-
+/*
 //logout
 router.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/login');
     });
 });
-
+*/
 
 module.exports = router;

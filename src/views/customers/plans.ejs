@@ -84,16 +84,14 @@
                         <!-- KONTRAKT -->
                         <% if (plan.contract) { %>
                             <button
-                                    hx-get="/contracts/<%= plan._id %>/list"
+                                    hx-get="/contracts/<%= plan.contract._id %>/view"
                                     hx-target="#content">
                                 Se kontrakt
                             </button>
                         <% } else { %>
-                            <button
-                                    hx-post="/contracts/<%= plan._id %>/generate"
-                                    hx-target="#content">
-                                Opret kontrakt
-                            </button>
+                            <span class="badge badge-warning">
+        Ingen kontrakt (tilbud ikke accepteret endnu)
+    </span>
                         <% } %>
 
                         <!-- DEAKTIVER / AKTIVÉR -->
