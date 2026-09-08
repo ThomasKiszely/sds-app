@@ -65,6 +65,14 @@
                             Se plan
                         </button>
 
+                        <button
+                                hx-get="/newPlan/offer?planId=<%= plan._id %>"
+                                hx-target="#content">
+                            Rediger plan
+                        </button>
+
+
+
                         <!-- TILBUD -->
                         <% if (plan.offerId) { %>
                             <button

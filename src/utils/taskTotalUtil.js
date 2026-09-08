@@ -1,4 +1,3 @@
-// utils/taskTotalUtil.js
 function getTaskTotalPrice(taskOrPrices) {
     const monthlyPrice = Number(taskOrPrices.monthlyPrice ?? 0);
     const pricePerTime = Number(taskOrPrices.pricePerTime ?? 0);
