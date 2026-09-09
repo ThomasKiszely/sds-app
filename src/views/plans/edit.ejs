@@ -8,48 +8,41 @@
             Adresse: <%= street %>, <%= zip %> <%= city %><br>
             Plan: <strong><%= plan.name %></strong>
         </p>
-
-
     </section>
 
     <hr>
 
-    <!-- TASKLISTE -->
     <section>
         <h2>Opgaver i planen</h2>
 
-        <div class="embedded-step">
-            <%- include("../newPlan/partials/tasks/taskList", {
-            tasks,
-            grouped,
-            roomNotes,
-            frequencyLabels,
-            daysLabels,
-            planId: plan._id,
-            monthlyTotal
-            }) %>
-        </div>
+        <%- include("../newPlan/partials/tasks/taskList", {
+        tasks,
+        grouped,
+        roomNotes,
+        frequencyLabels,
+        daysLabels,
+        planId: plan._id,
+        monthlyTotal
+        }) %>
     </section>
 
     <hr>
 
-    <!-- TASK EDITOR -->
-    <section>
-        <h2>Tilføj / rediger opgaver</h2>
+    <section class="form-actions">
 
-        <div class="embedded-step">
-            <%- include("../newPlan/partials/tasks", {
-            planId: plan._id
-            }) %>
-        </div>
-        <div class="form-actions">
+        <!-- Gå til den rigtige Tilføj opgaver-side -->
+        <button class="button"
+                hx-get="/newPlan/tasks?planId=<%= plan._id %>"
+                hx-target="#content">
+            Tilføj / rediger opgaver
+        </button>
 
-            <button class="button"
-                    hx-get="/cleaningPlans/<%= plan._id %>/planPdf"
-                    hx-target="#content">
-                Download PDF
-            </button>
-        </div>
+        <button class="button-secondary"
+                hx-get="/cleaningPlans/<%= plan._id %>/planPdf"
+                hx-target="#content">
+            Download PDF
+        </button>
+
     </section>
 
 </article>
