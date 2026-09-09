@@ -9,22 +9,22 @@ module.exports = function validateCleaningTask(req, res, next) {
         customPrice
     } = req.body;
 
-    // ⭐ planId
+    // planId
     if (!planId || !planId.match(/^[0-9a-fA-F]{24}$/)) {
         errors.push("planId skal være et gyldigt MongoDB ObjectId.");
     }
 
-    // ⭐ templateId
+    // templateId
     if (!templateId || !templateId.match(/^[0-9a-fA-F]{24}$/)) {
         errors.push("templateId skal være et gyldigt MongoDB ObjectId.");
     }
 
-    // ⭐ name
+    // name
     if (!name || typeof name !== "string" || name.trim().length === 0) {
         errors.push("Navn er påkrævet.");
     }
 
-    // ⭐ customPrice (valgfrit)
+    // customPrice (valgfrit)
     if (customPrice !== undefined && customPrice !== null) {
         const cp = Number(customPrice);
         if (isNaN(cp) || cp < 0) {

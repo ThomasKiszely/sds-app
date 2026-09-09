@@ -8,13 +8,12 @@ const offerService = require("../services/offerService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
-const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
+const { frequencies, frequencyLabels, frequencyMultipliers } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
-const { frequencyMultipliers } = require("../utils/frequencyEnum");
 const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
 const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
-
+const { calculateTaskPrice } = require("../services/priceService");
 
 // ------------------------------------------------------------
 // STEP 1: Vælg kunde
@@ -136,7 +135,7 @@ async function tasks_daily(req, res) {
 
     const tasks = rawTasks.map(t => {
         const plain = t.toObject();
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
@@ -202,6 +201,8 @@ async function tasks_consumables(req, res) {
         categoryTypes,
         daysLabels,
         frequencyLabels,
+        frequencies,
+        frequencyMultipliers,
         customerId: plan.customerId
     });
 }
@@ -237,7 +238,10 @@ async function tasks_edit(req, res) {
 
         if (task.category === categoryTypes.consumables) {
             return res.render("newPlan/partials/tasks/editConsumable", {
-                task
+                task,
+                frequencies,
+                frequencyLabels,
+                frequencyMultipliers
             });
         }
 
@@ -338,9 +342,7 @@ async function tasks_list(req, res) {
 }
 
 
-// ------------------------------------------------------------
-// STEP 4: Tilbud
-// ------------------------------------------------------------
+
 async function step4_offer(req, res) {
     const vm = await newPlanService.getOfferStep4ViewModel(req.query.planId);
 
@@ -384,7 +386,7 @@ async function tasks_updateDailyBundle(req, res) {
 
         const tasks = rawTasks.map(t => {
             const plain = t.toObject();
-            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            const prices = calculateTaskPrice(plain, hourlyRate);
             return { ...plain, ...prices };
         });
 
@@ -394,7 +396,7 @@ async function tasks_updateDailyBundle(req, res) {
             plan,
             templates,
             tasks,
-            grouped,   // ⭐ VIGTIGT
+            grouped,   // VIGTIGT
             units,
             unitsLabels,
             categoryLabels,
@@ -434,7 +436,7 @@ async function saveOffer(req, res) {
         }
     );
 
-    // ⭐ HTMX-SPECIFIK REDIRECT MED TARGET = "#content"
+    // HTMX-SPECIFIK REDIRECT MED TARGET = "#content"
     res.setHeader("HX-Location", JSON.stringify({
         path: `/offers/${offer._id}/view`,
         target: "#content",
@@ -450,7 +452,7 @@ async function saveOffer(req, res) {
 async function tasks_editDailyBundle(req, res) {
     try {
         const planId = req.query.planId;
-        const roomName = req.query.roomName;   // ⭐ VIGTIGT: vi skal vide hvilket rum der redigeres
+        const roomName = req.query.roomName;
 
         if (!roomName) {
             res.setHeader("HX-Trigger", JSON.stringify({ toast: "Rum-navn mangler" }));
@@ -463,7 +465,7 @@ async function tasks_editDailyBundle(req, res) {
         const existingNotes = notesEntry ? notesEntry.notes : [];
 
 
-        // ⭐ Find SDS-opgaver for dette rum (robust)
+        // Find SDS-opgaver for dette rum (robust)
         const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
 
         if (sdsTasks.length !== 3) {
@@ -471,7 +473,7 @@ async function tasks_editDailyBundle(req, res) {
             return res.status(400).end();
         }
 
-        // ⭐ Sortér dem efter kategori, så rækkefølgen er stabil
+        // Sortér dem efter kategori, så rækkefølgen er stabil
         const sorted = sdsTasks.sort((a, b) => a.category.localeCompare(b.category));
 
         return res.render("newPlan/partials/tasks/editDailyBundle", {
@@ -502,12 +504,12 @@ async function tasks_createDailyBundle(req, res) {
 
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
-        // ⭐ Find alle templates for SDS-kategorier
+        // Find alle templates for SDS-kategorier
         const dailyTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
         const floorTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.floor);
         const inventoryTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.inventory);
 
-        // ⭐ Find præcis én template pr kategori (robust)
+        // Find præcis én template pr kategori (robust)
         const soigneringTemplate = dailyTemplates[0];
         const gulvTemplate       = floorTemplates[0];
         const inventarTemplate   = inventoryTemplates[0];
@@ -543,10 +545,10 @@ async function tasks_saveDailyBundle(req, res) {
     try {
         const planId = req.body.planId;
 
-        // ⭐ Opret SDS-bundle via service (robust)
+        // Opret SDS-bundle via service (robust)
         await newPlanService.createDailyBundle(planId, req.body);
 
-        // ⭐ Hent plan + tasks til visning
+        // Hent plan + tasks til visning
         const plan = await cleaningPlanService.findCleaningPlanById(planId);
         const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
 
@@ -555,7 +557,7 @@ async function tasks_saveDailyBundle(req, res) {
 
         const tasks = rawTasks.map(t => {
             const plain = t.toObject();
-            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            const prices = calculateTaskPrice(plain, hourlyRate);
             return { ...plain, ...prices };
         });
 
@@ -565,7 +567,7 @@ async function tasks_saveDailyBundle(req, res) {
             plan,
             templates,
             tasks,
-            grouped,   // ⭐ VIGTIGT
+            grouped,
             units,
             unitsLabels,
             categoryLabels,
@@ -591,19 +593,23 @@ async function tasks_create(req, res) {
         templateId: template._id,
         name: template.name,
         description: template.description,
-        category: template.category, // ⭐ SKAL med her
+        category: template.category,
         unit: template.unit,
         durationPerUnit: template.durationPerUnit,
         frequency: template.frequency,
         amount: template.amount ?? 0,
         roomName: template.roomName ?? "",
         customPrice: template.customPrice ?? null,
-        quantity: template.quantity ?? 1,
         days: template.days ?? [],
     };
 
     if (template.category === categoryTypes.consumables) {
-        return res.render("newPlan/partials/tasks/editConsumable", { task });
+        return res.render("newPlan/partials/tasks/editConsumable", {
+            task,
+        frequencies,
+        frequencyLabels,
+        frequencyMultipliers
+        });
     }
 
     return res.render("newPlan/partials/tasks/editTask", {
@@ -627,7 +633,7 @@ async function tasks_save(req, res) {
             req.body
         );
 
-        // ⭐ Send en HTMX redirect signal til klienten om at genindlæse listen
+        // Send en HTMX redirect signal til klienten om at genindlæse listen
         const vm = await newPlanService.listTasks(req.body.planId);
         const grouped = groupSdsTasksByRoom(vm.tasks);
 
@@ -654,7 +660,7 @@ async function tasks_previewNew(req, res) {
     try {
         const price = await newPlanService.previewNewTaskPrice(req.body);
 
-        // ⭐ HTMX forventer formateret pris
+        // HTMX forventer formateret pris
         if (req.body.category === categoryTypes.consumables) {
             return res.send(`${price.toFixed(2)} kr pr stk`);
         } else if (price > 0) {

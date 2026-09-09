@@ -3,7 +3,7 @@ const path = require("path");
 function errorHandler(error, req, res, next) {
     console.error(error);
 
-    // ⭐ Sørg for at error ALTID er et Error-objekt
+    // Sørg for at error ALTID er et Error-objekt
     if (!(error instanceof Error)) {
         const err = new Error(error?.message || String(error));
 

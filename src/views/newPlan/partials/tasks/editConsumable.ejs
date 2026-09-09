@@ -33,8 +33,23 @@
 
         <div class="form-group">
             <label>Antal</label>
-            <input type="number" name="quantity" value="<%= task.quantity %>" min="1" required>
+            <input type="number" name="quantity" value="<%= task.amount %>" min="1" required>
         </div>
+
+        <!-- NYT: Frekvens for consumables -->
+        <div class="form-group">
+            <label>Frekvens</label>
+            <select name="frequency" required>
+                <% for (const key in frequencies) { %>
+                    <% if (frequencyMultipliers[key] > 0) { %>
+                        <option value="<%= key %>" <%= task.frequency === key ? "selected" : "" %>>
+                            <%= frequencyLabels[key] %>
+                        </option>
+                    <% } %>
+                <% } %>
+            </select>
+        </div>
+        <!-- SLUT NYT -->
 
         <hr>
 

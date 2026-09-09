@@ -16,12 +16,12 @@ function calculateTaskMonthlyPrice(task, hourlyRate) {
         ? Number(task.customPrice)
         : pricePerTimeFromRate;
 
-    // ⭐ ANTAL DAGE
+    // ANTAL DAGE
     const daysCount = Array.isArray(task.days) ? task.days.length : 0;
 
     let monthlyPrice = 0;
 
-    // ⭐ FREKVENS + DAGE
+    // FREKVENS + DAGE
     if (task.frequency && frequencyMultipliers[task.frequency]) {
         monthlyPrice = pricePerTime * frequencyMultipliers[task.frequency] * daysCount;
     }

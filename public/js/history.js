@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ⭐ Brug AFTERSWAP i stedet for BEFORESWAP
+// Brug AFTERSWAP i stedet for BEFORESWAP
 document.body.addEventListener('htmx:afterSwap', (evt) => {
     const target = evt.detail.target;
 

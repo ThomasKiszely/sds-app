@@ -1,9 +1,9 @@
 <article class="standard offer-document">
 
-    <!-- ⭐ HEADER -->
+    <!-- HEADER -->
     <header>
 
-        <!-- ⭐ STATUS (kun i HTML, ikke i PDF) -->
+        <!-- STATUS (kun i HTML, ikke i PDF) -->
         <% if (offer.status === "accepted") { %>
             <p style="padding: 0.5rem; background: #e6ffe6; border-left: 4px solid #33aa33;">
                 <strong>Tilbud accepteret</strong><br>
@@ -24,20 +24,15 @@
             </p>
         <% } %>
 
-
-
         <h2>SDS Rengøring – Tilbud</h2>
 
-        <!-- ⭐ Kundeoplysninger -->
-        <p><strong><%= customer.customerName %></strong></p>
-        <p><%= street %></p>
-
-        <% if (zip || city) { %>
-            <p><%= zip %> <%= city %></p>
-        <% } %>
+        <!-- Kundeoplysninger -->
+        <p><strong><%= snapshot.customer.name %></strong></p>
+        <p><%= snapshot.customer.street %></p>
+        <p><%= snapshot.customer.zip %> <%= snapshot.customer.city %></p>
 
         <p style="margin-top: 1rem;">
-            Att.: <strong><%= customer.contactPerson.name %></strong>
+            Att.: <strong><%= snapshot.customer.contactPerson?.name %></strong>
         </p>
 
         <p style="margin-top: 1rem;">
@@ -45,46 +40,38 @@
         </p>
     </header>
 
-
     <hr>
 
-    <!-- ⭐ INTRO -->
+    <!-- INTRO -->
     <section>
-        <p>
-            Hej <%= customer.contactPerson.name %>,
-        </p>
-
-        <p>
-            Som aftalt sender jeg hermed et tilbud på baggrund af den fremsendte rengøringsplan.
-        </p>
+        <p>Hej <%= snapshot.customer.contactPerson?.name %>,</p>
+        <p>Som aftalt sender jeg hermed et tilbud på baggrund af den fremsendte rengøringsplan.</p>
     </section>
 
     <hr>
 
-    <!-- ⭐ FAST PRIS -->
+    <!-- FAST PRIS -->
     <section>
         <h3>Fast pris for rengøring</h3>
 
-        <p>
-            Den samlede pris for rengøring jf. rengøringsplanen andrager:
-        </p>
+        <p>Den samlede pris for rengøring jf. rengøringsplanen andrager:</p>
 
         <p style="font-size: 1.3rem; font-weight: bold;">
-            <%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. ekskl. moms pr. måned
+            <%= snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. ekskl. moms pr. måned
         </p>
 
-        <% if (offer.snapshot.plan.discountPercent > 0) { %>
-            <p>Rabat: <%= offer.snapshot.plan.discountAmount.toFixed(2) %> kr</p>
+        <% if (snapshot.plan.discountPercent > 0) { %>
+            <p>Rabat: <%= snapshot.plan.discountAmount.toFixed(2) %> kr</p>
         <% } %>
 
-        <% if (offer.snapshot.plan.environmentalFeePercent > 0) { %>
-            <p>Drift- og miljøtillæg: <%= offer.snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr</p>
+        <% if (snapshot.plan.environmentalFeePercent > 0) { %>
+            <p>Drift- og miljøtillæg: <%= snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr</p>
         <% } %>
     </section>
 
     <hr>
 
-    <!-- ⭐ EKSTRA OPGAVER -->
+    <!-- EKSTRA OPGAVER -->
     <section>
         <h3>Ekstra opgaver</h3>
 
@@ -93,22 +80,22 @@
         </p>
 
         <p>
-            Timepris: <strong><%= offer.snapshot.plan.hourlyRate %> kr. ekskl. moms</strong>
+            Timepris: <strong><%= snapshot.plan.hourlyRate %> kr. ekskl. moms</strong>
         </p>
     </section>
 
     <hr>
 
-    <!-- ⭐ FORBRUGSVARER -->
-    <% if (offer.snapshot.consumables.length > 0) { %>
+    <!-- FORBRUGSVARER -->
+    <% if (snapshot.consumables.length > 0) { %>
         <section>
             <h3>Forbrugsvarer</h3>
 
             <ul>
-                <% offer.snapshot.consumables.forEach(c => { %>
+                <% snapshot.consumables.forEach(c => { %>
                     <li>
                         <strong><%= c.name %></strong>
-                        – <%= c.quantity %> stk
+                        – <%= c.amount %> stk
                         – <%= c.pricePerUnit %> kr pr stk ekskl. moms
                         <% if (c.description) { %>
                             <div><em><%= c.description %></em></div>
@@ -123,7 +110,7 @@
         <hr>
     <% } %>
 
-    <!-- ⭐ Hvad prisen indeholder -->
+    <!-- Hvad prisen indeholder -->
     <section>
         <h3>Hvad prisen indeholder</h3>
 
@@ -136,7 +123,7 @@
 
     <hr>
 
-    <!-- ⭐ AFSLUTNING -->
+    <!-- AFSLUTNING -->
     <section>
         <p>
             Hvis der er spørgsmål eller ønsker om yderligere information, er du
@@ -150,15 +137,20 @@
             <%= user.address %><br>
             <%= user.phoneNumber %>
         </p>
-
     </section>
 
     <hr>
 
-    <!-- ⭐ PDF -->
+    <!-- PDF -->
     <p>
-        <a href="/offers/<%= offer._id %>/pdf" class="button-link" target="_blank" hx-boost="false">
-            Download PDF
+        <a href="/offers/<%= offer._id %>/pdf" class="button-link" target="_blank">
+            Download tilbud (PDF)
+        </a>
+    </p>
+
+    <p>
+        <a href="/cleaningPlans/<%= offer.planId %>/planPdf" class="button-link" target="_blank">
+            Download rengøringsplan (PDF)
         </a>
     </p>
 

@@ -31,7 +31,6 @@ async function runInflationAdjustment() {
             category: task.category,
             price: newPrice,
             amount: task.amount,
-            quantity: task.quantity,
             frequency: task.frequency
         });
 

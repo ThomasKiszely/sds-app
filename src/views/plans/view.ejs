@@ -1,6 +1,6 @@
 <article class="standard cleaning-plan">
 
-    <!-- ⭐ PROGRAMKODE-FORKLARING -->
+    <!-- PROGRAMKODE-FORKLARING -->
     <section class="programcode-info">
         <h2>Forklaring på programkoder</h2>
         <p>Alle lokaler der skal rengøres, er forsynet med en programkode. Programkoder aflæses som vist herunder.</p>
@@ -25,7 +25,7 @@
 
     <hr>
 
-    <!-- ⭐ LOKALEFORTEGNELSE -->
+    <!-- LOKALEFORTEGNELSE -->
     <section class="room-list">
         <h2>Lokalefortegnelse og Programkoder</h2>
 
@@ -67,55 +67,42 @@
 
     <hr>
 
-    <!-- ⭐ RENGØRINGSINSTRUKTION -->
+    <!-- RENGØRINGSINSTRUKTION -->
     <section class="instructions">
         <h2>Rengøringsinstruktion</h2>
 
+        <!-- 1. ciffer – soignering -->
         <h3>Hver gang udføres (1. ciffer i programkoden)</h3>
-        <p><strong>Inventarrengøring:</strong><br>
-            Udluftning – Vinduer lukkes efter endt rengøring<br>
-            Papirkurve tømmes<br>
-            Nye pletter fjernes<br>
-            Skifte klude og hviskestykker i køkken
+        <p>
+            <% dailyDescriptions.forEach(d => { %>
+        <div><%= d %></div>
+        <% }) %>
         </p>
 
-        <p><strong>Inventarrengøring sanitære områder:</strong><br>
-            Håndvaske, armatur, spejle, hylder, dørgreb mv. rengøres<br>
-            Toilet og anden sanitet rengøres<br>
-            Opfyldning af forbrugsvare<br>
-            Udskift madam/skraldepose
-        </p>
-
-        <p><strong>Gulvrengøring:</strong><br>
-            Tæpper støvsuges der hvor det er nødvendigt<br>
-            Hårde gulve støvsuges hvor det er nødvendigt<br>
-            Gulve i sanitære områder støvsuges og vaskes hver gang
-        </p>
-
+        <!-- 2. ciffer – gulv -->
         <h3>Ved grundig gulvrengøring (2. ciffer)</h3>
         <p>
-            Tæpper støvsuges grundigt fra væg til væg<br>
-            Hårde gulve støvsuges/tørmoppes og vaskes fra væg til væg
+            <% floorDescriptions.forEach(d => { %>
+        <div><%= d %></div>
+        <% }) %>
         </p>
 
+        <!-- 3. ciffer – inventar -->
         <h3>Ved grundig inventarrengøring (3. ciffer)</h3>
         <p>
-            Skriveborde og øvrige borde rengøres grundigt<br>
-            Lavthængende lamper, vindueskarme, dørgreb rengøres<br>
-            Hylder, skærme, reoler mv. indtil 180 cm rengøres<br>
-            Aftørring kaffeautomat<br>
-            Aftørring af borde<br>
-            Stole i kantine efterses
+            <% inventoryDescriptions.forEach(d => { %>
+        <div><%= d %></div>
+        <% }) %>
         </p>
     </section>
 
     <hr>
 
-    <!-- ⭐ ØVRIGE OPGAVER (uden programkode) -->
+    <!-- ØVRIGE OPGAVER (uden programkode) -->
     <section class="other-tasks">
         <h2>Øvrige opgaver</h2>
 
-        <!-- ⭐ Opgaver uden rum -->
+        <!-- Opgaver uden rum -->
         <% if (noRoomTasks.length > 0) { %>
             <h3>Opgaver uden rum</h3>
             <ul>
@@ -131,7 +118,7 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ Ad hoc -->
+        <!-- Ad hoc -->
         <% if (adHocTasks.length > 0) { %>
             <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
             <ul>
@@ -146,7 +133,7 @@
             <hr>
         <% } %>
 
-        <!-- ⭐ Forbrugsvarer -->
+        <!-- Forbrugsvarer -->
         <% if (consumables.length > 0) { %>
             <h3>Tilkøb – Forbrugsvarer</h3>
             <ul>
@@ -154,7 +141,7 @@
                     <li>
                         <strong><%= c.name %></strong>
                         – <%= (c.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr pr stk
-                        – <%= c.quantity %> stk
+                        – <%= c.amount %> stk
                         <% if (c.description) { %><div><em><%= c.description %></em></div><% } %>
                     </li>
                 <% }) %>

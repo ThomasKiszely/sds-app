@@ -4,6 +4,7 @@ const { days, daysLabels } = require("../utils/dayEnum");
 const { frequencies, frequencyLabels } = require("../utils/frequencyEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
 const { categoryLabels } = require("../utils/categoryEnum");
+const { calculateTaskPrice } = require("../services/priceService");
 
 async function editCleaningTask(req, res, next) {
     try {
@@ -58,7 +59,7 @@ async function listCleaningTasks(req, res, next) {
 
         const enrichedTasks = tasks.map(t => {
             const plain = t.toObject();
-            const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+            const prices = calculateTaskPrice(plain, hourlyRate);
             return { ...plain, ...prices };
         });
 

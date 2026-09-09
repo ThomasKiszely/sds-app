@@ -13,21 +13,21 @@
         class="task-edit-form"
     >
 
-        <!-- ⭐ Skjulte felter -->
+        <!-- Skjulte felter -->
         <input type="hidden" name="planId" value="<%= task.planId %>">
         <input type="hidden" name="templateId" value="<%= task.templateId %>">
         <input type="hidden" name="category" value="<%= task.category %>">
         <input type="hidden" name="unit" value="<%= task.unit || 'stk' %>">
 
-        <!-- ⭐ Navn -->
+        <!-- Navn -->
         <label for="name">Navn</label>
         <input type="text" id="name" name="name" value="<%= task.name %>" autocomplete="off" required>
 
-        <!-- ⭐ Rum -->
+        <!-- Rum -->
         <label for="roomName">Rum (valgfrit)</label>
         <input type="text" id="roomName" name="roomName" value="<%= task.roomName %>" autocomplete="off">
 
-        <!-- ⭐ Dage -->
+        <!-- Dage -->
         <h3>Dage</h3>
 
         <button type="button" class="button" data-weekdays="days">
@@ -48,7 +48,7 @@
             </label>
         <% }) %>
 
-        <!-- ⭐ Frekvens -->
+        <!-- Frekvens -->
         <label for="frequency">Frekvens</label>
         <select id="frequency"
                 name="frequency"
@@ -64,7 +64,7 @@
             <% }) %>
         </select>
 
-        <!-- ⭐ Mængde -->
+        <!-- Mængde -->
         <label for="amount">Mængde (<%= task.unit || 'stk' %>)</label>
         <input type="number"
                id="amount"
@@ -78,7 +78,7 @@
                hx-include="closest form"
                hx-target="#taskPrice">
 
-        <!-- ⭐ Varighed -->
+        <!-- Varighed -->
         <label for="durationPerUnit">Varighed pr enhed (minutter)</label>
         <input type="number"
                id="durationPerUnit"
@@ -92,7 +92,7 @@
                hx-include="closest form"
                hx-target="#taskPrice">
 
-        <!-- ⭐ Fast pris -->
+        <!-- Fast pris -->
         <label for="customPrice">Fast pris (valgfrit)</label>
         <input type="number"
                id="customPrice"
@@ -105,7 +105,7 @@
                hx-include="closest form"
                hx-target="#taskPrice">
 
-        <!-- ⭐ Antal (kun consumables) -->
+        <!-- Antal (kun consumables) -->
         <% if (task.category === categoryTypes.consumables) { %>
             <label for="quantity">Antal (stk)</label>
             <input type="number"
@@ -120,11 +120,11 @@
                    hx-target="#taskPrice">
         <% } %>
 
-        <!-- ⭐ Beskrivelse -->
+        <!-- Beskrivelse -->
         <label for="description">Beskrivelse</label>
         <textarea id="description" name="description" rows="3" autocomplete="off"><%= task.description %></textarea>
 
-        <!-- ⭐ Pris -->
+        <!-- Pris -->
         <p>
             <strong>Aktuel pris:</strong>
             <span id="taskPrice">

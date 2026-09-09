@@ -10,8 +10,6 @@ module.exports.frequencies = {
     yearly: "yearly",
     none: "none",
     adHoc: "adHoc",
-    windows: "windows",
-    efterAftale: "efterAftale"
 };
 
 module.exports.frequencyMultipliers = {
@@ -23,8 +21,6 @@ module.exports.frequencyMultipliers = {
     yearly: 0.0833,
     none: 0,
     adHoc: 0,
-    windows: 0,
-    efterAftale: 0
 };
 
 module.exports.frequencyLabels = {
@@ -36,6 +32,4 @@ module.exports.frequencyLabels = {
     yearly: "Årlig",
     none: "Ingen fast frekvens",
     adHoc: "Ad hoc",
-    windows: "Vinduespudsning",
-    efterAftale: "Efter aftale"
 };

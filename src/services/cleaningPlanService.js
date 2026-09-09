@@ -1,14 +1,36 @@
 const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const cleaningTaskRepo = require('../data/cleaningTaskRepo');
+const systemSettingsRepo = require('../data/systemSettingsRepo');
 const { ensureExists, userError } = require("../utils/userError");
-const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
-const { categoryTypes } = require('../utils/categoryEnum');
-const { getTaskTotalPrice } = require('../utils/taskTotalUtil');
-const { frequencies } = require('../utils/frequencyEnum');
+const { calculateTaskPrice } = require("../services/priceService");
+const { categoryTypes } = require("../utils/categoryEnum");
 
-// ------------------------------------------------------------
-// GENBEREGN TOTALPRIS FOR PLAN
-// ------------------------------------------------------------
+
+function extractInstructionDescriptions(tasks) {
+
+    const dailyTasks = tasks.filter(t => t.category === categoryTypes.daily);
+    const floorTasks = tasks.filter(t => t.category === categoryTypes.floor);
+    const inventoryTasks = tasks.filter(t => t.category === categoryTypes.inventory);
+
+    const dailyDescriptions = dailyTasks
+        .map(t => t.description)
+        .filter(Boolean);
+
+    const floorDescriptions = floorTasks
+        .map(t => t.description)
+        .filter(Boolean);
+
+    const inventoryDescriptions = inventoryTasks
+        .map(t => t.description)
+        .filter(Boolean);
+
+    return {
+        dailyDescriptions,
+        floorDescriptions,
+        inventoryDescriptions
+    };
+}
+
 async function recalculatePlanTotal(planId) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -20,24 +42,10 @@ async function recalculatePlanTotal(planId) {
 
     for (const t of tasks) {
 
-        // IGNORÉR forbrugsvarer
-        if (t.category === categoryTypes.consumables) continue;
+        // Beregn pris via priceService (kategori er ligegyldig)
+        const prices = calculateTaskPrice(t, hourlyRate);
 
-        // IGNORÉR opgaver uden månedlig frekvens
-        if (
-            t.frequency === frequencies.none ||
-            t.frequency === frequencies.adHoc ||
-            t.frequency === frequencies.windows ||
-            t.frequency === frequencies.efterAftale
-        ) {
-            console.log(`Opgave ${t.name} ignoreres i totalberegning, da den ikke har månedlig frekvens.`);
-            continue;
-        }
-
-        // Beregn priser igen
-        const prices = calculateTaskMonthlyPrice(t, hourlyRate);
-
-        // KUN månedlige opgaver skal med
+        // Kun månedlige priser med i totalen
         if (prices.monthlyPrice > 0) {
             subtotal += prices.monthlyPrice;
         }
@@ -63,42 +71,35 @@ async function recalculatePlanTotal(planId) {
     });
 }
 
-// ------------------------------------------------------------
-// OPRET PLAN
-// ------------------------------------------------------------
+
 async function createCleaningPlan(data) {
-
-    if (data.hourlyRate === undefined || data.hourlyRate === null) {
-        throw new userError("Timeprisen mangler ved oprettelse af plan.");
-    }
-
-    if (typeof data.hourlyRate === "string" && data.hourlyRate.trim() === "") {
-        throw new userError("Timeprisen må ikke være tom.");
-    }
-
-    if (isNaN(Number(data.hourlyRate))) {
-        throw new userError("Timeprisen skal være et tal.");
-    }
+    const settings = await systemSettingsRepo.getSettings();
 
     const plan = await cleaningPlanRepo.create({
         customerId: data.customerId,
         locationId: data.locationId,
-        name: data.name?.trim() || "Ukendt plan",
+        name: data.name?.trim() || "Rengøringsplan",
         description: data.description?.trim() || "",
-        hourlyRate: Number(data.hourlyRate),
+        roomNotes: data.roomNotes || [],
+            hourlyRate: data.hourlyRate
+                ? Number(data.hourlyRate)
+                : settings.hourlyRate,
         isActive: false,
+
         totalMonthlyPrice: 0,
         discountPercent: 0,
-        environmentalFeePercent: 4
+        environmentalFeePercent: settings.environmentalFee,
+        environmentalFeeAmount: 0,
+        subtotalBeforeDiscount: 0,
+        discountAmount: 0,
+
+        indexRegulationPercent: settings.inflationRate * 100,
     });
 
     return plan;
 }
 
 
-// ------------------------------------------------------------
-// LIST / FIND
-// ------------------------------------------------------------
 async function listCleaningPlans() {
     return cleaningPlanRepo.findAllActive();
 }
@@ -114,9 +115,6 @@ async function findCleaningPlanById(planId) {
 }
 
 
-// ------------------------------------------------------------
-// OPDATER PLAN
-// ------------------------------------------------------------
 async function updateCleaningPlan(planId, data) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -136,9 +134,6 @@ async function updateCleaningPlan(planId, data) {
 }
 
 
-// ------------------------------------------------------------
-// DEAKTIVER / GENAKTIVER
-// ------------------------------------------------------------
 async function deleteCleaningPlan(planId) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -157,9 +152,6 @@ async function reactivateCleaningPlan(planId) {
 }
 
 
-// ------------------------------------------------------------
-// HENT PLANER FOR KUNDE / LOKATION
-// ------------------------------------------------------------
 async function getPlansForCustomer(customerId) {
     return cleaningPlanRepo.findByCustomerId(customerId);
 }
@@ -169,9 +161,6 @@ async function getPlansForLocation(locationId) {
 }
 
 
-// ------------------------------------------------------------
-// HENT TASKS FOR PLAN
-// ------------------------------------------------------------
 async function getTasksForPlan(planId) {
     return cleaningTaskRepo.findByPlanId(planId);
 }
@@ -188,5 +177,6 @@ module.exports = {
     recalculatePlanTotal,
     getPlansForCustomer,
     getPlansForLocation,
-    getTasksForPlan
+    getTasksForPlan,
+    extractInstructionDescriptions
 };

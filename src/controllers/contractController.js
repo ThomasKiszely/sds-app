@@ -39,7 +39,7 @@ async function downloadContractPdf(req, res, next) {
         const pdfBuffer = await contractService.getContractPdf(contractId);
         const contract = await contractService.getContractById(contractId);
 
-        // ⭐ Dynamisk SDS-filnavn
+        // Dynamisk SDS-filnavn
         const filename = makePdfFilename(
             "kontrakt",
             contract.snapshot.customer.name

@@ -6,7 +6,7 @@ function groupSdsTasksByRoom(tasks) {
 
     for (const t of tasks) {
 
-        // ⭐ Kun SDS-opgaver skal grouped
+        // Kun SDS-opgaver skal grouped
         const isSds =
             t.category === categoryTypes.daily ||
             t.category === categoryTypes.floor ||
@@ -14,7 +14,7 @@ function groupSdsTasksByRoom(tasks) {
 
         if (!isSds) continue;
 
-        // ⭐ SDS-opgaver SKAL have rum
+        // SDS-opgaver SKAL have rum
         if (!t.roomName || t.roomName.trim() === "") continue;
 
         if (!rooms[t.roomName]) {
@@ -24,7 +24,7 @@ function groupSdsTasksByRoom(tasks) {
         rooms[t.roomName].sds.push(t);
     }
 
-    // ⭐ Beregn programkode pr rum
+    // Beregn programkode pr rum
     for (const roomName of Object.keys(rooms)) {
         const sdsTasks = rooms[roomName].sds;
 

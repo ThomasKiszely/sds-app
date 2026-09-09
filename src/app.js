@@ -30,14 +30,14 @@ const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { log } = require('./middlewares/logger');
 
-// ⭐ 1. View Engine
+// 1. View Engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// ⭐ 2. Proxy (Railway)
+// 2. Proxy (Railway)
 app.set("trust proxy", 1);
 
-// ⭐ 3. Helmet Security Headers (Tidligt i chain)
+// 3. Helmet Security Headers (Tidligt i chain)
 app.use(
     helmet({
         contentSecurityPolicy: {
@@ -52,14 +52,14 @@ app.use(
     })
 );
 
-// ⭐ 4. Statiske filer (Før Session & CSRF for bedre performance)
+// 4. Statiske filer (Før Session & CSRF for bedre performance)
 app.use(express.static(path.join(__dirname, '../public'), { extensions: ['html'] }));
 
-// ⭐ 5. Body parsing
+// 5. Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ⭐ 6. Session
+// 6. Session
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
@@ -75,17 +75,17 @@ app.use(
     })
 );
 
-// ⭐ 7. CSRF (Kræver session)
+// 7. CSRF (Kræver session)
 app.use(csrf());
 
-// ⭐ 8. Global data til views
+// 8. Global data til views
 app.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
     res.locals.user = req.session ? req.session.user : null;
     next();
 });
 
-// ⭐ 9. Rate limiting
+// 9. Rate limiting
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 300,
@@ -115,13 +115,13 @@ const loginLimiter = rateLimit({
 });
 app.use("/users/login", loginLimiter);
 
-// ⭐ 10. Logger
+// 10. Logger
 app.use(log);
 
-// ⭐ 11. Custom Middleware
+// 11. Custom Middleware
 app.use(mustChangePassword);
 
-// ⭐ 12. Routes
+// 12. Routes
 app.use('/', viewRouter);
 app.use('/newPlan', newPlanRouter);
 app.use('/offers', offerRouter);
@@ -137,7 +137,7 @@ app.use('/contracts', requireLogin, contractRouter);
 
 app.use('/users', userRouter);
 
-// ⭐ 13. Error Handling
+// 13. Error Handling
 app.use(notFound);
 app.use(errorHandler);
 

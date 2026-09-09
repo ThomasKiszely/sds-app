@@ -1,7 +1,7 @@
 <article class="task-category">
     <h2>Daglige opgaver</h2>
 
-    <!-- ⭐ Opret bundle -->
+    <!-- Opret bundle -->
     <button
             class="button"
             hx-get="/newPlan/tasks/dailyBundle/create?planId=<%= plan._id %>"
@@ -10,7 +10,7 @@
         Opret daglig opgave (bundle)
     </button>
 
-    <!-- ⭐ Templates -->
+    <!-- Templates -->
     <ul class="template-list">
         <% templates.forEach(t => { %>
             <li>
@@ -32,7 +32,7 @@
 
     <h3>Valgte opgaver</h3>
 
-    <!-- ⭐ NY: Samlet bundle pr rum -->
+    <!-- NY: Samlet bundle pr rum -->
     <% for (const roomName in grouped) { %>
         <section class="task-room-group">
 
@@ -41,7 +41,7 @@
                 <span class="program-code">(Kode: <%= grouped[roomName].programCode %>)</span>
             </h4>
 
-            <!-- ⭐ Vis SDS-opgaver samlet -->
+            <!-- Vis SDS-opgaver samlet -->
             <ul class="task-list-room">
                 <% grouped[roomName].sds.forEach(task => { %>
                     <li class="task-item sds-task">
@@ -72,7 +72,7 @@
                 <% }) %>
             </ul>
 
-            <!-- ⭐ Kun én knap pr bundle -->
+            <!-- Kun én knap pr bundle -->
             <div class="task-actions">
                 <button class="button small"
                         hx-get="/newPlan/tasks/dailyBundle/edit?planId=<%= plan._id %>&roomName=<%= roomName %>"

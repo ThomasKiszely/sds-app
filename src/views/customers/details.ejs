@@ -16,7 +16,7 @@
     <p><strong>Kundeadresse:</strong> <%= customer.customerAddress %></p>
     <p><strong>Faktureringsadresse:</strong> <%= customer.billingAddress %></p>
 
-    <!-- ⭐ NY SEKTION: Lokationer -->
+    <!-- NY SEKTION: Lokationer -->
     <h2>Lokationer</h2>
 
     <button hx-get="/customers/<%= customer._id %>/locations/create"

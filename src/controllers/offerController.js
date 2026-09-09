@@ -1,27 +1,23 @@
 const offerService = require("../services/offerService");
-const cleaningTaskService = require("../services/cleaningTaskService");
 const pdfService = require("../services/pdfService");
-const customerService = require("../services/customerService");
 const contractService = require("../services/contractService");
+const cleaningPlanService = require("../services/cleaningPlanService");
+const customerService = require("../services/customerService");
 const { parseAddress } = require("../utils/addressUtil");
 const { makePdfFilename } = require("../utils/pdfFilenameUtil");
-
 
 async function pdfOffer(req, res, next) {
     try {
         const offerId = req.params.id;
 
-        // ⭐ Hent tilbud
         let offer = await offerService.getOfferById(offerId);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        // ⭐ Hvis tilbuddet stadig er draft → markér som sendt
         if (offer.status === "draft") {
             await offerService.sendOffer(offerId);
-            offer = await offerService.getOfferById(offerId); // hent igen med opdateret status
+            offer = await offerService.getOfferById(offerId);
         }
 
-        // ⭐ PDF token check
         if (!offer.signatureToken || !offer.signatureTokenExpiresAt) {
             return res.status(400).send("Tilbuddet har ikke et gyldigt acceptlink");
         }
@@ -30,23 +26,9 @@ async function pdfOffer(req, res, next) {
             return res.status(410).send("Acceptlinket er udløbet");
         }
 
-        const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
-        const customer = await customerService.getCustomerById(offer.customerId);
-        const { street, zip, city } = parseAddress(customer.customerAddress);
+        const pdfBuffer = await pdfService.generateOfferPdf(offer);
 
-        const signatureLink =
-            `${req.protocol}://${req.get("host")}/offers/${offer._id}/accept?token=${offer.signatureToken}`;
-
-        const pdfBuffer = await pdfService.generateOfferPdf(
-            offer,
-            tasks,
-            customer,
-            { street, zip, city },
-            signatureLink
-        );
-
-        // ⭐ Dynamisk SDS-filnavn
-        const filename = makePdfFilename("tilbud", customer.customerName);
+        const filename = makePdfFilename("tilbud", offer.snapshot.plan.name);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
@@ -62,26 +44,28 @@ async function viewOffer(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        const tasks = await cleaningTaskService.findCleaningTasksByIds(offer.taskIds);
+        const plan = await cleaningPlanService.findCleaningPlanById(offer.planId);
 
-        const customer = await customerService.getCustomerById(offer.customerId);
+        const customer = await customerService.getCustomerById(plan.customerId);
+
         const { street, zip, city } = parseAddress(customer.customerAddress);
-
-        console.log("Logger her: Street " + street + ", Zip: " + zip + ", City: " + city);
 
         return res.render("offers/view", {
             offer,
-            tasks,
+            snapshot: offer.snapshot,
+            user: req.session.user,
+
             customer,
             street,
             zip,
-            city,
-            user: req.session.user
+            city
         });
+
     } catch (err) {
         next(err);
     }
 }
+
 
 async function sendOffer(req, res, next) {
     try {
@@ -101,7 +85,6 @@ async function acceptView(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        // ⭐ Token check
         if (offer.signatureToken !== req.query.token) {
             return res.status(403).render("offers/invalid");
         }
@@ -110,15 +93,9 @@ async function acceptView(req, res, next) {
             return res.status(410).render("offers/invalid");
         }
 
-        const customer = await customerService.getCustomerById(offer.customerId);
-        const { street, zip, city } = parseAddress(customer.customerAddress);
-
         return res.render("offers/accept", {
             offer,
-            customer,
-            street,
-            zip,
-            city,
+            snapshot: offer.snapshot,
             csrfToken: req.csrfToken()
         });
 
@@ -127,18 +104,15 @@ async function acceptView(req, res, next) {
     }
 }
 
-
 async function acceptOffer(req, res, next) {
     try {
         const offerId = req.params.id;
 
-        // ⭐ 1. Hent tilbud
         const offer = await offerService.getOfferById(offerId);
         if (!offer) {
             return next({ isUserError: true, message: "Tilbud findes ikke" });
         }
 
-        // ⭐ 2. Token check
         if (offer.signatureToken !== req.query.token) {
             return res.status(403).render("offers/invalid");
         }
@@ -151,12 +125,10 @@ async function acceptOffer(req, res, next) {
             return res.status(403).render("offers/invalid");
         }
 
-        // ⭐ 3. Status check
         if (offer.status !== "sent") {
             return next({ isUserError: true, message: "Tilbuddet kan ikke accepteres" });
         }
 
-        // ⭐ 4. Accepter tilbuddet
         const updatedOffer = await offerService.acceptOffer(
             offerId,
             {
@@ -165,14 +137,12 @@ async function acceptOffer(req, res, next) {
             }
         );
 
-        // ⭐ 5. Generér kontrakt automatisk
         await contractService.generateContract({
             planId: updatedOffer.planId,
             offerId: updatedOffer._id,
             generatedBy: "system"
         });
 
-        // ⭐ 6. Vis accepted.ejs
         return res.render("offers/accepted", {
             offer: updatedOffer,
         });
@@ -181,8 +151,6 @@ async function acceptOffer(req, res, next) {
         next(err);
     }
 }
-
-
 
 module.exports = {
     viewOffer,

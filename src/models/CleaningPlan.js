@@ -37,7 +37,7 @@ const cleaningPlanSchema = new mongoose.Schema({
     }],
 
 
-    // ⭐ Prisberegning (beregnes ud fra CleaningTasks)
+    // Prisberegning (beregnes ud fra CleaningTasks)
     subtotalBeforeDiscount: { type: Number, default: 0 },
     discountPercent: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
@@ -49,14 +49,14 @@ const cleaningPlanSchema = new mongoose.Schema({
 
     totalMonthlyPrice: { type: Number, default: 0 },
 
-    // ⭐ Betalingsbetingelser (dropdown)
+    // Betalingsbetingelser (dropdown)
     paymentTerms: {
         type: String,
         enum: Object.keys(paymentTerms),
         required: false // du kan sætte til true når UI er klar
     },
 
-    // ⭐ Tilbud der er accepteret
+    // Tilbud der er accepteret
     offerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Offer",

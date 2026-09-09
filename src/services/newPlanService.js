@@ -10,15 +10,11 @@ const { categoryTypes } = require("../utils/categoryEnum");
 const { days } = require("../utils/dayEnum");
 const { frequencies, frequencyMultipliers } = require("../utils/frequencyEnum");
 const { units } = require("../utils/unitEnum");
-const { calculateTaskMonthlyPrice } = require("../utils/priceUtil");
+const { calculateTaskPrice } = require("../services/priceService");
 const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
 const { paymentTerms } = require("../utils/paymentTerms");
-const { getTaskTotalPrice } = require("../utils/taskTotalUtil");
 
 
-// ------------------------------------------------------------
-// 1. CREATE PLAN
-// ------------------------------------------------------------
 async function createPlan({ customerId, locationId, nameFromUI, description }) {
 
     const customer = await customerService.getCustomerById(customerId);
@@ -54,13 +50,11 @@ async function createPlan({ customerId, locationId, nameFromUI, description }) {
 }
 
 
-// ------------------------------------------------------------
-// 2. ADD TASK FROM TEMPLATE
-// ------------------------------------------------------------
+
 async function addTaskFromTemplate(planId, templateId, body) {
     const template = await cleaningTaskTemplateService.findTemplateById(templateId);
 
-    // ⭐ Merge template + body
+    //  Merge template + body
     const merged = {
         templateId,
         name: body.name ?? template.name,
@@ -84,37 +78,32 @@ async function addTaskFromTemplate(planId, templateId, body) {
         customPrice: Number(body.customPrice ?? template.customPrice ?? 0),
     };
 
-    // ⭐ Hent hourlyRate
+    // Hent hourlyRate
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const hourlyRate = plan.hourlyRate;
 
-    // ⭐ Beregn pris (DIN egen prisfunktion)
-    const prices = calculateTaskMonthlyPrice(merged, hourlyRate);
+    // Beregn pris
+    const prices = calculateTaskPrice(merged, hourlyRate);
 
-    // ⭐ Merge pris ind i task
+    // Merge pris ind i task
     const pricedTask = { ...merged, ...prices };
 
-    // ⭐ Gem task
+    // Gem task
     const task = await cleaningTaskService.createCleaningTask(planId, pricedTask);
 
-    // ⭐ Opdater plan total
+    // Opdater plan total
     await cleaningPlanService.recalculatePlanTotal(planId);
 
     return task;
 }
 
 
-// ------------------------------------------------------------
-// 3. EDIT TASK VIEWMODEL
-// ------------------------------------------------------------
+
 async function getEditTaskViewModel(taskId) {
     return await cleaningTaskService.findCleaningTaskById(taskId);
 }
 
 
-// ------------------------------------------------------------
-// 4. UPDATE TASK
-// ------------------------------------------------------------
 async function updateTask(taskId, body) {
     const updatedTask = await cleaningTaskService.updateCleaningTask(taskId, body);
 
@@ -125,14 +114,22 @@ async function updateTask(taskId, body) {
 
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-    // ⭐ Brug monthlyPrice ELLER pricePerTime
+    // RETTET: brug både monthlyPrice OG pricePerTime
     const monthlyTotal = enrichedTasks.reduce((sum, t) => {
-        return sum + getTaskTotalPrice(t);
+        const prices = calculateTaskPrice(t, hourlyRate);
+        const price =
+            prices.monthlyPrice > 0
+                ? prices.monthlyPrice
+                : prices.pricePerTime > 0
+                    ? prices.pricePerTime
+                    : 0;
+        return sum + price;
     }, 0);
+
 
     const yearlyTotal = monthlyTotal * 12;
 
@@ -144,9 +141,7 @@ async function updateTask(taskId, body) {
     };
 }
 
-// ------------------------------------------------------------
-// 5. PREVIEW TASK PRICE
-// ------------------------------------------------------------
+
 async function previewTaskPrice(taskId, body) {
     const task = await cleaningTaskService.findCleaningTaskById(taskId);
     const hourlyRate = await cleaningTaskService.getHourlyRateForPlan(task.planId);
@@ -177,7 +172,7 @@ async function previewTaskPrice(taskId, body) {
         customPrice
     };
 
-    const { monthlyPrice } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
+    const { monthlyPrice } = calculateTaskPrice(tempTask, hourlyRate);
 
     return Math.round(monthlyPrice);
 }
@@ -220,26 +215,22 @@ async function previewNewTaskPrice(body) {
         customPrice: customPriceNum
     };
 
-    const { monthlyPrice, pricePerTime } = calculateTaskMonthlyPrice(tempTask, hourlyRate);
+    const { monthlyPrice, pricePerTime } = calculateTaskPrice(tempTask, hourlyRate);
 
-    // ⭐ 1) Hvis månedlig pris findes → brug den
+    //  1) Hvis månedlig pris findes → brug den
     if (monthlyPrice > 0) {
         return monthlyPrice;
     }
 
-    // ⭐ 2) Ellers → pris pr gang (varighed × mængde × timepris)
+    // 2) Ellers → pris pr gang (varighed × mængde × timepris)
     if (pricePerTime > 0) {
         return pricePerTime;
     }
 
-    // ⭐ 3) Ellers → brug customPrice
+    // 3) Ellers → brug customPrice
     return customPriceNum ?? 0;
 }
 
-
-// ------------------------------------------------------------
-// 6. DELETE TASK
-// ------------------------------------------------------------
 
 async function deleteTask(taskId) {
     const deletedTask = await cleaningTaskService.deleteCleaningTask(taskId);
@@ -251,14 +242,22 @@ async function deleteTask(taskId) {
 
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-    // ⭐ Brug monthlyPrice ELLER pricePerTime
+    // RETTET: brug både monthlyPrice OG pricePerTime
     const monthlyTotal = enrichedTasks.reduce((sum, t) => {
-        return sum + getTaskTotalPrice(t);
+        const prices = calculateTaskPrice(t, hourlyRate);
+        const price =
+            prices.monthlyPrice > 0
+                ? prices.monthlyPrice
+                : prices.pricePerTime > 0
+                    ? prices.pricePerTime
+                    : 0;
+        return sum + price;
     }, 0);
+
 
     const yearlyTotal = monthlyTotal * 12;
 
@@ -270,10 +269,6 @@ async function deleteTask(taskId) {
     };
 }
 
-// ------------------------------------------------------------
-// 7. LIST TASKS
-// ------------------------------------------------------------
-
 
 async function listTasks(planId) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
@@ -284,13 +279,21 @@ async function listTasks(planId) {
     // Samme enrich som step4Offer
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-    // Samme subtotal-logik som step4Offer
-    const monthlyTasks = enrichedTasks.filter(t => t.monthlyPrice > 0);
-    const monthlyTotal = monthlyTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
+    // RETTET: brug både monthlyPrice OG pricePerTime
+    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
+        const price =
+            t.monthlyPrice > 0
+                ? t.monthlyPrice
+                : t.pricePerTime > 0
+                    ? t.pricePerTime
+                    : 0;
+        return sum + price;
+    }, 0);
+
 
     return {
         planId,
@@ -302,10 +305,6 @@ async function listTasks(planId) {
 
 
 
-// ------------------------------------------------------------
-// 8. OFFER STEP 4 VIEWMODEL
-// ------------------------------------------------------------
-
 async function getOfferStep4ViewModel(planId) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
@@ -313,10 +312,10 @@ async function getOfferStep4ViewModel(planId) {
 
     const hourlyRate = plan.hourlyRate;
 
-    // ⭐ Enrich tasks
+    // Enrich tasks
     const enrichedTasks = tasks.map(t => {
         const plain = typeof t.toObject === "function" ? t.toObject() : t;
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
 
         return {
             ...plain,
@@ -324,10 +323,17 @@ async function getOfferStep4ViewModel(planId) {
         };
     });
 
-    // ⭐ KUN månedlige opgaver skal med i subtotal
-    const monthlyTasks = enrichedTasks.filter(t => t.monthlyPrice > 0);
+    // ⭐ Brug både monthlyPrice OG pricePerTime
+    const subtotal = enrichedTasks.reduce((sum, t) => {
+        const price =
+            t.monthlyPrice > 0
+                ? t.monthlyPrice
+                : t.pricePerTime > 0
+                    ? t.pricePerTime
+                    : 0;
+        return sum + price;
+    }, 0);
 
-    const subtotal = monthlyTasks.reduce((sum, t) => sum + t.monthlyPrice, 0);
 
     const discountPercent = plan.discountPercent || 0;
     const discountAmount = subtotal * (discountPercent / 100);
@@ -344,7 +350,7 @@ async function getOfferStep4ViewModel(planId) {
         discountPercent,
         environmentalFee: environmentalFeePercent,
         subtotal,
-        monthlyTotal: subtotal,   // ⭐ korrekt monthlyTotal
+        monthlyTotal: subtotal,
         discountAmount,
         environmentalFeeAmount,
         total,
@@ -353,9 +359,6 @@ async function getOfferStep4ViewModel(planId) {
 }
 
 
-// ------------------------------------------------------------
-// 9. OFFER PREVIEW
-// ------------------------------------------------------------
 async function getOfferPreview(planId, discountPercent, environmentalFee) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
@@ -364,16 +367,16 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
 
     const enrichedTasks = tasks.map(t => {
         const plain = typeof t.toObject === "function" ? t.toObject() : t;
-        const prices = cleaningTaskService.calculateCleaningTaskPrices(plain, hourlyRate);
+        const prices = calculateTaskPrice(plain, hourlyRate);
 
         return {
             ...plain,
             ...prices,
-            totalPrice: getTaskTotalPrice(prices)   // ⭐ BRUG PRIS PR GANG ELLER MÅNED
+            totalPrice: prices.monthlyPrice > 0 ? prices.monthlyPrice : prices.pricePerTime
         };
     });
 
-    // ⭐ Beregn subtotal baseret på totalPrice
+    // Beregn subtotal baseret på totalPrice
     const subtotal = enrichedTasks.reduce((sum, t) => {
         return sum + t.totalPrice;
     }, 0);
@@ -389,34 +392,31 @@ async function getOfferPreview(planId, discountPercent, environmentalFee) {
 }
 
 
-// ------------------------------------------------------------
-// UPDATE DAILY BUNDLE (Soignering + Gulv + Inventar)
-// ------------------------------------------------------------
 async function updateDailyBundle(planId, body) {
 
     const roomName = body.roomName;
     const amount = Number(body.amount);
 
-    // ⭐ Bemærkninger for rummet
+    // Bemærkninger for rummet
     const notesRaw = body.roomNotes || "";
     const notesArray = notesRaw
         .split("\n")
         .map(n => n.trim())
         .filter(n => n.length > 0);
 
-    // ⭐ Hent planen
+    // Hent planen
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const hourlyRate = plan.hourlyRate;
 
-    // ⭐ Opdater roomNotes
+    // Opdater roomNotes
     const filtered = plan.roomNotes.filter(r => r.roomName !== roomName);
     filtered.push({ roomName, notes: notesArray });
     await cleaningPlanService.updateCleaningPlan(planId, { roomNotes: filtered });
 
-    // ⭐ Hent SDS-opgaver for rummet
+    // Hent SDS-opgaver for rummet
     const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
 
-    // ⭐ Fælles felter
+    // Fælles felter
     const frequency = body.frequency || frequencies.weekly;
 
     const daysNormalized = (() => {
@@ -427,12 +427,12 @@ async function updateDailyBundle(planId, body) {
 
     for (const task of sdsTasks) {
 
-        // ⭐ Individuelle felter (MATCHER EJS)
+        // Individuelle felter (MATCHER EJS)
         const durationPerUnit = Number(body[`duration_${task._id}`] ?? task.durationPerUnit);
         const customPrice = body[`custom_${task._id}`] ? Number(body[`custom_${task._id}`]) : null;
         const description = body[`description_${task._id}`] || "";
 
-        // ⭐ Saml opdateret task
+        // Saml opdateret task
         const updatedTask = {
             ...task.toObject(),
             roomName,
@@ -444,10 +444,10 @@ async function updateDailyBundle(planId, body) {
             description
         };
 
-        // ⭐ Beregn priser
-        const prices = calculateTaskMonthlyPrice(updatedTask, hourlyRate);
+        // Beregn priser
+        const prices = calculateTaskPrice(updatedTask, hourlyRate);
 
-        // ⭐ Gem task
+        // Gem task
         await cleaningTaskService.updateCleaningTask(task._id, {
             roomName,
             amount,
@@ -460,7 +460,7 @@ async function updateDailyBundle(planId, body) {
         });
     }
 
-    // ⭐ Recalculate plan total
+    // Recalculate plan total
     await cleaningPlanService.recalculatePlanTotal(planId);
 
     return true;
@@ -473,29 +473,29 @@ async function createDailyBundle(planId, body) {
 
     const amount = Number(body.amount);
 
-    // ⭐ Bemærkninger for rummet
+    // Bemærkninger for rummet
     const notesRaw = body.roomNotes || "";
     const notesArray = notesRaw
         .split("\n")
         .map(n => n.trim())
         .filter(n => n.length > 0);
 
-// ⭐ Hent planen
+// Hent planen
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
 
-// ⭐ Fjern gamle bemærkninger for rummet
+// Fjern gamle bemærkninger for rummet
     const filtered = plan.roomNotes.filter(r => r.roomName !== roomName);
 
-// ⭐ Tilføj nye bemærkninger
+// Tilføj nye bemærkninger
     filtered.push({
         roomName,
         notes: notesArray
     });
 
-// ⭐ Gem via repo
+// Gem via repo
     await cleaningPlanService.updateCleaningPlan(planId, { roomNotes: filtered });
 
-    // ⭐ Hent dage pr kategori
+    // Hent dage pr kategori
     const daysS = Array.isArray(body.days_soignering)
         ? body.days_soignering
         : (body.days_soignering ? [body.days_soignering] : []);
@@ -525,7 +525,7 @@ async function createDailyBundle(planId, body) {
     const gulvTemplate       = (await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.floor))[0];
     const inventarTemplate   = (await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.inventory))[0];
 
-    // ⭐ Opret Soignering
+    // Opret Soignering
     await cleaningTaskService.createCleaningTask(planId, {
         templateId: soigneringTemplate._id,
         roomName,
@@ -537,7 +537,7 @@ async function createDailyBundle(planId, body) {
         days: daysS
     });
 
-    // ⭐ Opret Gulv
+    // Opret Gulv
     await cleaningTaskService.createCleaningTask(planId, {
         templateId: gulvTemplate._id,
         roomName,
@@ -549,7 +549,7 @@ async function createDailyBundle(planId, body) {
         days: daysG
     });
 
-    // ⭐ Opret Inventar
+    // Opret Inventar
     await cleaningTaskService.createCleaningTask(planId, {
         templateId: inventarTemplate._id,
         roomName,
@@ -572,7 +572,7 @@ function groupTasksByRoom(tasks) {
 
     for (const t of tasks) {
 
-        // ⭐ Kun bundle-opgaver har rum
+        // Kun bundle-opgaver har rum
         if (!t.roomName || t.roomName.trim() === "") {
             continue; // skip tasks uden lokale
         }
@@ -581,7 +581,7 @@ function groupTasksByRoom(tasks) {
             rooms[t.roomName] = { sds: [], other: [] };
         }
 
-        // ⭐ SDS-opgaver (daily, floor, inventory)
+        // SDS-opgaver (daily, floor, inventory)
         if (["daily", "floor", "inventory"].includes(t.category)) {
             rooms[t.roomName].sds.push(t);
         } else {
@@ -589,7 +589,7 @@ function groupTasksByRoom(tasks) {
         }
     }
 
-    // ⭐ Beregn programkode KUN for SDS-opgaver
+    // Beregn programkode KUN for SDS-opgaver
     for (const room of Object.keys(rooms)) {
         const sdsTasks = rooms[room].sds;
 

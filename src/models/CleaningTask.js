@@ -44,7 +44,7 @@ const cleaningTaskSchema = new mongoose.Schema({
         default: 0
     },
 
-    // ⭐ NYT: mængde (m2, lbm, stk)
+    // NYT: mængde (m2, lbm, stk)
     amount: { type: Number, default: 0 },
 
     // brugerens valg

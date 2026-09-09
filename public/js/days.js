@@ -5,7 +5,7 @@ function setDailyWeekdays(fieldName = "days") {
     });
 }
 
-// ⭐ CSP-kompatibel event listener (vigtig!)
+// CSP-kompatibel event listener (vigtig!)
 document.addEventListener("click", (evt) => {
     const btn = evt.target.closest("[data-weekdays]");
     if (!btn) return;

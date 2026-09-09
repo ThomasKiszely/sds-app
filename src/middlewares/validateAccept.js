@@ -3,7 +3,7 @@
 module.exports = function validateAccept(req, res, next) {
     const { name, email } = req.body;
 
-    // ⭐ Valider navn
+    // Valider navn
     if (!name || typeof name !== "string" || name.trim().length < 2) {
         return next({
             isUserError: true,
@@ -11,7 +11,7 @@ module.exports = function validateAccept(req, res, next) {
         });
     }
 
-    // ⭐ Valider email
+    // Valider email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
         return next({

@@ -31,7 +31,7 @@ function validateCustomer(req, res, next) {
         return next({ isUserError: true, message: "CVR er ugyldig" });
     }
 
-    // ⭐ Normaliser adresser (tilføj komma hvis nødvendigt)
+    // Normaliser adresser (tilføj komma hvis nødvendigt)
     data.customerAddress = normalizeAddress(data.customerAddress);
     data.billingAddress = normalizeAddress(data.billingAddress);
 

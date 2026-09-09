@@ -36,12 +36,20 @@ router.get('/:planId/view',
     cleaningPlanController.viewPlan
 );
 
+router.get('/:planId/planPdf', validatePlanId, cleaningPlanController.generatePlanPdf);
+
 // Find plan (JSON)
 router.get('/:planId',
     validatePlanId,
     lookupLimiter,
     cleaningPlanController.findCleaningPlanById
 );
+
+router.get('/:planId/edit',
+    validatePlanId,
+    cleaningPlanController.editPlan
+);
+
 
 // Opret plan
 router.post('/',

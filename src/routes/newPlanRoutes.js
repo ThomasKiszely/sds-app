@@ -36,7 +36,7 @@ router.get("/tasks/dailyBundle/edit", requireLogin, newPlanController.tasks_edit
 router.get("/tasks/dailyBundle/create", requireLogin, newPlanController.tasks_createDailyBundle);
 router.post("/tasks/dailyBundle/save", requireLogin, newPlanController.tasks_saveDailyBundle);
 
-// ⭐ PREVIEW FOR NY OPGAVE (Skal ligge FØR /:taskId ruterne og UDEN validering)
+// PREVIEW FOR NY OPGAVE (Skal ligge FØR /:taskId ruterne og UDEN validering)
 router.post("/tasks/previewNew", requireLogin, newPlanController.tasks_previewNew);
 
 // ALMINDELIGE TASKS (:taskId parametriserede ruter)

@@ -10,7 +10,7 @@
     >
         <input type="hidden" name="planId" value="<%= tasks[0].planId %>">
 
-        <!-- ⭐ FÆLLES FELTER -->
+        <!-- FÆLLES FELTER -->
         <section>
             <h2>Fælles oplysninger</h2>
 
@@ -28,7 +28,7 @@
 
         <hr>
 
-        <!-- ⭐ INDIVIDUELLE SDS-OPGAVER -->
+        <!-- INDIVIDUELLE SDS-OPGAVER -->
         <% tasks.forEach(task => { %>
             <section>
                 <h2><%= task.name %></h2>
@@ -57,7 +57,7 @@
                        hx-include="closest form"
                        hx-target="#price_<%= task._id %>">
 
-                <!-- ⭐ DAGE (INDIVIDUELT) -->
+                <!-- DAGE (INDIVIDUELT) -->
                 <label>Dage</label>
 
                 <button type="button"
@@ -79,7 +79,7 @@
                     </label>
                 <% }) %>
 
-                <!-- ⭐ FREKVENS (INDIVIDUELT) -->
+                <!-- FREKVENS (INDIVIDUELT) -->
                 <label>Frekvens</label>
                 <select name="frequency_<%= task._id %>">
                     <% Object.keys(frequencies).forEach(key => { %>

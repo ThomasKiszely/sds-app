@@ -2,17 +2,12 @@ const ejs = require("ejs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
-async function generateOfferPdf(offer, tasks, customer, address, signatureLink) {
+async function generateOfferPdf(offer) {
     const templatePath = path.join(__dirname, "../views/offers/offerPdf.ejs");
 
     const html = await ejs.renderFile(templatePath, {
         offer,
-        tasks: tasks || [],
-        customer,
-        street: address.street,
-        zip: address.zip,
-        city: address.city,
-        signatureLink
+        snapshot: offer.snapshot
     });
 
     const browser = await puppeteer.launch({
@@ -22,7 +17,6 @@ async function generateOfferPdf(offer, tasks, customer, address, signatureLink) 
 
     const page = await browser.newPage();
 
-    // ✅ domcontentloadedforhindrer timeout-fejl
     await page.setContent(html, { waitUntil: "domcontentloaded" });
 
     const pdfBuffer = await page.pdf({
@@ -63,8 +57,33 @@ async function generateContractPdf(snapshot, paymentTerms, paymentTermLabels) {
     return pdfBuffer;
 }
 
+async function generatePlanPdf(data) {
+    const templatePath = path.join(__dirname, "../views/plans/planPdf.ejs");
+
+    const html = await ejs.renderFile(templatePath, data);
+
+    const browser = await puppeteer.launch({
+        headless: "new",
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    const page = await browser.newPage();
+
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
+
+    const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: { top: "15mm", bottom: "15mm", left: "15mm", right: "15mm" }
+    });
+
+    await browser.close();
+    return pdfBuffer;
+}
+
+
 module.exports = {
     generateOfferPdf,
-    generateContractPdf
+    generateContractPdf,
+    generatePlanPdf
 };
-

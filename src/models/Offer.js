@@ -17,7 +17,7 @@ const offerSchema = new mongoose.Schema({
         required: true
     },
 
-    // ⭐ Snapshot af CleaningPlan + CleaningTasks
+    // Snapshot af CleaningPlan + CleaningTasks
     snapshot: {
         type: mongoose.Schema.Types.Mixed,   // ← VIGTIGT: tillader nested objekter
         required: true

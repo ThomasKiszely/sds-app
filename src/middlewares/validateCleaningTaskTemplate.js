@@ -15,7 +15,7 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         pricePerUnit
     } = req.body;
 
-    // ⭐ Required i modellen
+    // Required i modellen
     if (!name || typeof name !== "string" || name.trim().length === 0) {
         errors.push("Navn på opgave-skabelon er påkrævet.");
     }
@@ -24,7 +24,7 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         errors.push(`Kategori skal være en af: ${Object.values(categoryTypes).join(", ")}`);
     }
 
-    // ⭐ Optional felter – valider kun hvis de er til stede
+    // Optional felter – valider kun hvis de er til stede
     if (description !== undefined && typeof description !== "string") {
         errors.push("Beskrivelse skal være en tekststreng.");
     }
@@ -55,7 +55,7 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         throw userError(errors.join("<br>"), 400);
     }
 
-    // ⭐ Normalisering
+    // Normalisering
     req.body.name = name.trim();
     if (description !== undefined) req.body.description = description.trim();
 

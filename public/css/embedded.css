@@ -1,0 +1,14 @@
+.embedded-step > article.standard.wizard-step {
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.embedded-step > article.standard.wizard-step > h1 {
+    display: none;
+}
+
+.embedded-step hr {
+    display: none;
+}

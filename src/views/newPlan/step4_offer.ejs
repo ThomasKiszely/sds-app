@@ -12,19 +12,19 @@
         <hr>
 
         <%
-        // ⭐ FAST MÅNEDLIG PRIS
+        // FAST MÅNEDLIG PRIS
         const monthlyTasks = tasks.filter(t => t.monthlyPrice > 0);
 
-        // ⭐ PRIS PR GANG
+        // PRIS PR GANG
         const perTimeTasks = tasks.filter(t =>
                 t.monthlyPrice === 0 &&
                 t.category !== categoryTypes.consumables
         );
 
-        // ⭐ FORBRUGSVARER
+        // FORBRUGSVARER
         const consumables = tasks.filter(t => t.category === categoryTypes.consumables);
 
-        // ⭐ SDS grupperet pr rum
+        // SDS grupperet pr rum
         const rooms = {};
         monthlyTasks.forEach(t => {
             if (t.roomName && t.roomName.trim() !== "") {
@@ -34,7 +34,7 @@
         });
         %>
 
-        <!-- ⭐ FAST MÅNEDLIG PRIS – SDS pr rum -->
+        <!-- FAST MÅNEDLIG PRIS – SDS pr rum -->
         <% if (Object.keys(rooms).length > 0) { %>
             <section>
                 <h3>Fast månedlig pris – SDS</h3>
@@ -70,7 +70,7 @@
             </section>
         <% } %>
 
-        <!-- ⭐ FAST MÅNEDLIG PRIS – opgaver uden rum -->
+        <!-- FAST MÅNEDLIG PRIS – opgaver uden rum -->
         <%
         const monthlyNoRoom = monthlyTasks.filter(t =>
                 !t.roomName || t.roomName.trim() === ""
@@ -99,7 +99,7 @@
             </section>
         <% } %>
 
-        <!-- ⭐ PRIS PR GANG -->
+        <!-- PRIS PR GANG -->
         <% if (perTimeTasks.length > 0) { %>
             <section>
                 <h3>Pris pr gang – Vinduer / Efter aftale / Ad hoc / Ekstra</h3>
@@ -135,7 +135,7 @@
             </section>
         <% } %>
 
-        <!-- ⭐ FORBRUGSVARER -->
+        <!-- FORBRUGSVARER -->
         <% if (consumables.length > 0) { %>
             <section>
                 <h3>Tilkøb – Forbrugsvarer</h3>
@@ -160,7 +160,7 @@
             </section>
         <% } %>
 
-        <!-- ⭐ Totalpris -->
+        <!-- Totalpris -->
         <div class="offer-total-box" style="margin-top:1rem;">
             <h3>Månedlig pris inkl drift og miljøtillæg</h3>
             <div id="offerTotal">
@@ -172,7 +172,7 @@
 
     <hr>
 
-    <!-- ⭐ FORM -->
+    <!-- FORM -->
     <form hx-post="/newPlan/offer/save" hx-target="#content" style="margin-top: 1rem;">
         <input type="hidden" name="planId" value="<%= planId %>">
 
