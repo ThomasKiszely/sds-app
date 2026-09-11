@@ -1,0 +1,40 @@
+<article class="standard edit-bundle">
+    <h1>Rediger SDS-bundle for <%= roomName %></h1>
+
+    <form hx-post="/newPlanDraft/tasks/dailyBundle/save" hx-target="#content">
+
+        <input type="hidden" name="roomName" value="<%= roomName %>">
+
+        <% tasks.forEach(t => { %>
+            <section class="bundle-item">
+                <h3><%= t.name %></h3>
+
+                <label>Frekvens</label>
+                <select name="frequency_<%= t.templateId %>">
+                    <% for (const f in frequencyLabels) { %>
+                        <option value="<%= f %>" <%= t.frequency === f ? "selected" : "" %>>
+                            <%= frequencyLabels[f] %>
+                        </option>
+                    <% } %>
+                </select>
+
+                <label>Dage</label>
+                <div class="days-select">
+                    <% for (const d in daysLabels) { %>
+                        <label>
+                            <input type="checkbox"
+                                   name="days_<%= t.templateId %>"
+                                   value="<%= d %>"
+                                    <%= t.days.includes(d) ? "checked" : "" %>>
+                            <%= daysLabels[d] %>
+                        </label>
+                    <% } %>
+                </div>
+            </section>
+        <% }) %>
+
+        <button>Gem bundle</button>
+    </form>
+
+    <button hx-get="/newPlanDraft/tasks" hx-target="#content">Tilbage</button>
+</article>

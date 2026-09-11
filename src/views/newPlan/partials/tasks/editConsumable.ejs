@@ -41,7 +41,7 @@
             <label>Frekvens</label>
             <select name="frequency" required>
                 <% for (const key in frequencies) { %>
-                    <% if (frequencyMultipliers[key] > 0) { %>
+                    <% if (frequencyMultipliers[key] >= 0) { %>
                         <option value="<%= key %>" <%= task.frequency === key ? "selected" : "" %>>
                             <%= frequencyLabels[key] %>
                         </option>

@@ -1,0 +1,65 @@
+<article class="task-list">
+
+    <h3>Samlet månedlig pris</h3>
+    <p class="plan-total">
+        <strong>
+            <%= monthlyTotal.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr./måned
+        </strong>
+    </p>
+
+    <hr>
+
+    <h3>Valgte opgaver</h3>
+
+    <% for (const roomName in grouped) { %>
+        <section class="task-room-group">
+
+            <h4>
+                <strong><%= roomName %></strong>
+            </h4>
+
+            <ul class="task-list-room">
+                <% grouped[roomName].sds.forEach(task => { %>
+                    <li class="task-item sds-task">
+                        <div class="task-info">
+                            <strong><%= task.name %></strong>
+
+                            <div class="task-days">
+                                <% (task.days || []).forEach(d => { %>
+                                    <%= daysLabels[d] %>
+                                <% }) %>
+                                – <%= frequencyLabels[task.frequency] %>
+                            </div>
+
+                            <div class="task-meta">
+                                Pris pr måned:
+                                <strong>
+                                    <%= task.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr
+                                </strong>
+                            </div>
+
+                            <% if (task.description && task.description.trim().length > 0) { %>
+                                <div class="task-description"><em><%= task.description %></em></div>
+                            <% } %>
+                        </div>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <div class="task-actions">
+                <button class="button small"
+                        hx-get="/newPlanDraft/tasks/dailyBundle/edit?roomName=<%= roomName %>"
+                        hx-target="#content"
+                        hx-swap="innerHTML">
+                    Rediger bundle
+                </button>
+            </div>
+
+        </section>
+
+        <hr>
+    <% } %>
+
+    <button hx-get="/newPlanDraft/adjustments" hx-target="#content">Videre</button>
+
+</article>

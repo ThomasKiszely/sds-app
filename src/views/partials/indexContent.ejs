@@ -6,16 +6,19 @@
         <div class="nav-group">
             <button hx-get="/newPlan" hx-target="#content">Ny prisberegning</button>
         </div>
+        <button hx-get="/newPlanDraft/start" hx-target="#content">
+            Ny draftberegning
+        </button>
+
 
         <div class="nav-group">
             <button hx-get="/customers" hx-target="#content">Kunder/planer</button>
-            <button hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
 
             <% if (user.role === 'admin') { %>
+                <button hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
+                <button hx-get="/roomTemplates/page" hx-target="#content">Rum-templates</button>
                 <button hx-get="/admin" hx-target="#content">Admin panel</button>
             <% } %>
         </div>
     </nav>
-
-
 </article>

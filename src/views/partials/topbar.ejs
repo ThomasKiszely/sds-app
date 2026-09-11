@@ -26,13 +26,19 @@
             Kunder
         </button>
 
-        <button class="dropdown-item"
-                hx-get="/cleaningTaskTemplates/page"
-                hx-target="#content">
-            Opgaver
-        </button>
-
         <% if (user.role === 'admin') { %>
+            <button class="dropdown-item"
+                    hx-get="/cleaningTaskTemplates/page"
+                    hx-target="#content">
+                Opgaver
+            </button>
+
+            <button class="dropdown-item"
+                    hx-get="/roomTemplates/page"
+                    hx-target="#content">
+                Rum-templates
+            </button>
+
             <button class="dropdown-item"
                     hx-get="/admin"
                     hx-target="#content">
@@ -45,6 +51,5 @@
                 hx-redirect="/login">
             Log ud
         </button>
-
     </nav>
 </header>

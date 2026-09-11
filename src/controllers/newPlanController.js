@@ -5,6 +5,7 @@ const customerService = require("../services/customerService");
 const locationService = require("../services/locationService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 const offerService = require("../services/offerService");
+const roomTemplateService = require("../services/roomTemplateService");
 
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
@@ -674,6 +675,38 @@ async function tasks_previewNew(req, res) {
     }
 }
 
+async function showRoomSelection(req, res) {
+    const templates = await roomTemplateService.getAllRoomTemplates();
+
+    return res.render("newPlan/rooms", {
+        templates
+    });
+}
+
+async function saveRoomSelection(req, res) {
+    const { selectedTemplates = [], counts = {} } = req.body;
+
+    const templates = await roomTemplateService.getAllRoomTemplates();
+
+    const rooms = [];
+
+    for (const templateId of selectedTemplates) {
+        const template = templates.find(t => t._id.toString() === templateId);
+        const count = Number(counts[templateId] || 1);
+
+        for (let i = 1; i <= count; i++) {
+            rooms.push({
+                templateId,
+                name: template.name,
+                index: i
+            });
+        }
+    }
+
+    req.session.planDraft.rooms = rooms;
+
+    return res.redirect("/newPlan/tasks");
+}
 
 
 module.exports = {
@@ -702,4 +735,6 @@ module.exports = {
     tasks_create,
     tasks_save,
     tasks_previewNew,
+    showRoomSelection,
+    saveRoomSelection
 };

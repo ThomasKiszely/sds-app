@@ -1,0 +1,21 @@
+<article class="standard roomTemplates-page">
+    <h1>Rum-templates</h1>
+
+    <% if (toast) { %>
+        <div class="toast"><%= toast %></div>
+    <% } %>
+
+    <button hx-get="/roomTemplates/new" hx-target="#content">Opret nyt rum-template</button>
+
+    <ul class="item-list">
+        <% roomTemplates.forEach(t => { %>
+            <li>
+                <strong><%= t.name %></strong>
+                — <%= t.defaultSize %> m²
+                — <%= t.bundleType %>
+            </li>
+        <% }) %>
+    </ul>
+
+    <button hx-get="/" hx-target="#content">Tilbage</button>
+</article>

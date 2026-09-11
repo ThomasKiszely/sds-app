@@ -1,0 +1,29 @@
+<article class="standard adjustments">
+    <h1>Rabat, drift og miljø</h1>
+
+    <form hx-post="/newPlanDraft/adjustments" hx-target="#content">
+
+        <label>Rabat (%)</label>
+        <input type="number" name="discountPercent" value="<%= discounts.discountPercent || 0 %>" min="0" max="100">
+
+        <label>Miljøtillæg (%)</label>
+        <input type="number" name="environmentalFee" value="<%= environment.environmentalFeePercent || 0 %>" min="0" max="100">
+
+        <label>Betalingsbetingelser</label>
+        <select name="paymentTerms">
+            <option value="net30">Netto 30 dage</option>
+            <option value="net14">Netto 14 dage</option>
+            <option value="net7">Netto 7 dage</option>
+        </select>
+
+        <label>Opsigelsesvarsel</label>
+        <select name="terminationNotice">
+            <option value="1m">1 måned</option>
+            <option value="3m">3 måneder</option>
+        </select>
+
+        <button>Videre</button>
+    </form>
+
+    <button hx-get="/newPlanDraft/tasks" hx-target="#content">Tilbage</button>
+</article>

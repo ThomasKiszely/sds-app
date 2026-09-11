@@ -1,0 +1,14 @@
+<article class="standard newPlanDraft step1">
+    <h1>Vælg kunde</h1>
+
+    <form hx-post="/newPlanDraft/customer" hx-target="#content">
+        <label for="customerId">Kunde</label>
+        <select name="customerId" required>
+            <% customers.forEach(c => { %>
+                <option value="<%= c._id %>"><%= c.customerName %></option>
+            <% }) %>
+        </select>
+
+        <button>Videre</button>
+    </form>
+</article>

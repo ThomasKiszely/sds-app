@@ -1,0 +1,34 @@
+<article class="standard newPlanDraft rooms">
+    <h1>Vælg rum</h1>
+
+    <form hx-post="/newPlanDraft/rooms" hx-target="#content">
+
+        <ul class="item-list">
+            <% templates.forEach(t => { %>
+                <li>
+                    <label>
+                        <input type="checkbox"
+                               name="selectedTemplates"
+                               value="<%= t._id %>"
+                               hx-on:change="this.closest('li').querySelector('.count').classList.toggle('hidden', !this.checked)">
+                        <strong><%= t.name %></strong>
+                        — <%= t.defaultSize %> m²
+                        — <%= t.bundleType %>
+                    </label>
+
+                    <div class="count hidden">
+                        Antal:
+                        <input type="number"
+                               name="counts[<%= t._id %>]"
+                               value="1"
+                               min="1">
+                    </div>
+                </li>
+            <% }) %>
+        </ul>
+
+        <button>Videre</button>
+    </form>
+
+    <button hx-get="/newPlanDraft/customer" hx-target="#content">Tilbage</button>
+</article>

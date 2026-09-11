@@ -20,6 +20,11 @@ router.get("/locationList", requireLogin, newPlanController.locationList);
 router.get("/plan", requireLogin, newPlanController.step2_plan);
 router.post("/plan", requireLogin, validateCleaningPlan, newPlanController.savePlan);
 
+// Step 2b: tilføj rum
+router.get("/newPlan/rooms", requireLogin, newPlanController.showRoomSelection);
+router.post("/newPlan/rooms", requireLogin, newPlanController.saveRoomSelection);
+
+
 // Step 3: Tilføj opgaver
 router.get("/tasks", requireLogin, newPlanController.step3_tasks);
 router.get("/tasks/daily", requireLogin, newPlanController.tasks_daily);

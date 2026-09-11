@@ -1,0 +1,31 @@
+<article class="standard roomTemplate-edit-page">
+    <h1>Rediger rum-template</h1>
+
+    <% if (error) { %>
+        <div class="error-box"><%= error %></div>
+    <% } %>
+
+    <form hx-post="/roomTemplates/edit/<%= template._id %>" hx-target="#content">
+
+        <label>Navn</label>
+        <input type="text" name="name" value="<%= template.name %>" required>
+
+        <label>Standard størrelse (m²)</label>
+        <input type="number" name="defaultSize" value="<%= template.defaultSize %>" required>
+
+        <label>Bundle type</label>
+        <select name="bundleType" required>
+            <option value="daily" <%= template.bundleType === 'daily' ? 'selected' : '' %>>Daily</option>
+        </select>
+
+        <button>Gem ændringer</button>
+    </form>
+
+    <form hx-post="/roomTemplates/delete/<%= template._id %>"
+          hx-target="#content"
+          onsubmit="return confirm('Er du sikker på at du vil slette dette rum-template?');">
+        <button class="danger">Slet</button>
+    </form>
+
+    <button hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
+</article>

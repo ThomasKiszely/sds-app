@@ -1,0 +1,38 @@
+<article class="standard roomTemplate-create-page">
+    <h1>Opret rum-template</h1>
+
+    <% if (error) { %>
+        <div class="error-box"><%= error %></div>
+    <% } %>
+
+    <form hx-post="/roomTemplates" hx-target="#content">
+
+        <label>Navn</label>
+        <input
+                type="text"
+                name="name"
+                value="<%= formData?.name || '' %>"
+                required
+        >
+
+        <label>Standard størrelse (m²)</label>
+        <input
+                type="number"
+                name="defaultSize"
+                value="<%= formData?.defaultSize || '' %>"
+                required
+        >
+
+        <label>Bundle type</label>
+        <select name="bundleType" required>
+            <option value="">Vælg...</option>
+            <option value="daily" <%= formData?.bundleType === 'daily' ? 'selected' : '' %>>
+                Daily
+            </option>
+        </select>
+
+        <button>Opret</button>
+    </form>
+
+    <button hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
+</article>

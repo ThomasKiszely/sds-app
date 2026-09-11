@@ -21,6 +21,8 @@ const newPlanRouter = require('./routes/newPlanRoutes');
 const offerRouter = require('./routes/offerRoutes');
 const locationRouter = require('./routes/locationRoutes');
 const contractRouter = require('./routes/contractRoutes');
+const roomTemplateRouter = require('./routes/roomTemplateRouter');
+const newPlanDraftRouter = require('./routes/newPlanDraftRoutes');
 
 // Middlewares
 const { requireAdmin } = require('./middlewares/requireAdmin');
@@ -134,6 +136,8 @@ app.use('/cleaningTasks', requireLogin, cleaningTaskRouter);
 app.use('/customers', requireLogin, customerRouter);
 app.use('/locations', requireLogin, locationRouter);
 app.use('/contracts', requireLogin, contractRouter);
+app.use('/roomTemplates', requireLogin, roomTemplateRouter);
+app.use('/newPlanDraft', requireLogin, newPlanDraftRouter);
 
 app.use('/users', userRouter);
 
