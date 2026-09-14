@@ -15,6 +15,12 @@ const roomTemplateSchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: Object.values(bundleTypes),
+    },
+
+    taskTemplateId: {
+        daily: { type: mongoose.Schema.Types.ObjectId, ref: "CleaningTaskTemplate" },
+        floor: { type: mongoose.Schema.Types.ObjectId, ref: "CleaningTaskTemplate" },
+        inventory: { type: mongoose.Schema.Types.ObjectId, ref: "CleaningTaskTemplate" }
     }
 });
 

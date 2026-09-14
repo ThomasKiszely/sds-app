@@ -8,28 +8,15 @@ const { daysLabels } = require("../utils/dayEnum");
 const { frequencyLabels } = require("../utils/frequencyEnum");
 const { categoryLabels, categoryTypes } = require("../utils/categoryEnum");
 const { units, unitsLabels } = require("../utils/unitEnum");
+const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
+const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
+const systemSettingsService = require("../services/systemSettingsService");
 
 
-// ------------------------------------------------------------
-// INIT: Start draft
-// ------------------------------------------------------------
-function startDraft(req, res) {
-    req.session.planDraft = newPlanDraftService.initDraft();
-
-    res.setHeader("HX-Location", JSON.stringify({
-        path: "/newPlanDraft/customer",
-        target: "#content",
-        swap: "innerHTML"
-    }));
-
-    return res.status(200).end();
-}
-
-
-// ------------------------------------------------------------
 // STEP 1: Vælg kunde
-// ------------------------------------------------------------
 async function step1_customer(req, res) {
+    const systemSettings = await systemSettingsService.getSettings();
+    req.session.planDraft = newPlanDraftService.initDraft(systemSettings);
     const customers = await customerService.getActiveCustomers();
 
     return res.render("newPlanDraft/step1_customer", {
@@ -51,9 +38,7 @@ async function saveCustomer(req, res) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 2: Vælg rum
-// ------------------------------------------------------------
 async function step2_rooms(req, res) {
     const templates = await roomTemplateService.getAllRoomTemplates();
 
@@ -66,14 +51,27 @@ async function step2_rooms(req, res) {
 
 
 async function saveRooms(req, res) {
-    const selectedIds = Array.isArray(req.body.selectedTemplates)
-        ? req.body.selectedTemplates
-        : [req.body.selectedTemplates];
+
+    let selectedIds = req.body.selectedTemplates;
+
+    if (!selectedIds) {
+        selectedIds = [];
+    } else if (!Array.isArray(selectedIds)) {
+        selectedIds = [selectedIds];
+    }
 
     const counts = req.body.counts || {};
 
-    const rooms = await newPlanDraftService.generateRooms(selectedIds, counts);
+    if (selectedIds.length === 0) {
+        const templates = await roomTemplateService.getAllRoomTemplates();
+        return res.render("newPlanDraft/rooms", {
+            templates,
+            error: "Vælg venligst mindst ét rum.",
+            draft: req.session.planDraft
+        });
+    }
 
+    const rooms = await newPlanDraftService.generateRooms(selectedIds, counts);
     req.session.planDraft.rooms = rooms;
 
     const vm = await newPlanDraftService.generateDraftTasks(req.session.planDraft);
@@ -90,9 +88,7 @@ async function saveRooms(req, res) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 3: Generér tasks (SDS bundles) i session
-// ------------------------------------------------------------
 async function step3_tasks(req, res) {
     const draft = req.session.planDraft;
 
@@ -100,7 +96,7 @@ async function step3_tasks(req, res) {
         const templates = await roomTemplateService.getAllRoomTemplates();
         return res.render("newPlanDraft/rooms", {
             templates,
-            error: "Vælg venligst mindst én rum-mal først.",
+            error: "Vælg venligst mindst ét rum først.",
             draft: draft || {}
         });
     }
@@ -118,10 +114,7 @@ async function step3_tasks(req, res) {
     });
 }
 
-
-// ------------------------------------------------------------
 // STEP 4: Rediger SDS bundle (session)
-// ------------------------------------------------------------
 function editDailyBundle(req, res) {
     const draft = req.session.planDraft;
     const roomName = req.query.roomName;
@@ -163,30 +156,40 @@ function saveDailyBundle(req, res) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 5: Rabat / drift / miljø
-// ------------------------------------------------------------
-function step5_adjustments(req, res) {
+async function step5_adjustments(req, res) {
     const draft = req.session.planDraft || {};
+
+    const systemSettings = await systemSettingsService.getSettings();
+
     return res.render("newPlanDraft/adjustments", {
         discounts: draft.discounts || {},
         environment: draft.environment || {},
-        operations: draft.operations || {}
+        operations: draft.operations || {},
+        paymentTerms,
+        paymentTermLabels,
+        terminationNotice,
+        terminationNoticeLabels,
+        systemSettings
     });
 }
 
-function saveAdjustments(req, res) {
-    newPlanDraftService.updateAdjustments(req.session.planDraft, req.body);
 
-    // Render tilbudssiden direkte i stedet for redirect
+async function saveAdjustments(req, res) {
+    const systemSettings = await systemSettingsService.getSettings();
+
+    newPlanDraftService.updateAdjustments(
+        req.session.planDraft,
+        req.body,
+        systemSettings
+    );
+
     const vm = newPlanDraftService.buildOffer(req.session.planDraft);
     return res.render("newPlanDraft/offer", vm);
 }
 
 
-// ------------------------------------------------------------
 // STEP 6: Tilbud
-// ------------------------------------------------------------
 function step6_offer(req, res) {
     const vm = newPlanDraftService.buildOffer(req.session.planDraft);
 
@@ -194,18 +197,14 @@ function step6_offer(req, res) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 7: Kontrakt
-// ------------------------------------------------------------
 function step7_contract(req, res) {
     const vm = newPlanDraftService.buildContract(req.session.planDraft);
     return res.render("newPlanDraft/contract", { draft: vm });
 }
 
 
-// ------------------------------------------------------------
 // STEP 8: Opret cleaningPlan i databasen
-// ------------------------------------------------------------
 async function finalizePlan(req, res) {
     const draft = req.session.planDraft;
 
@@ -224,7 +223,6 @@ async function finalizePlan(req, res) {
 
 
 module.exports = {
-    startDraft,
     step1_customer,
     saveCustomer,
     step2_rooms,

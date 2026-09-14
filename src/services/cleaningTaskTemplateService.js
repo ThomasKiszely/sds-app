@@ -96,6 +96,10 @@ async function getTemplatesByCategory(category) {
     return cleaningTaskTemplateRepo.findByCategory(category);
 }
 
+async function getByIds(ids){
+    return cleaningTaskTemplateRepo.findTemplatesByIds(ids);
+}
+
 module.exports = {
     createTemplate,
     listTemplates,
@@ -104,5 +108,6 @@ module.exports = {
     deleteTemplate,
     reactivateTemplate,
     getDeletedTemplates,
-    getTemplatesByCategory
+    getTemplatesByCategory,
+    getByIds
 };

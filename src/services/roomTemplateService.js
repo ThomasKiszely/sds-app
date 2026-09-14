@@ -1,7 +1,7 @@
 const roomTemplateRepo = require("../data/roomTemplateRepo");
 const { userError } = require("../utils/userError");
 
-async function createRoomTemplate({ name, defaultSize, bundleType }) {
+async function createRoomTemplate({ name, defaultSize, bundleType, taskTemplateId }) {
     const existing = await roomTemplateRepo.findByName(name);
     if (existing) {
         throw userError("Et rum-template med dette navn findes allerede.");
@@ -13,8 +13,10 @@ async function createRoomTemplate({ name, defaultSize, bundleType }) {
         name,
         defaultSize: size,
         bundleType,
+        taskTemplateId
     });
 }
+
 
 async function getAllRoomTemplates() {
     return roomTemplateRepo.findAll();
@@ -26,7 +28,7 @@ async function getRoomTemplateById(id) {
     return template;
 }
 
-async function updateRoomTemplate(id, { name, defaultSize, bundleType }) {
+async function updateRoomTemplate(id, { name, defaultSize, bundleType, taskTemplateId }) {
     const existing = await roomTemplateRepo.findByName(name);
 
     if (existing && existing._id.toString() !== id) {
@@ -36,7 +38,8 @@ async function updateRoomTemplate(id, { name, defaultSize, bundleType }) {
     return roomTemplateRepo.update(id, {
         name,
         defaultSize: Number(defaultSize),
-        bundleType
+        bundleType,
+        taskTemplateId
     });
 }
 

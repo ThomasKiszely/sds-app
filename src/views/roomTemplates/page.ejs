@@ -7,15 +7,34 @@
 
     <button hx-get="/roomTemplates/new" hx-target="#content">Opret nyt rum-template</button>
 
-    <ul class="item-list">
+    <table class="standard responsive-table">
+        <thead>
+        <tr>
+            <th>Navn</th>
+            <th>Størrelse</th>
+            <th>Bundle</th>
+            <th>Handlinger</th>
+        </tr>
+        </thead>
+
+        <tbody>
         <% roomTemplates.forEach(t => { %>
-            <li>
-                <strong><%= t.name %></strong>
-                — <%= t.defaultSize %> m²
-                — <%= t.bundleType %>
-            </li>
+            <tr>
+                <td data-label="Navn"><%= t.name %></td>
+                <td data-label="Størrelse"><%= t.defaultSize %> m²</td>
+                <td data-label="Bundle"><%= t.bundleType %></td>
+
+                <td data-label="Handlinger">
+                    <button hx-get="/roomTemplates/edit/<%= t._id %>"
+                            hx-target="#content"
+                            hx-swap="innerHTML">
+                        Rediger
+                    </button>
+                </td>
+            </tr>
         <% }) %>
-    </ul>
+        </tbody>
+    </table>
 
     <button hx-get="/" hx-target="#content">Tilbage</button>
 </article>

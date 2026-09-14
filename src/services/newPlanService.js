@@ -323,7 +323,6 @@ async function getOfferStep4ViewModel(planId) {
         };
     });
 
-    // ⭐ Brug både monthlyPrice OG pricePerTime
     const subtotal = enrichedTasks.reduce((sum, t) => {
         const price =
             t.monthlyPrice > 0

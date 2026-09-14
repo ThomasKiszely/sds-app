@@ -9,12 +9,11 @@ const roomTemplateService = require("../services/roomTemplateService");
 const { calculateTaskPrice } = require("./priceService");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
 const { categoryTypes } = require("../utils/categoryEnum");
+const { days } = require("../utils/dayEnum");
 
 
-// ------------------------------------------------------------
 // INIT: Start draft
-// ------------------------------------------------------------
-function initDraft() {
+function initDraft(systemSettings) {
     return {
         customerId: null,
         locationId: null,       // optional, if you add location later
@@ -22,7 +21,7 @@ function initDraft() {
         description: null,      // optional
         rooms: [],
         tasks: [],
-        hourlyRate: 250,
+        hourlyRate: systemSettings.hourlyRate,
         discounts: {},
         environment: {},
         operations: {}
@@ -30,9 +29,7 @@ function initDraft() {
 }
 
 
-// ------------------------------------------------------------
 // STEP 2: Vælg rum → generér rum-instansliste
-// ------------------------------------------------------------
 async function generateRooms(selectedTemplates, counts) {
     const roomTemplates = await roomTemplateService.getAllRoomTemplates();
     const rooms = [];
@@ -46,9 +43,10 @@ async function generateRooms(selectedTemplates, counts) {
         for (let i = 1; i <= count; i++) {
             rooms.push({
                 templateId,
-                taskTemplateId: tpl.taskTemplateId,   // ⭐ DETTE ER NØGLEN
+                taskTemplateId: tpl.taskTemplateId,
                 name: tpl.name,
-                index: i
+                index: i,
+                size: tpl.defaultSize,
             });
         }
     }
@@ -57,26 +55,59 @@ async function generateRooms(selectedTemplates, counts) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 3: Generér SDS tasks for hvert rum
-// ------------------------------------------------------------
 async function generateDraftTasks(draft) {
     const tasks = [];
 
     for (const room of draft.rooms) {
-        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
 
-        for (const tpl of templates) {
+        const { daily, floor, inventory } = room.taskTemplateId || {};
+        const ids = [daily, floor, inventory].filter(Boolean);
+
+        const sdsTemplates = await cleaningTaskTemplateService.getByIds(ids);
+
+        for (const tpl of sdsTemplates) {
+
+            console.log("TPL:", tpl.name, tpl.durationPerUnit, tpl.amount);
+
+
+            const cat = tpl.category.toLowerCase();
+
+            let autoDays = [];
+
+            if (cat === categoryTypes.daily) {
+                autoDays = [
+                    days.monday,
+                    days.tuesday,
+                    days.wednesday,
+                    days.thursday,
+                    days.friday
+                ];
+            } else if (cat === categoryTypes.floor) {
+                autoDays = [
+                    days.monday,
+                    days.wednesday,
+                    days.friday
+                ];
+            } else if (cat === categoryTypes.inventory) {
+                autoDays = [
+                    days.tuesday,
+                    days.thursday
+                ];
+            } else {
+                autoDays = [days.friday];
+            }
+
             const base = {
                 templateId: tpl._id,
                 name: tpl.name,
                 description: tpl.description,
-                category: tpl.category,
+                category: cat,
                 unit: tpl.unit,
                 durationPerUnit: tpl.durationPerUnit,
-                frequency: tpl.frequency,
-                days: tpl.days ?? [],
-                amount: tpl.amount ?? 0,
+                frequency: "weekly",
+                days: autoDays,
+                amount: room.size,
                 quantity: tpl.quantity ?? 1,
                 roomName: room.name,
                 customPrice: tpl.customPrice ?? null
@@ -97,9 +128,7 @@ async function generateDraftTasks(draft) {
 }
 
 
-// ------------------------------------------------------------
 // Hjælpemetode: Byg viewmodel for tasks
-// ------------------------------------------------------------
 function buildTaskViewModel(draft) {
     const tasks = draft.tasks;
 
@@ -119,9 +148,7 @@ function buildTaskViewModel(draft) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 4: Rediger SDS bundle
-// ------------------------------------------------------------
 function getBundleForRoom(draft, roomName) {
     const tasks = draft.tasks.filter(t => t.roomName === roomName);
 
@@ -150,16 +177,14 @@ function updateBundle(draft, roomName, body) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 5: Rabat / drift / miljø
-// ------------------------------------------------------------
-function updateAdjustments(draft, body) {
+function updateAdjustments(draft, body, systemSettings) {
     draft.discounts = {
         discountPercent: Number(body.discountPercent || 0)
     };
 
     draft.environment = {
-        environmentalFeePercent: Number(body.environmentalFee || 0)
+        environmentalFeePercent: systemSettings.environmentalFee
     };
 
     draft.operations = {
@@ -171,9 +196,8 @@ function updateAdjustments(draft, body) {
 }
 
 
-// ------------------------------------------------------------
+
 // STEP 6: Tilbud
-// ------------------------------------------------------------
 function buildOffer(draft) {
     const monthlyTotal = draft.tasks.reduce((sum, t) => {
         const p = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
@@ -196,17 +220,13 @@ function buildOffer(draft) {
 }
 
 
-// ------------------------------------------------------------
 // STEP 7: Kontrakt (draft → viewmodel)
-// ------------------------------------------------------------
 function buildContract(draft) {
     return draft;
 }
 
 
-// ------------------------------------------------------------
 // STEP 8: Opret cleaningPlan i databasen
-// ------------------------------------------------------------
 async function finalizePlan(draft) {
     const plan = await cleaningPlanService.createCleaningPlan({
         customerId: draft.customerId,

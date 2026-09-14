@@ -22,6 +22,10 @@ async function findTemplateById(id) {
     return CleaningTaskTemplate.findById(id);
 }
 
+async function findTemplatesByIds(ids){
+    return CleaningTaskTemplate.find({ _id: { $in: ids } });
+}
+
 // UPDATE
 async function updateTemplate(id, data) {
     return CleaningTaskTemplate.findByIdAndUpdate(
@@ -66,6 +70,7 @@ module.exports = {
     listTemplates,
     listDeletedTemplates,
     findTemplateById,
+    findTemplatesByIds,
     updateTemplate,
     softDeleteTemplate,
     reactivateTemplate,

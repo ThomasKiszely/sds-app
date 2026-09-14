@@ -3,23 +3,41 @@
 
     <form hx-post="/newPlanDraft/adjustments" hx-target="#content">
 
+        <!-- Rabat -->
         <label>Rabat (%)</label>
-        <input type="number" name="discountPercent" value="<%= discounts.discountPercent || 0 %>" min="0" max="100">
+        <input type="number"
+               name="discountPercent"
+               value="<%= discounts.discountPercent || 0 %>"
+               min="0" max="100">
 
+        <!-- Miljøtillæg (fra systemSettings, ikke brugerinput) -->
         <label>Miljøtillæg (%)</label>
-        <input type="number" name="environmentalFee" value="<%= environment.environmentalFeePercent || 0 %>" min="0" max="100">
+        <input type="number"
+               name="environmentalFee"
+               value="<%= systemSettings.environmentalFee %>"
+               min="0" max="100"
+               readonly>
 
+        <!-- Betalingsbetingelser -->
         <label>Betalingsbetingelser</label>
         <select name="paymentTerms">
-            <option value="net30">Netto 30 dage</option>
-            <option value="net14">Netto 14 dage</option>
-            <option value="net7">Netto 7 dage</option>
+            <% Object.keys(paymentTerms).forEach(key => { %>
+                <option value="<%= paymentTerms[key] %>"
+                        <%= operations.paymentTerms === paymentTerms[key] ? "selected" : "" %>>
+                    <%= paymentTermLabels[key] %>
+                </option>
+            <% }) %>
         </select>
 
+        <!-- Opsigelsesvarsel -->
         <label>Opsigelsesvarsel</label>
         <select name="terminationNotice">
-            <option value="1m">1 måned</option>
-            <option value="3m">3 måneder</option>
+            <% Object.keys(terminationNotice).forEach(key => { %>
+                <option value="<%= terminationNotice[key] %>"
+                        <%= operations.terminationNotice === terminationNotice[key] ? "selected" : "" %>>
+                    <%= terminationNoticeLabels[key] %>
+                </option>
+            <% }) %>
         </select>
 
         <button>Videre</button>

@@ -1,21 +1,30 @@
 const roomTemplateService = require("../services/roomTemplateService");
+const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 
 async function showCreateForm(req, res) {
+    const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+
     res.render("roomTemplates/create", {
         error: null,
-        formData: {}
+        formData: {},
+        cleaningTaskTemplates
     });
 }
 
 
 async function createRoomTemplate(req, res) {
     try {
-        const { name, defaultSize, bundleType } = req.body;
+        const { name, defaultSize, bundleType, daily, floor, inventory } = req.body;
 
         await roomTemplateService.createRoomTemplate({
             name,
             defaultSize,
             bundleType,
+            taskTemplateId: {
+                daily,
+                floor,
+                inventory
+            }
         });
 
         const roomTemplates = await roomTemplateService.getAllRoomTemplates();
@@ -32,9 +41,12 @@ async function createRoomTemplate(req, res) {
             ? error.message
             : "Der skete en fejl.";
 
+        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+
         return res.status(400).render("roomTemplates/create", {
             error: safeMessage,
             formData: req.body,
+            cleaningTaskTemplates
         });
     }
 }
@@ -58,16 +70,20 @@ async function showRoomTemplatePage(req, res) {
         });
     }
 }
-
 async function showEditForm(req, res) {
     try {
         const template = await roomTemplateService.getRoomTemplateById(req.params.id);
+        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
 
         return res.render("roomTemplates/edit", {
-            template
+            template,
+            cleaningTaskTemplates,
+            error: null
         });
 
     } catch (error) {
+        console.error("FEJL I showEditForm:", error);
+
         const safeMessage = error.isUserError
             ? error.message
             : "Noget gik galt – prøv igen.";
@@ -82,12 +98,17 @@ async function showEditForm(req, res) {
 
 async function updateRoomTemplate(req, res) {
     try {
-        const { name, defaultSize, bundleType } = req.body;
+        const { name, defaultSize, bundleType, daily, floor, inventory } = req.body;
 
         await roomTemplateService.updateRoomTemplate(req.params.id, {
             name,
             defaultSize,
-            bundleType
+            bundleType,
+            taskTemplateId: {
+                daily,
+                floor,
+                inventory
+            }
         });
 
         const roomTemplates = await roomTemplateService.getAllRoomTemplates();
@@ -102,12 +123,16 @@ async function updateRoomTemplate(req, res) {
             ? error.message
             : "Noget gik galt – prøv igen.";
 
+        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+
         return res.status(400).render("roomTemplates/edit", {
             template: { _id: req.params.id, ...req.body },
-            error: safeMessage
+            error: safeMessage,
+            cleaningTaskTemplates
         });
     }
 }
+
 
 async function deleteRoomTemplate(req, res) {
     try {

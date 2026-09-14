@@ -10,13 +10,13 @@ function countDays(task) {
 function calculateProgramCodeForRoom(tasksForRoom) {
     if (!Array.isArray(tasksForRoom)) return "000";
 
-    const soignering = tasksForRoom.find(t => t.category === categoryTypes.daily);
-    const gulv       = tasksForRoom.find(t => t.category === categoryTypes.floor);
-    const inventar   = tasksForRoom.find(t => t.category === categoryTypes.inventory);
+    const daily = tasksForRoom.find(t => t.category === categoryTypes.daily);
+    const floor       = tasksForRoom.find(t => t.category === categoryTypes.floor);
+    const inventory   = tasksForRoom.find(t => t.category === categoryTypes.inventory);
 
-    const s = countDays(soignering);
-    const g = countDays(gulv);
-    const i = countDays(inventar);
+    const s = countDays(daily);
+    const g = countDays(floor);
+    const i = countDays(inventory);
 
     return `${s}${g}${i}`;
 }

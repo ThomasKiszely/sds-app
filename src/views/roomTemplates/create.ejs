@@ -31,6 +31,45 @@
             </option>
         </select>
 
+
+        <h2>SDS-opgaver</h2>
+
+        <label>Soignering skabelon</label>
+        <select name="soignering" required>
+            <option value="">Vælg...</option>
+            <% cleaningTaskTemplates.forEach(t => { %>
+                <option
+                        value="<%= t._id %>"
+                        <%= formData?.soignering === t._id.toString() ? 'selected' : '' %>>
+                    <%= t.name %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label>Gulv skabelon</label>
+        <select name="gulv" required>
+            <option value="">Vælg...</option>
+            <% cleaningTaskTemplates.forEach(t => { %>
+                <option
+                        value="<%= t._id %>"
+                        <%= formData?.gulv === t._id.toString() ? 'selected' : '' %>>
+                    <%= t.name %>
+                </option>
+            <% }) %>
+        </select>
+
+        <label>Inventar skabelon</label>
+        <select name="inventar" required>
+            <option value="">Vælg...</option>
+            <% cleaningTaskTemplates.forEach(t => { %>
+                <option
+                        value="<%= t._id %>"
+                        <%= formData?.inventar === t._id.toString() ? 'selected' : '' %>>
+                    <%= t.name %>
+                </option>
+            <% }) %>
+        </select>
+
         <button>Opret</button>
     </form>
 

@@ -123,6 +123,7 @@ app.use(log);
 // 11. Custom Middleware
 app.use(mustChangePassword);
 
+
 // 12. Routes
 app.use('/', viewRouter);
 app.use('/newPlan', newPlanRouter);

@@ -8,9 +8,9 @@ const { validateObjectId } = require("../middlewares/validateObjectId");
 router.get("/page", requireAdmin, roomTemplateController.showRoomTemplatePage);
 router.get("/new", requireAdmin, roomTemplateController.showCreateForm);
 router.post("/", requireAdmin, validateRoomTemplate, roomTemplateController.createRoomTemplate);
-router.get("/edit/:id", requireAdmin, validateObjectId, roomTemplateController.showEditForm);
-router.post("/edit/:id", requireAdmin, validateObjectId, validateRoomTemplate, roomTemplateController.updateRoomTemplate);
-router.post("/delete/:id", requireAdmin, validateObjectId, roomTemplateController.deleteRoomTemplate);
+router.get("/edit/:id", requireAdmin, validateObjectId('id'), roomTemplateController.showEditForm);
+router.post("/edit/:id", requireAdmin, validateObjectId('id'), validateRoomTemplate, roomTemplateController.updateRoomTemplate);
+router.post("/delete/:id", requireAdmin, validateObjectId('id'), roomTemplateController.deleteRoomTemplate);
 
 
 module.exports = router;

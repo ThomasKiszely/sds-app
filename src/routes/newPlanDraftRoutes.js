@@ -10,7 +10,7 @@ const { requireAdmin } = require("../middlewares/requireAdmin");
 // ------------------------------------------------------------
 // INIT: Start nyt draft-flow
 // ------------------------------------------------------------
-router.get("/start", requireAdmin, draftController.startDraft);
+
 
 
 // ------------------------------------------------------------
