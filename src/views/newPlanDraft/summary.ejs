@@ -1,0 +1,175 @@
+<article class="standard summary">
+
+    <h1>Opsummering af rengøringsplan</h1>
+
+    <!-- RUM -->
+    <section>
+        <h2>Rum</h2>
+        <ul class="item-list">
+            <% draft.rooms.forEach(r => { %>
+                <li><strong><%= r.name %></strong> — <%= r.size %> m²</li>
+            <% }) %>
+        </ul>
+
+        <button class="button-secondary"
+                hx-get="/newPlanDraft/rooms"
+                hx-target="#content">
+            Tilføj / rediger rum
+        </button>
+    </section>
+
+    <hr>
+
+    <!-- SDS-OPGAVER -->
+    <section>
+        <h2>SDS-opgaver</h2>
+
+        <% Object.keys(grouped).forEach(roomName => { %>
+            <h3><%= roomName %></h3>
+
+            <ul class="item-list">
+                <% grouped[roomName].sds.forEach(t => { %>
+                    <li>
+                        <strong><%= t.name %></strong>
+                        — <%= t.monthlyPrice.toFixed(2) %> kr/måned
+                    </li>
+                <% }) %>
+            </ul>
+
+            <button class="button-secondary"
+                    hx-get="/newPlanDraft/bundle?room=<%= roomName %>"
+                    hx-target="#content">
+                Rediger SDS-bundle
+            </button>
+        <% }) %>
+    </section>
+
+    <hr>
+
+    <!-- ØVRIGE OPGAVER -->
+    <section>
+        <h2>Øvrige opgaver</h2>
+
+        <% const extraTasks = draft.tasks.filter(t => t.category === "other"); %>
+
+        <% if (extraTasks.length === 0) { %>
+            <p><em>Ingen øvrige opgaver tilføjet endnu.</em></p>
+        <% } else { %>
+            <ul class="item-list">
+                <% extraTasks.forEach(t => { %>
+                    <li><strong><%= t.name %></strong> — <%= t.customPrice %> kr</li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <button class="button-secondary"
+                hx-get="/newPlanDraft/taskSelectCategory"
+                hx-target="#overlay"
+                hx-swap="innerHTML">
+            Tilføj opgave
+        </button>
+
+    </section>
+
+    <hr>
+
+    <!-- FORBRUGSVARER -->
+    <section>
+        <h2>Forbrugsvarer</h2>
+
+        <% const consumables = draft.tasks.filter(t => t.category === "consumable"); %>
+
+        <% if (consumables.length === 0) { %>
+            <p><em>Ingen forbrugsvarer tilføjet endnu.</em></p>
+        <% } else { %>
+            <ul class="item-list">
+                <% consumables.forEach(c => { %>
+                    <li>
+                        <strong><%= c.name %></strong>
+                        — <%= c.quantity %> stk
+                        — <%= c.customPrice %> kr/stk
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <button class="button-secondary"
+                hx-get="/newPlanDraft/taskSelectCategory"
+                hx-target="#overlay"
+                hx-swap="innerHTML">
+            Tilføj opgave
+        </button>
+
+
+    </section>
+
+    <hr>
+
+    <!-- TOTALPRIS -->
+    <section>
+        <h2>Samlet månedlig pris</h2>
+        <p class="plan-total">
+            <strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong>
+        </p>
+    </section>
+
+    <hr>
+
+    <!-- AVANCERET -->
+    <section>
+        <button class="button" type="button" id="toggleAdvancedBtn">
+            Avanceret
+        </button>
+
+        <div id="advanced" class="hidden" style="margin-top: 1rem;">
+
+            <form hx-post="/newPlanDraft/adjustments" hx-target="#content">
+
+                <label>Rabat (%)</label>
+                <input type="number"
+                       name="discountPercent"
+                       value="<%= discounts.discountPercent || 0 %>"
+                       min="0" max="100">
+
+                <label>Miljøtillæg (%)</label>
+                <input type="number"
+                       value="<%= systemSettings.environmentalFee %>"
+                       readonly>
+
+                <label>Betalingsbetingelser</label>
+                <select name="paymentTerms">
+                    <% Object.keys(paymentTerms).forEach(key => { %>
+                        <option value="<%= paymentTerms[key] %>"
+                                <%= operations.paymentTerms === paymentTerms[key] ? "selected" : "" %>>
+                            <%= paymentTermLabels[key] %>
+                        </option>
+                    <% }) %>
+                </select>
+
+                <label>Opsigelsesvarsel</label>
+                <select name="terminationNotice">
+                    <% Object.keys(terminationNotice).forEach(key => { %>
+                        <option value="<%= terminationNotice[key] %>"
+                                <%= operations.terminationNotice === terminationNotice[key] ? "selected" : "" %>>
+                            <%= terminationNoticeLabels[key] %>
+                        </option>
+                    <% }) %>
+                </select>
+
+                <button class="button">Opdater</button>
+            </form>
+        </div>
+    </section>
+
+    <hr>
+
+    <!-- VIDERE -->
+    <button class="button"
+            hx-post="/newPlanDraft/generateOffer"
+            hx-target="#content">
+        Videre til tilbud
+    </button>
+
+    <div id="overlay"></div>
+</article>
+

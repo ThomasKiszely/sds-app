@@ -1,14 +1,37 @@
 <article class="standard newPlanDraft step1">
     <h1>Vælg kunde</h1>
 
-    <form hx-post="/newPlanDraft/customer" hx-target="#content">
-        <label for="customerId">Kunde</label>
-        <select name="customerId" required>
-            <% customers.forEach(c => { %>
-                <option value="<%= c._id %>"><%= c.customerName %></option>
-            <% }) %>
-        </select>
+    <label for="customerId">Kunde</label>
+    <select id="customerId"
+            name="customerId"
+            hx-get="/newPlanDraft/customerLocations"
+            hx-target="#locationContainer"
+            hx-trigger="load, change"
+            hx-include="#customerId"
+            required>
+        <option value="">Vælg kunde…</option>
 
-        <button>Videre</button>
-    </form>
+        <% customers.forEach(c => { %>
+            <option value="<%= c._id %>"
+                    <%= (typeof selectedCustomerId !== "undefined"
+                    && selectedCustomerId
+                    && selectedCustomerId.toString() === c._id.toString()
+                            ? "selected"
+                            : "") %>>
+                <%= c.customerName %>
+            </option>
+        <% }) %>
+    </select>
+
+    <hr>
+
+    <section style="margin-top:1rem;">
+        <button class="button secondary"
+                hx-get="/customers/create?flow=newPlanDraft"
+                hx-target="#content">
+            Opret ny kunde
+        </button>
+    </section>
+
+    <div id="locationContainer"></div>
 </article>

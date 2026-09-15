@@ -1,6 +1,3 @@
-// SDS-opgaver (daily, floor, inventory) har frekvens og månedlig pris.
-// Alle andre kategorier har pris pr gang eller pr stk.
-
 module.exports.categoryTypes = {
     daily: "daily",
     floor: "floor",

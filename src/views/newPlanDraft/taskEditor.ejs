@@ -1,0 +1,135 @@
+<div class="overlay">
+    <div class="overlay-content">
+
+        <h1><%= task ? "Rediger opgave" : "Tilføj opgave" %></h1>
+
+        <form hx-post="/newPlanDraft/taskSave"
+              hx-target="#overlay"
+              hx-swap="outerHTML">
+
+            <!-- CATEGORY -->
+            <label>Kategori</label>
+            <select name="category"
+                    hx-get="/newPlanDraft/taskSelectTemplate"
+                    hx-target="#templateSelect"
+                    hx-include="closest form"
+                    hx-trigger="change">
+                <% Object.keys(categoryTypes).forEach(key => { %>
+                    <option value="<%= categoryTypes[key] %>"
+                            <%= task && task.category === categoryTypes[key] ? "selected" : "" %>>
+                        <%= categoryLabels[key] %>
+                    </option>
+                <% }) %>
+            </select>
+
+            <!-- TEMPLATE DROPDOWN (loaded dynamically) -->
+            <div id="templateSelect">
+                <% if (templates) { %>
+                    <label>Opgave</label>
+                    <select name="templateId"
+                            hx-get="/newPlanDraft/taskEditor"
+                            hx-target="#overlay"
+                            hx-include="closest form"
+                            hx-trigger="change">
+                        <% templates.forEach(tpl => { %>
+                            <option value="<%= tpl._id %>"
+                                    <%= task && task.templateId === tpl._id ? "selected" : "" %>>
+                                <%= tpl.name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                <% } %>
+            </div>
+
+            <% if (task) { %>
+
+                <!-- CONDITIONAL RENDERING -->
+                <% if (task.category === categoryTypes.consumables) { %>
+
+                    <!-- CONSUMABLE FIELDS -->
+                    <label>Navn</label>
+                    <input type="text" name="name" value="<%= task.name %>" required>
+
+                    <label>Beskrivelse</label>
+                    <textarea name="description"><%= task.description %></textarea>
+
+                    <label>Pris pr stk</label>
+                    <input type="number" name="customPrice"
+                           value="<%= task.customPrice %>" step="0.01" required>
+
+                    <label>Antal</label>
+                    <input type="number" name="amount"
+                           value="<%= task.amount %>" min="1" required>
+
+                    <label>Frekvens</label>
+                    <select name="frequency">
+                        <% Object.keys(frequencyLabels).forEach(key => { %>
+                            <option value="<%= key %>"
+                                    <%= task.frequency === key ? "selected" : "" %>>
+                                <%= frequencyLabels[key] %>
+                            </option>
+                        <% }) %>
+                    </select>
+
+                <% } else { %>
+
+                    <!-- STANDARD FIELDS -->
+                    <label>Navn</label>
+                    <input type="text" name="name" value="<%= task.name %>" required>
+
+                    <label>Rum (valgfrit)</label>
+                    <input type="text" name="roomName" value="<%= task.roomName %>">
+
+                    <h3>Dage</h3>
+                    <% Object.keys(daysLabels).forEach(key => { %>
+                        <label class="checkbox-row">
+                            <input type="checkbox"
+                                   name="days"
+                                   value="<%= key %>"
+                                    <%= task.days.includes(key) ? "checked" : "" %>>
+                            <span><%= daysLabels[key] %></span>
+                        </label>
+                    <% }) %>
+
+                    <label>Frekvens</label>
+                    <select name="frequency">
+                        <% Object.keys(frequencyLabels).forEach(key => { %>
+                            <option value="<%= key %>"
+                                    <%= task.frequency === key ? "selected" : "" %>>
+                                <%= frequencyLabels[key] %>
+                            </option>
+                        <% }) %>
+                    </select>
+
+                    <label>Mængde (<%= task.unit %>)</label>
+                    <input type="number" name="amount"
+                           value="<%= task.amount %>" min="0" step="0.1">
+
+                    <label>Varighed pr enhed (minutter)</label>
+                    <input type="number" name="durationPerUnit"
+                           value="<%= task.durationPerUnit %>" min="0" step="0.1">
+
+                    <label>Fast pris (valgfrit)</label>
+                    <input type="number" name="customPrice"
+                           value="<%= task.customPrice %>" min="0" step="0.01">
+
+                    <label>Beskrivelse</label>
+                    <textarea name="description"><%= task.description %></textarea>
+
+                <% } %>
+
+            <% } %>
+
+            <button class="button">Gem opgave</button>
+
+            <button class="button-secondary"
+                    type="button"
+                    hx-get="/newPlanDraft/summary"
+                    hx-target="#content">
+                Luk
+            </button>
+
+        </form>
+
+    </div>
+</div>

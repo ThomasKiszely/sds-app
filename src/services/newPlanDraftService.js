@@ -5,20 +5,34 @@ const cleaningPlanService = require("./cleaningPlanService");
 const cleaningTaskService = require("./cleaningTaskService");
 const roomTemplateService = require("../services/roomTemplateService");
 
-
 const { calculateTaskPrice } = require("./priceService");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
 const { categoryTypes } = require("../utils/categoryEnum");
-const { days } = require("../utils/dayEnum");
+const { days, daysLabels } = require("../utils/dayEnum");
+const { frequencyLabels } = require("../utils/frequencyEnum");
+
+
+// ⭐ CENTRAL PRISBEREGNING — eneste sted i hele systemet
+function priceAllTasks(draft) {
+    const priced = draft.tasks.map(t =>
+        calculateTaskPrice(t, draft.hourlyRate)
+    );
+
+    draft.tasks.forEach((t, i) => {
+        Object.assign(t, priced[i]);
+    });
+
+    return draft;
+}
 
 
 // INIT: Start draft
 function initDraft(systemSettings) {
     return {
         customerId: null,
-        locationId: null,       // optional, if you add location later
-        name: null,             // optional, if you add plan name later
-        description: null,      // optional
+        locationId: null,
+        name: null,
+        description: null,
         rooms: [],
         tasks: [],
         hourlyRate: systemSettings.hourlyRate,
@@ -44,7 +58,8 @@ async function generateRooms(selectedTemplates, counts) {
             rooms.push({
                 templateId,
                 taskTemplateId: tpl.taskTemplateId,
-                name: tpl.name,
+                name: count === 1 ? tpl.name : `${tpl.name} ${i}`,
+                baseName: tpl.name,
                 index: i,
                 size: tpl.defaultSize,
             });
@@ -55,7 +70,7 @@ async function generateRooms(selectedTemplates, counts) {
 }
 
 
-// STEP 3: Generér SDS tasks for hvert rum
+// STEP 3: Generér SDS tasks for hvert rum (uden pris)
 async function generateDraftTasks(draft) {
     const tasks = [];
 
@@ -67,9 +82,6 @@ async function generateDraftTasks(draft) {
         const sdsTemplates = await cleaningTaskTemplateService.getByIds(ids);
 
         for (const tpl of sdsTemplates) {
-
-            console.log("TPL:", tpl.name, tpl.durationPerUnit, tpl.amount);
-
 
             const cat = tpl.category.toLowerCase();
 
@@ -113,22 +125,20 @@ async function generateDraftTasks(draft) {
                 customPrice: tpl.customPrice ?? null
             };
 
-            const priced = {
-                ...base,
-                ...calculateTaskPrice(base, draft.hourlyRate)
-            };
-
-            tasks.push(priced);
+            tasks.push(base);
         }
     }
 
     draft.tasks = tasks;
 
+    // ⭐ Prisberegning ét sted
+    priceAllTasks(draft);
+
     return buildTaskViewModel(draft);
 }
 
 
-// Hjælpemetode: Byg viewmodel for tasks
+// Hjælpemetode: Byg viewmodel for tasks (ingen prislogik)
 function buildTaskViewModel(draft) {
     const tasks = draft.tasks;
 
@@ -148,7 +158,7 @@ function buildTaskViewModel(draft) {
 }
 
 
-// STEP 4: Rediger SDS bundle
+// STEP 4: Rediger SDS bundle (uden pris)
 function getBundleForRoom(draft, roomName) {
     const tasks = draft.tasks.filter(t => t.roomName === roomName);
 
@@ -168,16 +178,16 @@ function updateBundle(draft, roomName, body) {
 
         const rawDays = body[`days_${t.templateId}`];
         t.days = Array.isArray(rawDays) ? rawDays : rawDays ? [rawDays] : [];
-
-        const priced = calculateTaskPrice(t, draft.hourlyRate);
-        Object.assign(t, priced);
     }
+
+    // ⭐ Prisberegning ét sted
+    priceAllTasks(draft);
 
     return buildTaskViewModel(draft);
 }
 
 
-// STEP 5: Rabat / drift / miljø
+// STEP 5: Rabat / drift / miljø (ingen prislogik)
 function updateAdjustments(draft, body, systemSettings) {
     draft.discounts = {
         discountPercent: Number(body.discountPercent || 0)
@@ -196,8 +206,7 @@ function updateAdjustments(draft, body, systemSettings) {
 }
 
 
-
-// STEP 6: Tilbud
+// STEP 6: Tilbud (ingen prislogik)
 function buildOffer(draft) {
     const monthlyTotal = draft.tasks.reduce((sum, t) => {
         const p = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
@@ -211,22 +220,21 @@ function buildOffer(draft) {
         monthlyTotal * (1 - discount / 100) * (1 + envFee / 100);
 
     return {
+        tasks: draft.tasks,
+        grouped: groupSdsTasksByRoom(draft.tasks),
         monthlyTotal,
         finalTotal,
         discounts: draft.discounts,
         environment: draft.environment,
-        operations: draft.operations
+        operations: draft.operations,
+        categoryTypes,
+        daysLabels,
+        frequencyLabels
     };
 }
 
 
-// STEP 7: Kontrakt (draft → viewmodel)
-function buildContract(draft) {
-    return draft;
-}
-
-
-// STEP 8: Opret cleaningPlan i databasen
+// STEP 8: Opret cleaningPlan i databasen (tasks er allerede prissat)
 async function finalizePlan(draft) {
     const plan = await cleaningPlanService.createCleaningPlan({
         customerId: draft.customerId,
@@ -254,6 +262,7 @@ module.exports = {
     updateBundle,
     updateAdjustments,
     buildOffer,
-    buildContract,
-    finalizePlan
+    finalizePlan,
+    priceAllTasks,
+    buildTaskViewModel
 };

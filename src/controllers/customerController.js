@@ -225,10 +225,28 @@ async function createCustomerView(req, res, next) {
     try {
         const customer = await customerService.createCustomer(req.body);
 
+        // Hvis vi kommer fra newPlanDraft-flowet
+        if (req.body.flow === "newPlanDraft") {
+
+            // Gem kunden i draft-session
+            req.session.planDraft.customerId = customer._id;
+
+            // Hent alle kunder igen (så dropdown kan vise den nye)
+            const customers = await customerService.getActiveCustomers();
+
+            return res.render("newPlanDraft/step1_customer", {
+                customers,
+                selectedCustomerId: customer._id,
+                error: null
+            });
+        }
+
+        // Hvis vi kommer fra det gamle newPlan-flow
         if (req.body.flow === "newPlan") {
             return res.redirect(`/newPlan/plan?customerId=${customer._id}`);
         }
 
+        // Ellers normal flow
         const filter = req.query.filter || "active";
         const search = req.query.search || "";
         const sort = req.query.sort || "name";

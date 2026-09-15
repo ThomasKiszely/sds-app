@@ -1,0 +1,39 @@
+<% if (locations.length === 0) { %>
+
+    <p>Ingen lokationer for denne kunde.</p>
+
+    <button class="button"
+            hx-get="/locations/create?customerId=<%= customerId %>&flow=newPlanDraft"
+            hx-target="#locationContainer">
+        Opret ny lokation
+    </button>
+
+<% } else { %>
+
+    <label for="locationSelect">Lokation</label>
+    <select id="locationSelect"
+            name="locationId"
+            hx-post="/newPlanDraft/saveLocation"
+            hx-target="#nextStep"
+            hx-include="#locationSelect"
+            hx-trigger="load, change">
+        <option value="">Vælg lokation…</option>
+
+        <% locations.forEach(l => { %>
+            <option value="<%= l._id %>"
+                    <%= (selectedLocationId && selectedLocationId.toString() === l._id.toString() ? "selected" : "") %>>
+                <%= l.name %>
+            </option>
+        <% }) %>
+    </select>
+
+
+    <button class="button secondary"
+            hx-get="/locations/create?customerId=<%= customerId %>&flow=newPlanDraft"
+            hx-target="#locationContainer">
+        Opret ny lokation
+    </button>
+
+    <div id="nextStep"></div>
+
+<% } %>
