@@ -30,7 +30,7 @@
 
                 <strong><%= task.name %></strong>
                 – <%= (task.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> kr pr stk
-                – <%= task.quantity %> stk
+                – <%= task.amount %> stk
 
                 <% if (task.description && task.description.trim().length > 0) { %>
                     <div><em><%= task.description %></em></div>

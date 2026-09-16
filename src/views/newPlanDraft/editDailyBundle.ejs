@@ -5,6 +5,11 @@
 
         <input type="hidden" name="roomName" value="<%= roomName %>">
 
+        <label>Bemærkninger for rummet</label>
+        <textarea name="roomNotes" rows="3">
+            <%= draft.roomNotes?.find(r => r.roomName === roomName)?.notes?.join("\n") || "" %>
+        </textarea>
+
         <% tasks.forEach(t => { %>
             <section class="bundle-item">
                 <h3><%= t.name %></h3>

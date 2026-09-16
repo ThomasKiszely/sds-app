@@ -75,6 +75,32 @@ function calculateTaskPrice(task, hourlyRate) {
     };
 }
 
+function calculateTotals({ tasks, discountPercent, environmentalFeePercent }) {
+    const subtotal = tasks.reduce((sum, t) => {
+        const price = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
+        return sum + (price || 0);
+    }, 0);
+
+    const discountAmount = subtotal * (discountPercent / 100);
+    const afterDiscount = subtotal - discountAmount;
+
+    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
+
+    const total = afterDiscount + environmentalFeeAmount;
+
+    return {
+        subtotal,
+        discountPercent,
+        discountAmount,
+        environmentalFeePercent,
+        environmentalFeeAmount,
+        total
+    };
+}
+
+
+
 module.exports = {
-    calculateTaskPrice
+    calculateTaskPrice,
+    calculateTotals
 };

@@ -163,7 +163,7 @@
 
         <!-- Totalpris -->
         <div class="offer-total-box" style="margin-top:1rem;">
-            <h3>Månedlig pris inkl drift og miljøtillæg</h3>
+            <h3>Månedlig pris inkl. drift- og miljøtillæg</h3>
             <div id="offerTotal">
                 <%= finalTotal.toFixed(2) %> kr.
             </div>
@@ -176,17 +176,24 @@
     <!-- KNAPPER -->
     <div style="margin-top: 1rem;">
         <button class="button-secondary"
-                hx-get="/newPlanDraft/adjustments"
+                hx-get="/newPlanDraft/summary"
                 hx-target="#content">
             Tilbage til justeringer
+        </button>
+
+        <button class="button-secondary"
+                hx-post="/newPlanDraft/saveAsDraftOffer"
+                hx-target="#content">
+            Gem som tilbud (kladde)
         </button>
 
         <button class="button"
                 hx-post="/newPlanDraft/finalize"
                 hx-target="#content"
                 style="margin-left: 1rem;">
-            Finalize og opret tilbud
+            Finalize og opret endeligt tilbud
         </button>
+
     </div>
 
 </article>

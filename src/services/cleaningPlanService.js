@@ -2,8 +2,9 @@ const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const systemSettingsRepo = require('../data/systemSettingsRepo');
 const { ensureExists, userError } = require("../utils/userError");
-const { calculateTaskPrice } = require("../services/priceService");
+const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
 const { categoryTypes } = require("../utils/categoryEnum");
+const systemSettingsService = require("./systemSettingsService");
 
 
 function extractInstructionDescriptions(tasks) {
@@ -38,38 +39,29 @@ async function recalculatePlanTotal(planId) {
     const tasks = await cleaningTaskRepo.findByPlanId(planId);
     const hourlyRate = plan.hourlyRate;
 
-    let subtotal = 0;
+    const systemSettings = await systemSettingsService.getSettings();
+    // Enrich tasks with prices
+    const enrichedTasks = tasks.map(t => {
+        const plain = typeof t.toObject === "function" ? t.toObject() : t;
+        const prices = calculateTaskPrice(plain, hourlyRate);
+        return { ...plain, ...prices };
+    });
 
-    for (const t of tasks) {
-
-        // Beregn pris via priceService (kategori er ligegyldig)
-        const prices = calculateTaskPrice(t, hourlyRate);
-
-        // Kun månedlige priser med i totalen
-        if (prices.monthlyPrice > 0) {
-            subtotal += prices.monthlyPrice;
-        }
-    }
-
-    // Rabat
-    const discountPercent = plan.discountPercent || 0;
-    const discountAmount = subtotal * (discountPercent / 100);
-    const afterDiscount = subtotal - discountAmount;
-
-    // Miljøtillæg
-    const environmentalFeePercent = plan.environmentalFeePercent || 0;
-    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
-
-    // Total pr måned
-    const totalMonthlyPrice = afterDiscount + environmentalFeeAmount;
+    // CENTRAL PRISBEREGNING
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent: plan.discountPercent || 0,
+        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+    });
 
     await cleaningPlanRepo.updateById(planId, {
-        subtotalBeforeDiscount: subtotal,
-        discountAmount,
-        environmentalFeeAmount,
-        totalMonthlyPrice
+        subtotalBeforeDiscount: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        environmentalFeeAmount: totals.environmentalFeeAmount,
+        totalMonthlyPrice: totals.total
     });
 }
+
 
 
 async function createCleaningPlan(data) {
@@ -88,7 +80,7 @@ async function createCleaningPlan(data) {
 
         totalMonthlyPrice: 0,
         discountPercent: 0,
-        environmentalFeePercent: settings.environmentalFee,
+        environmentalFeePercent: data.environmentalFeePercent ?? settings.environmentalFee,
         environmentalFeeAmount: 0,
         subtotalBeforeDiscount: 0,
         discountAmount: 0,

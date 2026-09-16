@@ -2,27 +2,9 @@
 
     <h1>Opsummering af rengøringsplan</h1>
 
-    <!-- RUM -->
-    <section>
-        <h2>Rum</h2>
-        <ul class="item-list">
-            <% draft.rooms.forEach(r => { %>
-                <li><strong><%= r.name %></strong> — <%= r.size %> m²</li>
-            <% }) %>
-        </ul>
-
-        <button class="button-secondary"
-                hx-get="/newPlanDraft/rooms"
-                hx-target="#content">
-            Tilføj / rediger rum
-        </button>
-    </section>
-
-    <hr>
-
     <!-- SDS-OPGAVER -->
     <section>
-        <h2>SDS-opgaver</h2>
+        <h2>Rum</h2>
 
         <% Object.keys(grouped).forEach(roomName => { %>
             <h3><%= roomName %></h3>
@@ -36,10 +18,24 @@
                 <% }) %>
             </ul>
 
+            <% const roomNoteObj = draft.roomNotes?.find(r => r.roomName === roomName); %>
+
+            <% if (roomNoteObj && roomNoteObj.notes.length > 0) { %>
+                <div class="room-notes">
+                    <strong>Bemærkninger:</strong>
+                    <ul>
+                        <% roomNoteObj.notes.forEach(n => { %>
+                            <li><%= n %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <% } %>
+
+
             <button class="button-secondary"
-                    hx-get="/newPlanDraft/bundle?room=<%= roomName %>"
+                    hx-get="/newPlanDraft/tasks/dailyBundle/edit?roomName=<%= roomName %>"
                     hx-target="#content">
-                Rediger SDS-bundle
+                Rediger rum
             </button>
         <% }) %>
     </section>
@@ -50,20 +46,28 @@
     <section>
         <h2>Øvrige opgaver</h2>
 
-        <% const extraTasks = draft.tasks.filter(t => t.category === "other"); %>
+        <% const extraTasks = draft.tasks.filter(t =>
+                t.category !== categoryTypes.daily &&
+                t.category !== categoryTypes.floor &&
+                t.category !== categoryTypes.inventory &&
+                t.category !== categoryTypes.consumables
+        ); %>
 
         <% if (extraTasks.length === 0) { %>
             <p><em>Ingen øvrige opgaver tilføjet endnu.</em></p>
         <% } else { %>
             <ul class="item-list">
                 <% extraTasks.forEach(t => { %>
-                    <li><strong><%= t.name %></strong> — <%= t.customPrice %> kr</li>
+                    <li>
+                        <strong><%= t.name %></strong>
+                        — <%= t.monthlyPrice.toFixed(2) %> kr/måned
+                    </li>
                 <% }) %>
             </ul>
         <% } %>
 
         <button class="button-secondary"
-                hx-get="/newPlanDraft/taskSelectCategory"
+                hx-get="/newPlanDraft/taskEditor?category=<%= categoryTypes.other %>"
                 hx-target="#overlay"
                 hx-swap="innerHTML">
             Tilføj opgave
@@ -77,7 +81,9 @@
     <section>
         <h2>Forbrugsvarer</h2>
 
-        <% const consumables = draft.tasks.filter(t => t.category === "consumable"); %>
+        <% const consumables = draft.tasks.filter(t =>
+                t.category === categoryTypes.consumables
+        ); %>
 
         <% if (consumables.length === 0) { %>
             <p><em>Ingen forbrugsvarer tilføjet endnu.</em></p>
@@ -86,22 +92,22 @@
                 <% consumables.forEach(c => { %>
                     <li>
                         <strong><%= c.name %></strong>
-                        — <%= c.quantity %> stk
-                        — <%= c.customPrice %> kr/stk
+                        — <%= c.amount %> stk
+                        — <%= c.monthlyPrice.toFixed(2) %> kr/måned
                     </li>
                 <% }) %>
             </ul>
         <% } %>
 
         <button class="button-secondary"
-                hx-get="/newPlanDraft/taskSelectCategory"
+                hx-get="/newPlanDraft/taskEditor?category=<%= categoryTypes.consumables %>"
                 hx-target="#overlay"
                 hx-swap="innerHTML">
             Tilføj opgave
         </button>
 
-
     </section>
+
 
     <hr>
 
@@ -125,13 +131,13 @@
 
             <form hx-post="/newPlanDraft/adjustments" hx-target="#content">
 
-                <label>Rabat (%)</label>
+            <label>Rabat (%)</label>
                 <input type="number"
                        name="discountPercent"
                        value="<%= discounts.discountPercent || 0 %>"
                        min="0" max="100">
 
-                <label>Miljøtillæg (%)</label>
+                <label>Drift- og miljøtillæg (%)</label>
                 <input type="number"
                        value="<%= systemSettings.environmentalFee %>"
                        readonly>
@@ -170,6 +176,6 @@
         Videre til tilbud
     </button>
 
-    <div id="overlay"></div>
 </article>
 
+<div hx-swap-oob="innerHTML:#overlay"></div>

@@ -107,11 +107,11 @@
 
         <!-- Antal (kun consumables) -->
         <% if (task.category === categoryTypes.consumables) { %>
-            <label for="quantity">Antal (stk)</label>
+            <label for="amount">Antal (stk)</label>
             <input type="number"
-                   id="quantity"
-                   name="quantity"
-                   value="<%= task.quantity ?? 1 %>"
+                   id="amount"
+                   name="amount"
+                   value="<%= task.amount ?? 1 %>"
                    min="1"
                    autocomplete="off"
                    hx-post="<%= task._id ? '/newPlan/tasks/' + task._id + '/preview' : '/newPlan/tasks/previewNew' %>"

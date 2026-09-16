@@ -5,12 +5,13 @@ const customerService = require("./customerService");
 const locationService = require("./locationService");
 const systemSettingsService = require("./systemSettingsService");
 const offerService = require("./offerService");
+const priceService = require("./priceService");
 
 const { categoryTypes } = require("../utils/categoryEnum");
 const { days } = require("../utils/dayEnum");
 const { frequencies, frequencyMultipliers } = require("../utils/frequencyEnum");
 const { units } = require("../utils/unitEnum");
-const { calculateTaskPrice } = require("../services/priceService");
+const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
 const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
 const { paymentTerms } = require("../utils/paymentTerms");
 
@@ -112,32 +113,25 @@ async function updateTask(taskId, body) {
 
     const hourlyRate = plan.hourlyRate;
 
+    const systemSettings = await systemSettingsService.getSettings();
+
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
         const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-    // RETTET: brug både monthlyPrice OG pricePerTime
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
-        const prices = calculateTaskPrice(t, hourlyRate);
-        const price =
-            prices.monthlyPrice > 0
-                ? prices.monthlyPrice
-                : prices.pricePerTime > 0
-                    ? prices.pricePerTime
-                    : 0;
-        return sum + price;
-    }, 0);
-
-
-    const yearlyTotal = monthlyTotal * 12;
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent: plan.discountPercent || 0,
+        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+    });
 
     return {
         planId: updatedTask.planId,
         tasks: enrichedTasks,
-        monthlyTotal,
-        yearlyTotal
+        monthlyTotal: totals.subtotal,
+        yearlyTotal: totals.subtotal * 12
     };
 }
 
@@ -239,6 +233,7 @@ async function deleteTask(taskId) {
     const tasks = await cleaningTaskService.listCleaningTasks(deletedTask.planId);
 
     const hourlyRate = plan.hourlyRate;
+    const systemSettings = await systemSettingsService.getSettings();
 
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
@@ -246,26 +241,17 @@ async function deleteTask(taskId) {
         return { ...plain, ...prices };
     });
 
-    // RETTET: brug både monthlyPrice OG pricePerTime
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
-        const prices = calculateTaskPrice(t, hourlyRate);
-        const price =
-            prices.monthlyPrice > 0
-                ? prices.monthlyPrice
-                : prices.pricePerTime > 0
-                    ? prices.pricePerTime
-                    : 0;
-        return sum + price;
-    }, 0);
-
-
-    const yearlyTotal = monthlyTotal * 12;
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent: plan.discountPercent || 0,
+        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+    });
 
     return {
         planId: deletedTask.planId,
         tasks: enrichedTasks,
-        monthlyTotal,
-        yearlyTotal
+        monthlyTotal: totals.subtotal,
+        yearlyTotal: totals.subtotal * 12
     };
 }
 
@@ -276,33 +262,27 @@ async function listTasks(planId) {
 
     const hourlyRate = plan.hourlyRate;
 
-    // Samme enrich som step4Offer
+    const systemSettings = await systemSettingsService.getSettings();
+
     const enrichedTasks = tasks.map(t => {
         const plain = t.toObject();
         const prices = calculateTaskPrice(plain, hourlyRate);
         return { ...plain, ...prices };
     });
 
-    // RETTET: brug både monthlyPrice OG pricePerTime
-    const monthlyTotal = enrichedTasks.reduce((sum, t) => {
-        const price =
-            t.monthlyPrice > 0
-                ? t.monthlyPrice
-                : t.pricePerTime > 0
-                    ? t.pricePerTime
-                    : 0;
-        return sum + price;
-    }, 0);
-
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent: plan.discountPercent || 0,
+        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+    });
 
     return {
         planId,
         tasks: enrichedTasks,
-        monthlyTotal,                 // nu 10.250 kr
-        yearlyTotal: monthlyTotal * 12
+        monthlyTotal: totals.subtotal,
+        yearlyTotal: totals.subtotal * 12
     };
 }
-
 
 
 async function getOfferStep4ViewModel(planId) {
@@ -312,47 +292,28 @@ async function getOfferStep4ViewModel(planId) {
 
     const hourlyRate = plan.hourlyRate;
 
-    // Enrich tasks
     const enrichedTasks = tasks.map(t => {
         const plain = typeof t.toObject === "function" ? t.toObject() : t;
         const prices = calculateTaskPrice(plain, hourlyRate);
-
-        return {
-            ...plain,
-            ...prices
-        };
+        return { ...plain, ...prices };
     });
 
-    const subtotal = enrichedTasks.reduce((sum, t) => {
-        const price =
-            t.monthlyPrice > 0
-                ? t.monthlyPrice
-                : t.pricePerTime > 0
-                    ? t.pricePerTime
-                    : 0;
-        return sum + price;
-    }, 0);
-
-
-    const discountPercent = plan.discountPercent || 0;
-    const discountAmount = subtotal * (discountPercent / 100);
-    const afterDiscount = subtotal - discountAmount;
-
-    const environmentalFeePercent = systemSettings.environmentalFee || 0;
-    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
-
-    const total = afterDiscount + environmentalFeeAmount;
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent: plan.discountPercent || 0,
+        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+    });
 
     return {
         planId,
         tasks: enrichedTasks,
-        discountPercent,
-        environmentalFee: environmentalFeePercent,
-        subtotal,
-        monthlyTotal: subtotal,
-        discountAmount,
-        environmentalFeeAmount,
-        total,
+        discountPercent: totals.discountPercent,
+        environmentalFee: totals.environmentalFeePercent,
+        subtotal: totals.subtotal,
+        monthlyTotal: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        environmentalFeeAmount: totals.environmentalFeeAmount,
+        total: totals.total,
         paymentTerms: plan.paymentTerms || paymentTerms.netto14
     };
 }
@@ -361,34 +322,25 @@ async function getOfferStep4ViewModel(planId) {
 async function getOfferPreview(planId, discountPercent, environmentalFee) {
     const plan = await cleaningPlanService.findCleaningPlanById(planId);
     const tasks = await cleaningPlanService.getTasksForPlan(planId);
+    const systemSettings = await systemSettingsService.getSettings();
 
     const hourlyRate = plan.hourlyRate;
 
     const enrichedTasks = tasks.map(t => {
         const plain = typeof t.toObject === "function" ? t.toObject() : t;
         const prices = calculateTaskPrice(plain, hourlyRate);
-
-        return {
-            ...plain,
-            ...prices,
-            totalPrice: prices.monthlyPrice > 0 ? prices.monthlyPrice : prices.pricePerTime
-        };
+        return { ...plain, ...prices };
     });
 
-    // Beregn subtotal baseret på totalPrice
-    const subtotal = enrichedTasks.reduce((sum, t) => {
-        return sum + t.totalPrice;
-    }, 0);
+    const totals = calculateTotals({
+        tasks: enrichedTasks,
+        discountPercent,
+        environmentalFeePercent: environmentalFee ?? systemSettings.environmentalFee
+    });
 
-    const discountAmount = subtotal * (discountPercent / 100);
-    const afterDiscount = subtotal - discountAmount;
-
-    const environmentalFeeAmount = afterDiscount * (environmentalFee / 100);
-
-    const total = afterDiscount + environmentalFeeAmount;
-
-    return total;
+    return totals.total;
 }
+
 
 
 async function updateDailyBundle(planId, body) {

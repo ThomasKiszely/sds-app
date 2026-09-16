@@ -5,6 +5,8 @@ const roomTemplateService = require("../services/roomTemplateService");
 const customerService = require("../services/customerService");
 const locationService = require("../services/locationService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
+const offerService = require("../services/offerService");
+
 
 const { daysLabels } = require("../utils/dayEnum");
 const { frequencyLabels } = require("../utils/frequencyEnum");
@@ -153,7 +155,8 @@ function editDailyBundle(req, res) {
             units,
             unitsLabels,
             categoryLabels,
-            categoryTypes
+            categoryTypes,
+            draft,
         });
 
     } catch (err) {
@@ -164,6 +167,8 @@ function editDailyBundle(req, res) {
 function saveDailyBundle(req, res) {
     const draft = req.session.planDraft;
     const roomName = req.body.roomName;
+
+    newPlanDraftService.updateRoomNotes(draft, roomName, req.body.roomNotes);
 
     const vm = newPlanDraftService.updateBundle(draft, roomName, req.body);
 
@@ -179,7 +184,7 @@ function saveDailyBundle(req, res) {
 }
 
 
-// ⭐ STEP 4: SUMMARY — controlleren laver INGEN prislogik
+// STEP 4: SUMMARY — controlleren laver INGEN prislogik
 async function step4_summary(req, res) {
     const draft = req.session.planDraft;
 
@@ -187,12 +192,17 @@ async function step4_summary(req, res) {
         return res.redirect("/newPlanDraft/tasks");
     }
 
-    // ⭐ Prisberegning ét sted
     newPlanDraftService.priceAllTasks(draft);
 
-    // ⭐ Byg viewmodel — UDEN at genskabe SDS tasks
-    const vm = newPlanDraftService.buildTaskViewModel(draft);
+    draft.roomNotes = draft.roomNotes || [];
 
+    draft.operations = draft.operations || {};
+    draft.operations.paymentTerms =
+        draft.operations.paymentTerms || paymentTerms.netto30;
+    draft.operations.terminationNotice =
+        draft.operations.terminationNotice || terminationNotice.month3;
+
+    const vm = newPlanDraftService.buildTaskViewModel(draft);
     const systemSettings = await systemSettingsService.getSettings();
 
     return res.render("newPlanDraft/summary", {
@@ -200,14 +210,17 @@ async function step4_summary(req, res) {
         draft,
         discounts: draft.discounts || {},
         environment: draft.environment || {},
-        operations: draft.operations || {},
+        operations: draft.operations,
         paymentTerms,
         paymentTermLabels,
         terminationNotice,
         terminationNoticeLabels,
-        systemSettings
+        systemSettings,
+        categoryTypes,
+        categoryLabels
     });
 }
+
 
 
 // SUMMARY: opdater avanceret
@@ -219,6 +232,9 @@ async function saveSummaryAdjustments(req, res) {
         req.body,
         systemSettings
     );
+
+    console.log("BODY paymentTerms:", req.body.paymentTerms);
+
 
     return step4_summary(req, res);
 }
@@ -234,24 +250,62 @@ function step6_offer(req, res) {
 }
 
 
-// STEP 8: Finalize — ingen prislogik
 async function finalizePlan(req, res) {
     const draft = req.session.planDraft;
 
+    // Beregn priser på draft
     newPlanDraftService.priceAllTasks(draft);
 
+    // 1. Opret cleaningPlan i DB
     const { plan } = await newPlanDraftService.finalizePlan(draft);
 
+    // 2. Opret offer baseret på cleaningPlan
+    const offer = await offerService.createOffer(plan._id, {
+        discountPercent: draft.discounts?.discountPercent ?? 0,
+        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 4,
+        paymentTerms: draft.operations?.paymentTerms,
+        terminationNotice: draft.operations?.terminationNotice
+    });
+
+    // 3. Slet draft – planen er nu låst
     req.session.planDraft = null;
 
+    // 4. Hop til det færdige tilbud
     res.setHeader("HX-Location", JSON.stringify({
-        path: `/newPlanDraft/offer?planId=${plan._id}`,
+        path: `/offers/${offer._id}/view`,
         target: "#content",
         swap: "innerHTML"
     }));
 
     return res.status(200).end();
 }
+
+
+
+
+// GEM SOM KLADDE-TILBUD
+async function saveAsDraftOffer(req, res) {
+    const draft = req.session.planDraft;
+
+    // Beregn priser
+    newPlanDraftService.priceAllTasks(draft);
+
+    // Opret cleaningPlan i DB
+    const { plan } = await newPlanDraftService.finalizePlan(draft);
+
+    // Behold draft, så man stadig kan rette
+    req.session.planDraft = draft;
+
+    // Byg viewmodel til kladde-tilbud
+    const vm = newPlanDraftService.buildOffer(draft);
+
+    // Tilføj toast
+    vm.toast = "Tilbud gemt som kladde";
+
+    // Render samme side igen
+    return res.render("newPlanDraft/offer", vm);
+}
+
 
 
 // Offer snapshot — ingen prislogik
@@ -268,26 +322,18 @@ function generateOffer(req, res) {
 
 // Overlay-editor
 async function taskEditor(req, res) {
-    const templateId = req.query.templateId;
+    const draft = req.session.planDraft;
 
-    const tpl = await cleaningTaskTemplateService.getById(templateId);
+    // Evt. forudvalgt kategori (fx fra query ?category=consumables)
+    const initialCategory = req.query.category || null;
 
-    // HENT ALLE TEMPLATES FOR DENNE KATEGORI
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(tpl.category);
+    let templates = null;
+    if (initialCategory) {
+        templates = await cleaningTaskTemplateService.getTemplatesByCategory(initialCategory);
+    }
 
-    const task = {
-        templateId: tpl._id,
-        name: tpl.name,
-        description: tpl.description,
-        category: tpl.category,
-        unit: tpl.unit,
-        durationPerUnit: tpl.durationPerUnit,
-        frequency: tpl.frequency || "weekly",
-        amount: tpl.amount ?? 1,
-        customPrice: tpl.customPrice ?? null,
-        days: tpl.days ?? [],
-        roomName: ""
-    };
+    // Ingen eksisterende task her – vi tilføjer ny
+    const task = null;
 
     return res.render("newPlanDraft/taskEditor", {
         task,
@@ -297,13 +343,44 @@ async function taskEditor(req, res) {
         frequencyLabels,
         daysLabels,
         units,
-        unitsLabels
+        unitsLabels,
+        initialCategory
     });
 }
 
 
-function taskSelectCategory(req, res) {
-    return res.render("newPlanDraft/taskSelectCategory", {
+// HTMX: opdater template-dropdown når kategori ændres
+async function taskSelectTemplate(req, res) {
+    const category = req.query.category;
+    const initialCategory = req.query.category;
+
+    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(category);
+
+    // Denne EJS skal kun rendere <div id="templateSelectContainer"> ... </div>
+    return res.render("newPlanDraft/_templateSelect", {
+        templates,
+        initialCategory
+    });
+}
+
+// HTMX: hent felter for valgt template
+async function taskLoadTemplate(req, res) {
+    const templateId = req.query.templateId;
+
+    const initialCategory = req.query.category;
+
+    if (!templateId) {
+        return res.send(""); // tomt svar hvis ingen valgt
+    }
+
+    const tpl = await cleaningTaskTemplateService.findTemplateById(templateId);
+
+    return res.render("newPlanDraft/_templateFields", {
+        tpl,
+        frequencyLabels,
+        unitsLabels,
+        daysLabels,
+        initialCategory,
         categoryTypes,
         categoryLabels
     });
@@ -315,35 +392,29 @@ async function taskSave(req, res) {
 
     const tpl = await cleaningTaskTemplateService.findTemplateById(req.body.templateId);
 
+    const customPrice =
+        req.body.customPrice === "" || req.body.customPrice == null
+            ? null
+            : Number(req.body.customPrice);
+
     const task = {
         templateId: tpl._id,
-        name: req.body.name,
+        name: req.body.name || tpl.name,
         description: req.body.description || tpl.description,
         category: tpl.category,
-        frequency: req.body.frequency,
+        frequency: req.body.frequency || tpl.frequency || "weekly",
         amount: Number(req.body.amount || tpl.amount || 1),
         durationPerUnit: Number(req.body.durationPerUnit || tpl.durationPerUnit),
-        customPrice: Number(req.body.customPrice || tpl.customPrice || 0),
+        customPrice,
         roomName: "",
         days: req.body.days || tpl.days || []
     };
 
+    console.log(task);
+
     draft.tasks.push(task);
 
     return step4_summary(req, res);
-}
-
-
-async function taskSelectTemplate(req, res) {
-    const category = req.query.category;
-
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(category);
-
-    return res.render("newPlanDraft/taskSelectTemplate", {
-        category,
-        templates,
-        categoryLabels
-    });
 }
 
 
@@ -363,6 +434,7 @@ module.exports = {
     step4_summary,
     taskEditor,
     taskSave,
-    taskSelectCategory,
-    taskSelectTemplate
+    taskSelectTemplate,
+    taskLoadTemplate,
+    saveAsDraftOffer,
 };

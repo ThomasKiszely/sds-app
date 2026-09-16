@@ -4,15 +4,16 @@ const cleaningTaskTemplateService = require("./cleaningTaskTemplateService");
 const cleaningPlanService = require("./cleaningPlanService");
 const cleaningTaskService = require("./cleaningTaskService");
 const roomTemplateService = require("../services/roomTemplateService");
+const systemSettingsService = require("../services/systemSettingsService");
 
-const { calculateTaskPrice } = require("./priceService");
+const { calculateTaskPrice, calculateTotals } = require("./priceService");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
 const { frequencyLabels } = require("../utils/frequencyEnum");
 
 
-// ⭐ CENTRAL PRISBEREGNING — eneste sted i hele systemet
+// CENTRAL PRISBEREGNING — eneste sted i hele systemet
 function priceAllTasks(draft) {
     const priced = draft.tasks.map(t =>
         calculateTaskPrice(t, draft.hourlyRate)
@@ -144,19 +145,19 @@ function buildTaskViewModel(draft) {
 
     const grouped = groupSdsTasksByRoom(tasks);
 
-    const monthlyTotal = tasks.reduce((sum, t) => {
-        const p = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
-        return sum + (p || 0);
-    }, 0);
+    const totals = calculateTotals({
+        tasks,
+        discountPercent: draft.discounts?.discountPercent || 0,
+        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+    });
 
     return {
         tasks,
         grouped,
-        monthlyTotal,
-        yearlyTotal: monthlyTotal * 12
+        monthlyTotal: totals.subtotal,
+        yearlyTotal: totals.subtotal * 12
     };
 }
-
 
 // STEP 4: Rediger SDS bundle (uden pris)
 function getBundleForRoom(draft, roomName) {
@@ -189,44 +190,46 @@ function updateBundle(draft, roomName, body) {
 
 // STEP 5: Rabat / drift / miljø (ingen prislogik)
 function updateAdjustments(draft, body, systemSettings) {
-    draft.discounts = {
-        discountPercent: Number(body.discountPercent || 0)
-    };
+    draft.discounts = draft.discounts || {};
+    draft.environment = draft.environment || {};
+    draft.operations = draft.operations || {};
 
-    draft.environment = {
-        environmentalFeePercent: systemSettings.environmentalFee
-    };
+    draft.discounts.discountPercent = Number(body.discountPercent || 0);
+    draft.environment.environmentalFeePercent = body.environmentalFeePercent != null
+        ? Number(body.environmentalFeePercent)
+        : systemSettings.environmentalFee;
 
-    draft.operations = {
-        paymentTerms: body.paymentTerms,
-        terminationNotice: body.terminationNotice
-    };
+    if (body.paymentTerms) {
+        draft.operations.paymentTerms = body.paymentTerms;
+    }
+
+    if (body.terminationNotice) {
+        draft.operations.terminationNotice = body.terminationNotice;
+    }
 
     return draft;
 }
 
 
+
 // STEP 6: Tilbud (ingen prislogik)
 function buildOffer(draft) {
-    const monthlyTotal = draft.tasks.reduce((sum, t) => {
-        const p = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
-        return sum + (p || 0);
-    }, 0);
-
-    const discount = draft.discounts.discountPercent || 0;
-    const envFee = draft.environment.environmentalFeePercent || 0;
-
-    const finalTotal =
-        monthlyTotal * (1 - discount / 100) * (1 + envFee / 100);
+    const totals = calculateTotals({
+        tasks: draft.tasks,
+        discountPercent: draft.discounts?.discountPercent || 0,
+        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+    });
 
     return {
         tasks: draft.tasks,
         grouped: groupSdsTasksByRoom(draft.tasks),
-        monthlyTotal,
-        finalTotal,
+        monthlyTotal: totals.subtotal,
+        finalTotal: totals.total,
         discounts: draft.discounts,
         environment: draft.environment,
         operations: draft.operations,
+        environmentalFeeAmount: totals.environmentalFeeAmount,
+        discountAmount: totals.discountAmount,
         categoryTypes,
         daysLabels,
         frequencyLabels
@@ -236,12 +239,29 @@ function buildOffer(draft) {
 
 // STEP 8: Opret cleaningPlan i databasen (tasks er allerede prissat)
 async function finalizePlan(draft) {
+    const totals = calculateTotals({
+        tasks: draft.tasks,
+        discountPercent: draft.discounts?.discountPercent || 0,
+        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+    });
+
     const plan = await cleaningPlanService.createCleaningPlan({
         customerId: draft.customerId,
         locationId: draft.locationId || null,
         name: draft.name || "Ny rengøringsplan",
         description: draft.description || "",
-        hourlyRate: draft.hourlyRate
+        roomNotes: draft.roomNotes || [],
+        hourlyRate: draft.hourlyRate,
+
+        subtotalBeforeDiscount: totals.subtotal,
+        discountPercent: totals.discountPercent,
+        discountAmount: totals.discountAmount,
+        environmentalFeePercent: totals.environmentalFeePercent,
+        environmentalFeeAmount: totals.environmentalFeeAmount,
+        indexRegulationPercent: draft.indexRegulationPercent ?? 0,
+        totalMonthlyPrice: totals.total,
+        paymentTerms: draft.operations?.paymentTerms,
+        terminationNotice: draft.operations?.terminationNotice,
     });
 
     for (const t of draft.tasks) {
@@ -251,6 +271,22 @@ async function finalizePlan(draft) {
     await cleaningPlanService.recalculatePlanTotal(plan._id);
 
     return { plan };
+}
+
+
+function updateRoomNotes(draft, roomName, notesText) {
+    draft.roomNotes = draft.roomNotes || [];
+
+    const existing = draft.roomNotes.find(r => r.roomName === roomName);
+
+    if (existing) {
+        existing.notes = notesText ? notesText.split("\n") : [];
+    } else {
+        draft.roomNotes.push({
+            roomName,
+            notes: notesText ? notesText.split("\n") : []
+        });
+    }
 }
 
 
@@ -264,5 +300,6 @@ module.exports = {
     buildOffer,
     finalizePlan,
     priceAllTasks,
-    buildTaskViewModel
+    buildTaskViewModel,
+    updateRoomNotes
 };

@@ -27,6 +27,8 @@ router.post("/tasks/dailyBundle/save", requireAdmin, draftController.saveDailyBu
 // STEP 4: Summary (den store editor)
 router.get("/summary", requireAdmin, draftController.step4_summary);
 router.post("/summary", requireAdmin, draftController.saveSummaryAdjustments);
+router.post("/adjustments", requireAdmin, draftController.saveSummaryAdjustments)
+
 
 // Generér tilbud (offer snapshot)
 router.post("/generateOffer", requireAdmin, draftController.generateOffer);
@@ -37,11 +39,11 @@ router.post("/taskSave", requireAdmin, draftController.taskSave);
 
 // STEP 6: Tilbud
 router.get("/offer", requireAdmin, draftController.step6_offer);
+router.get("/taskLoadTemplate", requireAdmin, draftController.taskLoadTemplate);
 
-
-router.get("/taskSelectCategory", requireAdmin, draftController.taskSelectCategory);
 router.get("/taskSelectTemplate", requireAdmin, draftController.taskSelectTemplate);
 
+router.post("/saveAsDraftOffer", requireAdmin, draftController.saveAsDraftOffer);
 
 // STEP 8: Opret cleaningPlan i databasen
 router.post("/finalize", requireAdmin, draftController.finalizePlan);
