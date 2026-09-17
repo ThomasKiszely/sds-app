@@ -106,6 +106,12 @@ async function getActiveCustomers() {
     return await customerRepo.getActiveCustomers();
 }
 
+async function searchCustomers(search) {
+    const { customers } = await listCustomers("active", search, "name", 1, 20);
+    return customers;
+}
+
+
 module.exports = {
     createCustomer,
     getCustomerById,
@@ -114,5 +120,6 @@ module.exports = {
     listCustomers,
     getPlansForCustomer,
     reactivateCustomer,
-    getActiveCustomers
+    getActiveCustomers,
+    searchCustomers
 };

@@ -3,9 +3,21 @@
 
     <form hx-post="/newPlanDraft/rooms" hx-target="#content">
 
+        <div class="alphabet-nav">
+            <% "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ".split("").forEach(letter => { %>
+                <button type="button"
+                        class="alpha-btn"
+                        data-letter="<%= letter %>">
+                    <%= letter %>
+                </button>
+            <% }) %>
+        </div>
+
         <ul class="item-list">
             <% templates.forEach(t => { %>
-                <li>
+                <% const firstLetter = t.name.charAt(0).toUpperCase(); %>
+
+                <li id="letter-<%= firstLetter %>">
                     <label class="checkbox-row">
                         <input type="checkbox"
                                name="selectedTemplates"
@@ -28,8 +40,9 @@
             <% }) %>
         </ul>
 
-        <button>Videre</button>
+
+        <button class="button-secondary">Videre</button>
     </form>
 
-    <button hx-get="/newPlanDraft/customer" hx-target="#content">Tilbage</button>
+    <button class="button-secondary" hx-get="/newPlanDraft/customer" hx-target="#content">Tilbage</button>
 </article>

@@ -9,6 +9,9 @@ const { requireAdmin } = require("../middlewares/requireAdmin");
 // STEP 1: Vælg kunde
 router.get("/customer", requireAdmin, draftController.step1_customer);
 router.get("/customerLocations", requireAdmin, draftController.customerLocations);
+router.get("/customerSearch", requireAdmin, draftController.customerSearch);
+router.get("/selectCustomer", requireAdmin, draftController.selectCustomer);
+
 
 router.post("/saveLocation", requireAdmin, draftController.saveLocation);
 

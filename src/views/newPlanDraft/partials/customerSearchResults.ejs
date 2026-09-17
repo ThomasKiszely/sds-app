@@ -1,0 +1,16 @@
+<% if (customers.length === 0) { %>
+    <div class="customer-search-empty">Ingen kunder fundet…</div>
+<% } else { %>
+    <ul class="customer-search-list">
+        <% customers.forEach(c => { %>
+            <li class="customer-search-item"
+                hx-get="/newPlanDraft/customerLocations?customerId=<%= c._id %>"
+                hx-target="#locationContainer"
+                hx-swap="innerHTML">
+
+                <strong><%= c.customerName %></strong><br>
+                <small><%= c.customerAddress %></small>
+            </li>
+        <% }) %>
+    </ul>
+<% } %>

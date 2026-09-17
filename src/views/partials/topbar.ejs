@@ -21,6 +21,18 @@
         </button>
 
         <button class="dropdown-item"
+                hx-get="/newPlanDraft/customer"
+                hx-target="#content">
+            Hurtig beregning
+        </button>
+
+        <button class="dropdown-item"
+                hx-get="/newPlan"
+                hx-target="#content">
+            Opret plan
+        </button>
+
+        <button class="dropdown-item"
                 hx-get="/customers"
                 hx-target="#content">
             Kunder
@@ -36,7 +48,7 @@
             <button class="dropdown-item"
                     hx-get="/roomTemplates/page"
                     hx-target="#content">
-                Rum-templates
+                Lokaler
             </button>
 
             <button class="dropdown-item"

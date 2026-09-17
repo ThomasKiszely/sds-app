@@ -162,19 +162,41 @@
         <% } %>
 
         <!-- Totalpris -->
-        <div class="offer-total-box" style="margin-top:1rem;">
-            <h3>Månedlig pris inkl. drift- og miljøtillæg</h3>
-            <div id="offerTotal">
-                <%= finalTotal.toFixed(2) %> kr.
+        <div class="price-box">
+            <h3>Prisberegning</h3>
+
+            <div class="price-line">
+                <span>Grundpris</span>
+                <strong><%= monthlyTotal.toFixed(2) %> kr.</strong>
+            </div>
+
+            <% if (discounts.discountPercent > 0) { %>
+                <div class="price-line">
+                    <span>Rabat (<%= discounts.discountPercent %>%)</span>
+                    <strong>- <%= discountAmount.toFixed(2) %> kr.</strong>
+                </div>
+            <% } %>
+
+            <div class="price-line">
+                <span>Drift- og miljøtillæg (<%= environment.environmentalFeePercent || 0 %>%)</span>
+                <strong>+ <%= environmentalFeeAmount.toFixed(2) %> kr.</strong>
+            </div>
+
+            <hr>
+
+            <div class="price-total">
+                <span>Total</span>
+                <strong><%= finalTotal.toFixed(2) %> kr./måned</strong>
             </div>
         </div>
+
 
     </section>
 
     <hr>
 
     <!-- KNAPPER -->
-    <div style="margin-top: 1rem;">
+    <div class="wizard-actions">
         <button class="button-secondary"
                 hx-get="/newPlanDraft/summary"
                 hx-target="#content">
@@ -187,13 +209,12 @@
             Gem som tilbud (kladde)
         </button>
 
-        <button class="button"
+        <button class="button-secondary"
                 hx-post="/newPlanDraft/finalize"
-                hx-target="#content"
-                style="margin-left: 1rem;">
+                hx-target="#content">
             Finalize og opret endeligt tilbud
         </button>
-
     </div>
+
 
 </article>

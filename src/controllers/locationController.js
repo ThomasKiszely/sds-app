@@ -6,6 +6,8 @@ async function createLocation(req, res, next) {
     try {
         const customerId = req.params.customerId;
 
+        const flow = req.query.flow;
+
         // Opret lokation
         const location = await locationService.createLocation(customerId, req.body);
 
@@ -15,6 +17,18 @@ async function createLocation(req, res, next) {
 
         // Toast
         res.setHeader("HX-Trigger", JSON.stringify({ toast: "Lokation oprettet" }));
+
+        if (flow === "newPlanDraft") {
+            req.session.planDraft.locationId = location._id;
+
+            return res.render("newPlanDraft/_locationSelect", {
+                locations: await locationService.getLocationsForCustomer(customerId),
+                customerId,
+                selectedLocationId: location._id,
+                selectedCustomerId: customerId,
+                selectedCustomerName: customer.customerName,
+            });
+        }
 
         // Render kundedetaljer med lokationer
         return res.render("customers/details", {
@@ -107,15 +121,29 @@ async function createLocationForm(req, res, next) {
         const customerId = req.params.customerId;
         const customer = await customerService.getCustomerById(customerId);
 
+        const flow = req.query.flow;
+
+        // ⭐ Wizard-flow: brug wizard-formularen
+        if (flow === "newPlanDraft") {
+            return res.render("newPlanDraft/locationCreateForm", {
+                customer,
+                customerId,
+                flow
+            });
+        }
+
+        // ⭐ Normal kundeside
         return res.render("locations/create", {
             customer,
             customerId,
             user: req.session.user
         });
+
     } catch (error) {
         next(error);
     }
 }
+
 
 async function editLocationForm(req, res, next) {
     try {

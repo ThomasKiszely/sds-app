@@ -1,32 +1,54 @@
 <article class="standard newPlanDraft step1">
+
     <h1>Vælg kunde</h1>
 
-    <label for="customerId">Kunde</label>
-    <select id="customerId"
-            name="customerId"
-            hx-get="/newPlanDraft/customerLocations"
-            hx-target="#locationContainer"
-            hx-trigger="load, change"
-            hx-include="#customerId"
-            required>
-        <option value="">Vælg kunde…</option>
+    <div class="customer-controls-wrapper">
+        <div class="customer-controls card">
 
-        <% customers.forEach(c => { %>
-            <option value="<%= c._id %>"
-                    <%= (typeof selectedCustomerId !== "undefined"
-                    && selectedCustomerId
-                    && selectedCustomerId.toString() === c._id.toString()
-                            ? "selected"
-                            : "") %>>
-                <%= c.customerName %>
-            </option>
-        <% }) %>
-    </select>
+            <!-- Søgning -->
+            <div class="search-box">
+                <input id="customerSearch"
+                       type="text"
+                       name="search"
+                       placeholder="Søg kunder..."
+                       hx-get="/newPlanDraft/customerSearch"
+                       hx-trigger="keyup changed delay:300ms"
+                       hx-target="#customerResults"
+                       hx-include="#customerSearch">
+            </div>
+
+            <!-- Dropdown med alle kunder -->
+            <div class="filter-row">
+                <select id="customerId"
+                        name="customerId"
+                        hx-get="/newPlanDraft/customerLocations"
+                        hx-target="#locationContainer"
+                        hx-trigger="change"
+                        required>
+
+                    <option value="" disabled <%= !selectedCustomerId ? "selected" : "" %>>
+                        Vælg kunde…
+                    </option>
+
+                    <% customers.forEach(c => { %>
+                        <option value="<%= c._id %>"
+                                <%= (selectedCustomerId === c._id.toString() ? "selected" : "") %>>
+                            <%= c.customerName %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Live-søgeresultater -->
+            <div id="customerResults" class="customer-results"></div>
+
+        </div>
+    </div>
 
     <hr>
 
     <section style="margin-top:1rem;">
-        <button class="button secondary"
+        <button class="button-secondary"
                 hx-get="/customers/create?flow=newPlanDraft"
                 hx-target="#content">
             Opret ny kunde
@@ -34,4 +56,5 @@
     </section>
 
     <div id="locationContainer"></div>
+
 </article>

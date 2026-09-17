@@ -22,13 +22,12 @@
 
             <% if (roomNoteObj && roomNoteObj.notes.length > 0) { %>
                 <div class="room-notes">
-                    <strong>Bemærkninger:</strong>
-                    <ul>
-                        <% roomNoteObj.notes.forEach(n => { %>
-                            <li><%= n %></li>
-                        <% }) %>
-                    </ul>
+                    <strong>Bemærkninger:</strong><br>
+                    <% roomNoteObj.notes.forEach(n => { %>
+                        <div><%= n %></div>
+                    <% }) %>
                 </div>
+
             <% } %>
 
 
@@ -123,7 +122,7 @@
 
     <!-- AVANCERET -->
     <section>
-        <button class="button" type="button" id="toggleAdvancedBtn">
+        <button class="button-secondary" type="button" id="toggleAdvancedBtn">
             Avanceret
         </button>
 
@@ -162,7 +161,7 @@
                     <% }) %>
                 </select>
 
-                <button class="button">Opdater</button>
+                <button class="button-secondary">Opdater</button>
             </form>
         </div>
     </section>
@@ -170,11 +169,17 @@
     <hr>
 
     <!-- VIDERE -->
-    <button class="button"
+    <button class="button-secondary"
             hx-post="/newPlanDraft/generateOffer"
             hx-target="#content">
         Videre til tilbud
     </button>
+    <button class="button-secondary"
+            hx-get="/newPlanDraft/tasks"
+            hx-target="#content">
+        Tilbage
+    </button>
+
 
 </article>
 

@@ -18,6 +18,10 @@
                 <strong><%= roomName %></strong>
             </h4>
 
+            <%
+                const roomNoteObj = draft.roomNotes?.find(r => r.roomName === roomName);
+            %>
+
             <ul class="task-list-room">
                 <% grouped[roomName].sds.forEach(task => { %>
                     <li class="task-item sds-task">
@@ -46,12 +50,21 @@
                 <% }) %>
             </ul>
 
+            <% if (roomNoteObj && roomNoteObj.notes.length > 0) { %>
+                <div class="room-notes">
+                    <strong>Bemærkninger:</strong><br>
+                    <% roomNoteObj.notes.forEach(n => { %>
+                        <div><%= n %></div>
+                    <% }) %>
+                </div>
+            <% } %>
+
             <div class="task-actions">
-                <button class="button small"
+                <button class="button-secondary"
                         hx-get="/newPlanDraft/tasks/dailyBundle/edit?roomName=<%= roomName %>"
                         hx-target="#content"
                         hx-swap="innerHTML">
-                    Rediger bundle
+                    Rediger lokale
                 </button>
             </div>
 
@@ -60,6 +73,7 @@
         <hr>
     <% } %>
 
-    <button hx-get="/newPlanDraft/summary" hx-target="#content">Videre</button>
+
+    <button class="button-secondary" hx-get="/newPlanDraft/summary" hx-target="#content">Videre</button>
 
 </article>

@@ -29,6 +29,9 @@ async function customerLocations(req, res) {
         });
     }
 
+    const customer = await customerService.getCustomerById(customerId);
+
+
     req.session.planDraft.customerId = customerId;
 
     const locations = await locationService.getLocationsForCustomer(customerId);
@@ -37,9 +40,15 @@ async function customerLocations(req, res) {
         req.session.planDraft.locationId = locations[0]._id;
     }
 
+    console.log("customerId from query:", req.query.customerId);
+    console.log("customerId in session:", req.session.planDraft.customerId);
+
+
     return res.render("newPlanDraft/_locationSelect", {
         locations,
         customerId,
+        selectedCustomerId: customerId,
+        selectedCustomerName: customer.customerName,
         selectedLocationId: req.session.planDraft.locationId
     });
 }
@@ -48,6 +57,8 @@ async function customerLocations(req, res) {
 // HTMX: gem valgt lokation
 function saveLocation(req, res) {
     req.session.planDraft.locationId = req.body.locationId;
+    console.log("saveLocation: customerId in session:", req.session.planDraft.customerId);
+
     return res.render("newPlanDraft/_continueToRooms");
 }
 
@@ -61,8 +72,35 @@ async function step1_customer(req, res) {
 
     return res.render("newPlanDraft/step1_customer", {
         customers,
+        selectedCustomerId: req.session.planDraft.customerId || null,
         error: null
     });
+}
+
+
+// HTMX: live-søgning efter kunder
+async function customerSearch(req, res) {
+    const search = req.query.search?.trim() || "";
+
+    const customers = await customerService.searchCustomers(search);
+
+    return res.render("newPlanDraft/partials/customerSearchResults", {
+        customers
+    });
+}
+
+// HTMX: vælg kunde fra søgeresultatet
+async function selectCustomer(req, res) {
+    const customerId = req.query.customerId;
+
+    const customer = await customerService.getCustomerById(customerId);
+
+    // Sæt valgt kunde i draft
+    req.session.planDraft.customerId = customerId;
+
+    return res.send(`
+        <option value="${customer._id}" selected>${customer.customerName}</option>
+    `);
 }
 
 
@@ -107,7 +145,8 @@ async function saveRooms(req, res) {
         categoryLabels,
         categoryTypes,
         units,
-        unitsLabels
+        unitsLabels,
+        draft: req.session.planDraft
     });
 }
 
@@ -134,7 +173,8 @@ async function step3_tasks(req, res) {
         categoryLabels,
         categoryTypes,
         units,
-        unitsLabels
+        unitsLabels,
+        draft: req.session.planDraft
     });
 }
 
@@ -179,7 +219,8 @@ function saveDailyBundle(req, res) {
         categoryLabels,
         categoryTypes,
         units,
-        unitsLabels
+        unitsLabels,
+        draft
     });
 }
 
@@ -204,6 +245,14 @@ async function step4_summary(req, res) {
 
     const vm = newPlanDraftService.buildTaskViewModel(draft);
     const systemSettings = await systemSettingsService.getSettings();
+
+    // Hvis brugeren ikke har trykket "Opdater", så brug systemets default
+    draft.environment = draft.environment || {};
+
+    if (draft.environment.environmentalFeePercent == null) {
+        draft.environment.environmentalFeePercent = systemSettings.environmentalFee;
+    }
+
 
     return res.render("newPlanDraft/summary", {
         ...vm,
@@ -287,23 +336,23 @@ async function finalizePlan(req, res) {
 async function saveAsDraftOffer(req, res) {
     const draft = req.session.planDraft;
 
-    // Beregn priser
     newPlanDraftService.priceAllTasks(draft);
 
-    // Opret cleaningPlan i DB
     const { plan } = await newPlanDraftService.finalizePlan(draft);
 
-    // Behold draft, så man stadig kan rette
     req.session.planDraft = draft;
 
-    // Byg viewmodel til kladde-tilbud
     const vm = newPlanDraftService.buildOffer(draft);
 
-    // Tilføj toast
-    vm.toast = "Tilbud gemt som kladde";
+    res.setHeader("HX-Trigger", JSON.stringify({ toast: "Tilbud gemt som kladde" }));
 
-    // Render samme side igen
-    return res.render("newPlanDraft/offer", vm);
+    res.setHeader("HX-Location", JSON.stringify({
+        path: `/customers/${draft.customerId}/plans`,
+        target: "#content",
+        swap: "innerHTML"
+    }));
+
+    return res.status(200).end();
 }
 
 
@@ -437,4 +486,6 @@ module.exports = {
     taskSelectTemplate,
     taskLoadTemplate,
     saveAsDraftOffer,
+    selectCustomer,
+    customerSearch
 };

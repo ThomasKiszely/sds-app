@@ -26,7 +26,7 @@
                 <label>Dage</label>
                 <div class="days-select">
                     <% for (const d in daysLabels) { %>
-                        <label>
+                        <label class="checkbox-row">
                             <input type="checkbox"
                                    name="days_<%= t.templateId %>"
                                    value="<%= d %>"
@@ -38,7 +38,7 @@
             </section>
         <% }) %>
 
-        <button>Gem bundle</button>
+        <button class="button-secondary">Gem bundle</button>
     </form>
 
     <button hx-get="/newPlanDraft/tasks" hx-target="#content">Tilbage</button>

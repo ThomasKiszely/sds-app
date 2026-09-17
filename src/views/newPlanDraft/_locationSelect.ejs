@@ -1,39 +1,68 @@
 <% if (locations.length === 0) { %>
 
-    <p>Ingen lokationer for denne kunde.</p>
+    <div class="customer-controls-wrapper">
+        <div class="customer-controls card">
 
-    <button class="button"
-            hx-get="/locations/create?customerId=<%= customerId %>&flow=newPlanDraft"
-            hx-target="#locationContainer">
-        Opret ny lokation
-    </button>
+            <p>Ingen lokationer for denne kunde.</p>
+
+            <button class="button-secondary"
+                    hx-get="/locations/create?customerId=<%= customerId %>&flow=newPlanDraft"
+                    hx-target="#locationContainer">
+                Opret ny lokation
+            </button>
+
+        </div>
+    </div>
 
 <% } else { %>
 
-    <label for="locationSelect">Lokation</label>
-    <select id="locationSelect"
-            name="locationId"
-            hx-post="/newPlanDraft/saveLocation"
-            hx-target="#nextStep"
-            hx-include="#locationSelect"
-            hx-trigger="load, change">
-        <option value="">Vælg lokation…</option>
+    <div class="customer-controls-wrapper">
+        <div class="customer-controls card">
 
-        <% locations.forEach(l => { %>
-            <option value="<%= l._id %>"
-                    <%= (selectedLocationId && selectedLocationId.toString() === l._id.toString() ? "selected" : "") %>>
-                <%= l.name %>
-            </option>
-        <% }) %>
-    </select>
+            <label for="locationSelect">Lokation</label>
 
+            <%
+                // AUTO-SELECT: hvis ingen valgt endnu, vælg første lokation
+                const autoSelected = selectedLocationId || (locations[0] && locations[0]._id);
+            %>
 
-    <button class="button secondary"
-            hx-get="/locations/create?customerId=<%= customerId %>&flow=newPlanDraft"
-            hx-target="#locationContainer">
-        Opret ny lokation
-    </button>
+            <div class="filter-row">
+                <select id="locationSelect"
+                        name="locationId"
+                        hx-post="/newPlanDraft/saveLocation"
+                        hx-target="#nextStep"
+                        hx-include="#locationSelect"
+                        hx-trigger="load, change"
+                        required>
 
-    <div id="nextStep"></div>
+                    <% locations.forEach(l => { %>
+                        <option value="<%= l._id %>"
+                                <%= (autoSelected.toString() === l._id.toString() ? "selected" : "") %>>
+                            <%= l.name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <button class="button-secondary"
+                    hx-get="/customers/<%= customerId %>/locations/create?flow=newPlanDraft"
+                    hx-target="#locationContainer">
+                Opret ny lokation
+            </button>
+
+            <div id="nextStep"></div>
+
+        </div>
+    </div>
 
 <% } %>
+
+
+<!-- OOB updates -->
+<div hx-swap-oob="true" id="customerResults"></div>
+
+<div hx-swap-oob="true" id="customerId">
+    <option value="<%= selectedCustomerId %>" selected>
+        <%= selectedCustomerName %>
+    </option>
+</div>
