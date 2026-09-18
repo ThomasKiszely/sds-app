@@ -5,6 +5,7 @@ const cleaningPlanService = require("./cleaningPlanService");
 const cleaningTaskService = require("./cleaningTaskService");
 const roomTemplateService = require("../services/roomTemplateService");
 const systemSettingsService = require("../services/systemSettingsService");
+const customerService = require("./customerService");
 
 const { calculateTaskPrice, calculateTotals } = require("./priceService");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
@@ -244,11 +245,12 @@ async function finalizePlan(draft) {
         discountPercent: draft.discounts?.discountPercent || 0,
         environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
     });
+    const customer = await customerService.getCustomerById(draft.customerId);
 
     const plan = await cleaningPlanService.createCleaningPlan({
         customerId: draft.customerId,
         locationId: draft.locationId || null,
-        name: draft.name || "Ny rengøringsplan",
+        name: draft.name || ("Rengøringsplan - " + customer.customerName),
         description: draft.description || "",
         roomNotes: draft.roomNotes || [],
         hourlyRate: draft.hourlyRate,

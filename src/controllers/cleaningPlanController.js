@@ -7,6 +7,7 @@ const { groupSdsTasksByRoom } = require('../utils/groupedUtil');
 const { categoryTypes } = require('../utils/categoryEnum');
 const { calculateTaskPrice } = require('../services/priceService');
 const { frequencyLabels } = require("../utils/frequencyEnum");
+const { makePdfFilename } = require('../utils/pdfFilenameUtil');
 
 
 async function createCleaningPlan(req, res, next) {
@@ -284,7 +285,7 @@ async function generatePlanPdf(req, res) {
         const planId = req.params.planId;
 
         // Hent planen
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        const plan = await cleaningPlanService.findCleaningPlanWithCustomerById(planId);
         if (!plan) {
             return res.status(404).send("Plan ikke fundet");
         }
@@ -354,9 +355,12 @@ async function generatePlanPdf(req, res) {
             consumables,
             frequencyLabels,
         });
+        const filename = makePdfFilename(
+            "rengøringsplan", plan.customerId.customerName
+        );
 
         res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `attachment; filename="rengøringsplan.pdf"`);
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
         res.send(pdfBuffer);
 
     } catch (err) {

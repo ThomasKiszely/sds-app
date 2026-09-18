@@ -1,5 +1,5 @@
 <article class="standard roomTemplate-create-page">
-    <h1>Opret rum-template</h1>
+    <h1>Opret lokaleskabelon</h1>
 
     <% if (error) { %>
         <div class="error-box"><%= error %></div>
@@ -23,52 +23,41 @@
                 required
         >
 
-        <label>Bundle type</label>
-        <select name="bundleType" required>
+        <input type="hidden" name="bundleType" value="daily">
+
+
+        <h2>Rengøringsopgaver</h2>
+
+        <label>Soigneringsskabelon</label>
+        <select name="daily" required>
             <option value="">Vælg...</option>
-            <option value="daily" <%= formData?.bundleType === 'daily' ? 'selected' : '' %>>
-                Daily
-            </option>
-        </select>
-
-
-        <h2>SDS-opgaver</h2>
-
-        <label>Soignering skabelon</label>
-        <select name="soignering" required>
-            <option value="">Vælg...</option>
-            <% cleaningTaskTemplates.forEach(t => { %>
-                <option
-                        value="<%= t._id %>"
-                        <%= formData?.soignering === t._id.toString() ? 'selected' : '' %>>
+            <% soigneringTemplates.forEach(t => { %>
+                <option value="<%= t._id %>" <%= formData?.daily === t._id.toString() ? 'selected' : '' %>>
                     <%= t.name %>
                 </option>
             <% }) %>
         </select>
 
-        <label>Gulv skabelon</label>
-        <select name="gulv" required>
+        <label>Gulvskabelon</label>
+        <select name="floor" required>
             <option value="">Vælg...</option>
-            <% cleaningTaskTemplates.forEach(t => { %>
-                <option
-                        value="<%= t._id %>"
-                        <%= formData?.gulv === t._id.toString() ? 'selected' : '' %>>
+            <% gulvTemplates.forEach(t => { %>
+                <option value="<%= t._id %>" <%= formData?.floor === t._id.toString() ? 'selected' : '' %>>
                     <%= t.name %>
                 </option>
             <% }) %>
         </select>
 
-        <label>Inventar skabelon</label>
-        <select name="inventar" required>
+        <label>Inventarskabelon</label>
+        <select name="inventory" required>
             <option value="">Vælg...</option>
-            <% cleaningTaskTemplates.forEach(t => { %>
-                <option
-                        value="<%= t._id %>"
-                        <%= formData?.inventar === t._id.toString() ? 'selected' : '' %>>
+            <% inventarTemplates.forEach(t => { %>
+                <option value="<%= t._id %>" <%= formData?.inventory === t._id.toString() ? 'selected' : '' %>>
                     <%= t.name %>
                 </option>
             <% }) %>
         </select>
+
 
         <button>Opret</button>
     </form>

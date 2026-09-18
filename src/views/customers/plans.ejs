@@ -59,13 +59,13 @@
                     <td data-label="Handlinger">
 
                         <!-- SE PLAN -->
-                        <button class="button-secondary button-fixed"
+                        <button class="btn btn-fixed"
                                 hx-get="/cleaningPlans/<%= plan._id %>/view"
                                 hx-target="#content">
                             Se plan
                         </button>
 
-                        <button class="button-secondary button-fixed"
+                        <button class="btn btn-fixed"
                                 hx-get="/cleaningPlans/<%= plan._id %>/edit"
                                 hx-target="#content">
                             Rediger plan
@@ -75,13 +75,13 @@
 
                         <!-- TILBUD -->
                         <% if (plan.offerId) { %>
-                            <button class="button-secondary button-fixed"
+                            <button class="btn btn-fixed"
                                     hx-get="/offers/<%= plan.offerId %>/view"
                                     hx-target="#content">
                                 Se tilbud
                             </button>
                         <% } else { %>
-                            <button class="button-secondary button-fixed"
+                            <button class="btn btn-fixed"
                                     hx-get="/offers/new?planId=<%= plan._id %>"
                                     hx-target="#content">
                                 Opret tilbud
@@ -91,26 +91,27 @@
 
                         <!-- KONTRAKT -->
                         <% if (plan.contract) { %>
-                            <button class="button-secondary button-fixed"
+                            <button class="btn btn-fixed"
                                     hx-get="/contracts/<%= plan.contract._id %>/view"
                                     hx-target="#content">
                                 Se kontrakt
                             </button>
                         <% } else { %>
-                            <span class="badge badge-warning">
-        Ingen kontrakt (tilbud ikke accepteret endnu)
-    </span>
+                            <button class="btn btn-fixed btn-warning" disabled>
+                                Tilbud ikke accepteret endnu
+                            </button>
+
                         <% } %>
 
                         <!-- DEAKTIVER / AKTIVÉR -->
                         <% if (plan.isActive) { %>
-                            <button class="button-secondary button-fixed"
+                            <button class="btn btn-fixed"
                                     hx-delete="/cleaningPlans/<%= plan._id %>?context=customerPlans"
                                     hx-target="#content">
                                 Deaktiver
                             </button>
                         <% } else { %>
-                            <button class="button-secondary button-fixed"
+                            <button class="btn btn-fixed"
                                     hx-patch="/cleaningPlans/<%= plan._id %>?context=customerPlans/reactivate"
                                     hx-target="#content">
                                 Aktivér

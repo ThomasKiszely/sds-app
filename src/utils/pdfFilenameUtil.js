@@ -6,6 +6,10 @@ function makePdfFilename(type, customerName) {
         .replace(/[^a-zA-Z0-9æøåÆØÅ ]/g, "")
         .trim();
 
+    if (!type){
+        return `SDS - ${safeCustomer} - ${date}.pdf`;
+    }
+
     return `SDS-${type} - ${safeCustomer} - ${date}.pdf`;
 }
 

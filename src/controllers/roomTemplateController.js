@@ -1,13 +1,20 @@
 const roomTemplateService = require("../services/roomTemplateService");
 const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
+const { categoryTypes } = require("../utils/categoryEnum");
 
 async function showCreateForm(req, res) {
-    const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+    const templates = await cleaningTaskTemplateService.listTemplates();
+
+    const soigneringTemplates = templates.filter(t => t.category === categoryTypes.daily);
+    const gulvTemplates = templates.filter(t => t.category === categoryTypes.floor);
+    const inventarTemplates = templates.filter(t => t.category === categoryTypes.inventory);
 
     res.render("roomTemplates/create", {
         error: null,
         formData: {},
-        cleaningTaskTemplates
+        soigneringTemplates,
+        gulvTemplates,
+        inventarTemplates
     });
 }
 
@@ -31,23 +38,30 @@ async function createRoomTemplate(req, res) {
 
         return res.render("roomTemplates/page", {
             roomTemplates,
-            toast: "Rum-template oprettet!"
+            toast: "Lokaleskabelon oprettet!"
         });
 
     } catch (error) {
-        console.error("Error creating room template:", error);
+        console.error("Fejl ved oprettelse af lokale:", error);
 
         const safeMessage = error.isUserError
             ? error.message
             : "Der skete en fejl.";
 
-        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates();
+
+        const soigneringTemplates = templates.filter(t => t.category === categoryTypes.daily);
+        const gulvTemplates = templates.filter(t => t.category === categoryTypes.floor);
+        const inventarTemplates = templates.filter(t => t.category === categoryTypes.inventory);
 
         return res.status(400).render("roomTemplates/create", {
             error: safeMessage,
             formData: req.body,
-            cleaningTaskTemplates
+            soigneringTemplates,
+            gulvTemplates,
+            inventarTemplates
         });
+
     }
 }
 
@@ -73,13 +87,21 @@ async function showRoomTemplatePage(req, res) {
 async function showEditForm(req, res) {
     try {
         const template = await roomTemplateService.getRoomTemplateById(req.params.id);
-        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
 
-        return res.render("roomTemplates/edit", {
+        const templates = await cleaningTaskTemplateService.listTemplates();
+
+        const soigneringTemplates = templates.filter(t => t.category === categoryTypes.daily);
+        const gulvTemplates = templates.filter(t => t.category === categoryTypes.floor);
+        const inventarTemplates = templates.filter(t => t.category === categoryTypes.inventory);
+
+        res.render("roomTemplates/edit", {
             template,
-            cleaningTaskTemplates,
+            soigneringTemplates,
+            gulvTemplates,
+            inventarTemplates,
             error: null
         });
+
 
     } catch (error) {
         console.error("FEJL I showEditForm:", error);
@@ -115,7 +137,7 @@ async function updateRoomTemplate(req, res) {
 
         return res.render("roomTemplates/page", {
             roomTemplates,
-            toast: "Rum-template opdateret!"
+            toast: "Lokaleskabelon opdateret!"
         });
 
     } catch (error) {
@@ -123,13 +145,20 @@ async function updateRoomTemplate(req, res) {
             ? error.message
             : "Noget gik galt – prøv igen.";
 
-        const cleaningTaskTemplates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates();
+
+        const soigneringTemplates = templates.filter(t => t.category === categoryTypes.daily);
+        const gulvTemplates = templates.filter(t => t.category === categoryTypes.floor);
+        const inventarTemplates = templates.filter(t => t.category === categoryTypes.inventory);
 
         return res.status(400).render("roomTemplates/edit", {
             template: { _id: req.params.id, ...req.body },
             error: safeMessage,
-            cleaningTaskTemplates
+            soigneringTemplates,
+            gulvTemplates,
+            inventarTemplates
         });
+
     }
 }
 
@@ -142,7 +171,7 @@ async function deleteRoomTemplate(req, res) {
 
         return res.render("roomTemplates/page", {
             roomTemplates,
-            toast: "Rum-template slettet!"
+            toast: "Lokaleskabelon slettet!"
         });
 
     } catch (error) {

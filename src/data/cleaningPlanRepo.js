@@ -9,6 +9,10 @@ async function findById(id) {
     return CleaningPlan.findById(id);
 }
 
+async function findByIdWithCustomer(id) {
+    return CleaningPlan.findById(id).populate("customerId");
+}
+
 async function findByCustomerId(customerId) {
     return CleaningPlan.find({
         customerId: new mongoose.Types.ObjectId(customerId),
@@ -41,5 +45,6 @@ module.exports = {
     findAllDeleted,
     updateById,
     findByCustomerId,
-    findByLocationId
+    findByLocationId,
+    findByIdWithCustomer
 };

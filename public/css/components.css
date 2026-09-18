@@ -230,3 +230,8 @@
     transform: scale(1.05);
 }
 
+.btn-warning {
+    background: #f0c040;
+    color: #000;
+    cursor: default;
+}

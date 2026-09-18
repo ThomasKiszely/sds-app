@@ -48,21 +48,37 @@
         margin-top: 8px;
     }
 
-    .responsive-table td.actions {
-        display: block;
-        padding: 6px 0;
+    /* --- HANDLINGER FIX --- */
+
+    /* Skjul label "Handlinger" i mobil */
+    .responsive-table td.actions::before {
+        content: "" !important;
+        display: none;
     }
 
+    /* Handlinger skal være stacked, ikke flex */
+    .responsive-table td.actions {
+        display: block;
+        padding: 10px 0;
+    }
+
+    /* Knappen skal stå pænt alene */
     .responsive-table td.actions button {
         width: 100%;
-        margin-top: 8px;
+        margin-top: 0;
     }
+
+    .customer-plans-table td[data-label="Handlinger"]::before {
+        content: "" !important;
+        display: none;
+    }
+
+    /* --- ANDRE MOBILREGLER --- */
 
     .filter-row {
         grid-template-columns: 1fr;
     }
 
-    /* Index mobil */
     .index-page-nav {
         padding: var(--space-2);
     }
@@ -75,10 +91,5 @@
     .nav-group button {
         width: 100%;
     }
-    /* Fjern kun ordene "Navn" og "Handlinger" i mobil */
-    .customer-plans-table td[data-label="Navn"]::before,
-    .customer-plans-table td[data-label="Handlinger"]::before {
-        content: "" !important;
-    }
-}
 
+}

@@ -456,7 +456,7 @@ async function tasks_editDailyBundle(req, res) {
         const roomName = req.query.roomName;
 
         if (!roomName) {
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Rum-navn mangler" }));
+            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Lokalenavn mangler" }));
             return res.status(400).end();
         }
 

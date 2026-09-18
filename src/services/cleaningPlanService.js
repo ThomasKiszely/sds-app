@@ -106,6 +106,12 @@ async function findCleaningPlanById(planId) {
     return plan;
 }
 
+async function findCleaningPlanWithCustomerById(planId) {
+    const plan = await cleaningPlanRepo.findByIdWithCustomer(planId);
+    ensureExists(plan, "Rengøringsplan blev ikke fundet.");
+    return plan;
+}
+
 
 async function updateCleaningPlan(planId, data) {
     const plan = await cleaningPlanRepo.findById(planId);
@@ -170,5 +176,6 @@ module.exports = {
     getPlansForCustomer,
     getPlansForLocation,
     getTasksForPlan,
-    extractInstructionDescriptions
+    extractInstructionDescriptions,
+    findCleaningPlanWithCustomerById
 };

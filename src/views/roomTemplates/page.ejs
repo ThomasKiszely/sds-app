@@ -1,18 +1,17 @@
 <article class="standard roomTemplates-page">
-    <h1>Rum-templates</h1>
+    <h1>Lokaleskabelon</h1>
 
     <% if (toast) { %>
         <div class="toast"><%= toast %></div>
     <% } %>
 
-    <button hx-get="/roomTemplates/new" hx-target="#content">Opret nyt rum-template</button>
+    <button hx-get="/roomTemplates/new" hx-target="#content">Opret ny lokaleskabelon</button>
 
     <table class="standard responsive-table">
         <thead>
         <tr>
             <th>Navn</th>
             <th>Størrelse</th>
-            <th>Bundle</th>
             <th>Handlinger</th>
         </tr>
         </thead>
@@ -22,10 +21,10 @@
             <tr>
                 <td data-label="Navn"><%= t.name %></td>
                 <td data-label="Størrelse"><%= t.defaultSize %> m²</td>
-                <td data-label="Bundle"><%= t.bundleType %></td>
 
-                <td data-label="Handlinger">
-                    <button hx-get="/roomTemplates/edit/<%= t._id %>"
+                <td class="actions" data-label="Handlinger">
+                    <button class="btn btn-fixed"
+                            hx-get="/roomTemplates/edit/<%= t._id %>"
                             hx-target="#content"
                             hx-swap="innerHTML">
                         Rediger
