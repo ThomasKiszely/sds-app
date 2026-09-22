@@ -234,4 +234,11 @@
     background: #f0c040;
     color: #000;
     cursor: default;
+    font-size: 0.85rem;      /* mindre tekst */
+    padding: 4px 8px;        /* mindre højde */
+    line-height: 1.2;        /* kompakt linjehøjde */
+    border-radius: 6px;      /* pæn, men mindre */
 }
+
+
+
