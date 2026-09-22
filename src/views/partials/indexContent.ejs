@@ -1,21 +1,20 @@
 <article class="standard index-page-nav">
-    <img class="index-page-nav-logo" src="/images/SDS-logo2.gif" alt="">
+    <img class="index-page-nav-logo" src="/images/SDS-logo2.gif" alt="SDS logo">
     <h1>SDS prisberegner</h1>
 
-    <nav class="index-nav">
+    <nav class="index-nav" aria-label="Hovednavigation">
         <div class="nav-group">
-            <button hx-get="/newPlanDraft/customer" hx-target="#content">
+            <button type="button" hx-get="/newPlanDraft/summary" hx-target="#content">
                 Hurtig beregning
             </button>
         </div>
 
         <div class="nav-group">
-            <button hx-get="/customers" hx-target="#content">Kunder/planer</button>
-            <button hx-get="/newPlan" hx-target="#content">Opret plan</button>
+            <button type="button" hx-get="/customers" hx-target="#content">Kunder/planer</button>
             <% if (user.role === 'admin') { %>
-                <button hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
-                <button hx-get="/roomTemplates/page" hx-target="#content">Lokaler</button>
-                <button hx-get="/admin" hx-target="#content">Admin panel</button>
+                <button type="button" hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
+                <button type="button" hx-get="/roomTemplates/page" hx-target="#content">Lokaler</button>
+                <button type="button" hx-get="/admin" hx-target="#content">Admin panel</button>
             <% } %>
         </div>
     </nav>

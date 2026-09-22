@@ -31,6 +31,10 @@ async function customerLocations(req, res) {
 
     const customer = await customerService.getCustomerById(customerId);
 
+    if (!req.session.planDraft) {
+        const systemSettings = await systemSettingsService.getSettings();
+        req.session.planDraft = newPlanDraftService.initDraft(systemSettings);
+    }
 
     req.session.planDraft.customerId = customerId;
 
@@ -43,12 +47,11 @@ async function customerLocations(req, res) {
     console.log("customerId from query:", req.query.customerId);
     console.log("customerId in session:", req.session.planDraft.customerId);
 
-
     return res.render("newPlanDraft/_locationSelect", {
         locations,
         customerId,
         selectedCustomerId: customerId,
-        selectedCustomerName: customer.customerName,
+        selectedCustomerName: customer ? customer.customerName : "",
         selectedLocationId: req.session.planDraft.locationId
     });
 }
@@ -56,6 +59,9 @@ async function customerLocations(req, res) {
 
 // HTMX: gem valgt lokation
 function saveLocation(req, res) {
+    if (!req.session.planDraft) {
+        req.session.planDraft = {};
+    }
     req.session.planDraft.locationId = req.body.locationId;
     console.log("saveLocation: customerId in session:", req.session.planDraft.customerId);
 
@@ -63,18 +69,24 @@ function saveLocation(req, res) {
 }
 
 
-// STEP 1: Vælg kunde
+// STEP 1: Vælg kunde (initialiserer draft og åbner editoren)
 async function step1_customer(req, res) {
     const systemSettings = await systemSettingsService.getSettings();
     req.session.planDraft = newPlanDraftService.initDraft(systemSettings);
 
-    const customers = await customerService.getActiveCustomers();
+    if (req.query.customerId) {
+        req.session.planDraft.customerId = req.query.customerId;
+        try {
+            const locations = await locationService.getLocationsForCustomer(req.query.customerId);
+            if (locations && locations.length === 1) {
+                req.session.planDraft.locationId = locations[0]._id;
+            }
+        } catch (e) {
+            console.error("Kunne ikke hente lokationer:", e.message);
+        }
+    }
 
-    return res.render("newPlanDraft/step1_customer", {
-        customers,
-        selectedCustomerId: req.session.planDraft.customerId || null,
-        error: null
-    });
+    return step4_summary(req, res);
 }
 
 
@@ -95,6 +107,11 @@ async function selectCustomer(req, res) {
 
     const customer = await customerService.getCustomerById(customerId);
 
+    if (!req.session.planDraft) {
+        const systemSettings = await systemSettingsService.getSettings();
+        req.session.planDraft = newPlanDraftService.initDraft(systemSettings);
+    }
+
     // Sæt valgt kunde i draft
     req.session.planDraft.customerId = customerId;
 
@@ -104,172 +121,50 @@ async function selectCustomer(req, res) {
 }
 
 
-// STEP 2: Vælg rum
-async function step2_rooms(req, res) {
-    const templates = await roomTemplateService.getAllRoomTemplates();
-
-    return res.render("newPlanDraft/rooms", {
-        templates,
-        error: null,
-        draft: req.session.planDraft
-    });
-}
-
-
-async function saveRooms(req, res) {
-    let selectedIds = req.body.selectedTemplates;
-
-    if (!selectedIds) selectedIds = [];
-    else if (!Array.isArray(selectedIds)) selectedIds = [selectedIds];
-
-    const counts = req.body.counts || {};
-
-    if (selectedIds.length === 0) {
-        const templates = await roomTemplateService.getAllRoomTemplates();
-        return res.render("newPlanDraft/rooms", {
-            templates,
-            error: "Vælg venligst mindst ét rum.",
-            draft: req.session.planDraft
-        });
-    }
-
-    const rooms = await newPlanDraftService.generateRooms(selectedIds, counts);
-    req.session.planDraft.rooms = rooms;
-
-    const vm = await newPlanDraftService.generateDraftTasks(req.session.planDraft);
-
-    return res.render("newPlanDraft/tasks", {
-        ...vm,
-        daysLabels,
-        frequencyLabels,
-        categoryLabels,
-        categoryTypes,
-        units,
-        unitsLabels,
-        draft: req.session.planDraft
-    });
-}
-
-
-// STEP 3: Generér SDS tasks
-async function step3_tasks(req, res) {
-    const draft = req.session.planDraft;
-
-    if (!draft || !draft.rooms || draft.rooms.length === 0) {
-        const templates = await roomTemplateService.getAllRoomTemplates();
-        return res.render("newPlanDraft/rooms", {
-            templates,
-            error: "Vælg venligst mindst ét rum først.",
-            draft: draft || {}
-        });
-    }
-
-    const vm = await newPlanDraftService.generateDraftTasks(draft);
-
-    return res.render("newPlanDraft/tasks", {
-        ...vm,
-        daysLabels,
-        frequencyLabels,
-        categoryLabels,
-        categoryTypes,
-        units,
-        unitsLabels,
-        draft: req.session.planDraft
-    });
-}
-
-
-// STEP 4: Rediger SDS bundle
-function editDailyBundle(req, res) {
-    const draft = req.session.planDraft;
-    const roomName = req.query.roomName;
-
-    try {
-        const tasks = newPlanDraftService.getBundleForRoom(draft, roomName);
-
-        return res.render("newPlanDraft/editDailyBundle", {
-            roomName,
-            tasks,
-            daysLabels,
-            frequencyLabels,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            draft,
-        });
-
-    } catch (err) {
-        return res.render("newPlanDraft/error", { message: err.message });
-    }
-}
-
-function saveDailyBundle(req, res) {
-    const draft = req.session.planDraft;
-    const roomName = req.body.roomName;
-
-    newPlanDraftService.updateRoomNotes(draft, roomName, req.body.roomNotes);
-
-    const vm = newPlanDraftService.updateBundle(draft, roomName, req.body);
-
-    return res.render("newPlanDraft/tasks", {
-        ...vm,
-        daysLabels,
-        frequencyLabels,
-        categoryLabels,
-        categoryTypes,
-        units,
-        unitsLabels,
-        draft
-    });
-}
-
-
-// STEP 4: SUMMARY — controlleren laver INGEN prislogik
+// STEP 4: SUMMARY — den store træk-og-slip editor
 async function step4_summary(req, res) {
-    const draft = req.session.planDraft;
+    const systemSettings = await systemSettingsService.getSettings();
 
-    if (!draft || !draft.tasks || draft.tasks.length === 0) {
-        return res.redirect("/newPlanDraft/tasks");
+    if (!req.session.planDraft) {
+        req.session.planDraft = newPlanDraftService.initDraft(systemSettings);
     }
 
-    newPlanDraftService.priceAllTasks(draft);
+    const draft = req.session.planDraft;
 
     draft.roomNotes = draft.roomNotes || [];
-
     draft.operations = draft.operations || {};
     draft.operations.paymentTerms =
         draft.operations.paymentTerms || paymentTerms.netto30;
     draft.operations.terminationNotice =
         draft.operations.terminationNotice || terminationNotice.month3;
 
-    const vm = newPlanDraftService.buildTaskViewModel(draft);
-    const systemSettings = await systemSettingsService.getSettings();
-
-    // Hvis brugeren ikke har trykket "Opdater", så brug systemets default
     draft.environment = draft.environment || {};
-
     if (draft.environment.environmentalFeePercent == null) {
         draft.environment.environmentalFeePercent = systemSettings.environmentalFee;
     }
 
+    let customer = null;
+    if (draft.customerId) {
+        try {
+            customer = await customerService.getCustomerById(draft.customerId);
+        } catch (e) {
+            console.error("Kunne ikke hente kunde:", e.message);
+        }
+    }
 
-    return res.render("newPlanDraft/summary", {
-        ...vm,
-        draft,
-        discounts: draft.discounts || {},
-        environment: draft.environment || {},
-        operations: draft.operations,
-        paymentTerms,
-        paymentTermLabels,
-        terminationNotice,
-        terminationNoticeLabels,
-        systemSettings,
-        categoryTypes,
-        categoryLabels
-    });
+    let location = null;
+    if (draft.locationId) {
+        try {
+            location = await locationService.getLocationById(draft.locationId);
+        } catch (e) {
+            console.error("Kunne ikke hente lokation:", e.message);
+        }
+    }
+
+    const vm = await newPlanDraftService.buildEditorViewModel(draft, systemSettings, customer, location);
+
+    return res.render("newPlanDraft/summary", vm);
 }
-
 
 
 // SUMMARY: opdater avanceret
@@ -282,9 +177,141 @@ async function saveSummaryAdjustments(req, res) {
         systemSettings
     );
 
-    console.log("BODY paymentTerms:", req.body.paymentTerms);
+    return step4_summary(req, res);
+}
 
 
+// EDITOR HANDLERS: Lokaler
+async function addRoom(req, res) {
+    const { templateId, name, size } = req.body;
+    const draft = req.session.planDraft;
+
+    await newPlanDraftService.addRoomToDraft(draft, templateId, name, size);
+    return step4_summary(req, res);
+}
+
+function removeRoom(req, res) {
+    const { roomName } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.removeRoomFromDraft(draft, roomName);
+    return step4_summary(req, res);
+}
+
+function updateRoom(req, res) {
+    const { oldRoomName, roomName, size } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.updateRoomInDraft(draft, oldRoomName, roomName, size);
+    return step4_summary(req, res);
+}
+
+function reorderRooms(req, res) {
+    let order = req.body.order;
+    if (typeof order === "string") {
+        try {
+            order = JSON.parse(order);
+        } catch (e) {
+            order = [order];
+        }
+    }
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.reorderRoomsInDraft(draft, order);
+    return step4_summary(req, res);
+}
+
+
+// EDITOR HANDLERS: Opgaver
+async function addTaskToRoom(req, res) {
+    const { roomName, slotName, templateId } = req.body;
+    const draft = req.session.planDraft;
+
+    await newPlanDraftService.addTaskToRoomInDraft(draft, roomName, templateId, slotName);
+    return step4_summary(req, res);
+}
+
+async function addTask(req, res) {
+    const { roomName, slotName, templateId } = req.body;
+    const draft = req.session.planDraft;
+
+    await newPlanDraftService.addTaskToRoomInDraft(draft, roomName, templateId, slotName);
+    return step4_summary(req, res);
+}
+
+function removeTask(req, res) {
+    const { roomName, templateId, taskIndex } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.removeTaskFromDraft(draft, roomName, templateId, taskIndex);
+    return step4_summary(req, res);
+}
+
+function updateTask(req, res) {
+    const { roomName, templateId, taskIndex, frequency, amount, days: taskDays, customPrice } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.updateTaskInDraft(draft, {
+        roomName,
+        templateId,
+        taskIndex,
+        frequency,
+        amount,
+        days: taskDays,
+        customPrice
+    });
+
+    return step4_summary(req, res);
+}
+
+
+// EDITOR HANDLERS: Dage
+function addDay(req, res) {
+    const { roomName, templateId, day, taskIndex } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.addDayToDraft(draft, roomName, templateId, day, taskIndex);
+    return step4_summary(req, res);
+}
+
+function removeDay(req, res) {
+    const { roomName, templateId, day, taskIndex } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.removeDayFromDraft(draft, roomName, templateId, day, taskIndex);
+    return step4_summary(req, res);
+}
+
+function addDayToRoom(req, res) {
+    const { roomName, day } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.addDayToDraft(draft, roomName, null, day);
+    return step4_summary(req, res);
+}
+
+function setDaysForRoom(req, res) {
+    const { roomName, days: roomDays } = req.body;
+    const draft = req.session.planDraft;
+
+    let daysArr = roomDays;
+    if (typeof roomDays === "string") {
+        try {
+            daysArr = JSON.parse(roomDays);
+        } catch (e) {
+            daysArr = [roomDays];
+        }
+    }
+
+    newPlanDraftService.setDaysForRoomInDraft(draft, roomName, daysArr || []);
+    return step4_summary(req, res);
+}
+
+function updateRoomNotes(req, res) {
+    const { roomName, notes } = req.body;
+    const draft = req.session.planDraft;
+
+    newPlanDraftService.updateRoomNotes(draft, roomName, notes);
     return step4_summary(req, res);
 }
 
@@ -369,111 +396,8 @@ function generateOffer(req, res) {
 }
 
 
-// Overlay-editor
-async function taskEditor(req, res) {
-    const draft = req.session.planDraft;
-
-    // Evt. forudvalgt kategori (fx fra query ?category=consumables)
-    const initialCategory = req.query.category || null;
-
-    let templates = null;
-    if (initialCategory) {
-        templates = await cleaningTaskTemplateService.getTemplatesByCategory(initialCategory);
-    }
-
-    // Ingen eksisterende task her – vi tilføjer ny
-    const task = null;
-
-    return res.render("newPlanDraft/taskEditor", {
-        task,
-        templates,
-        categoryTypes,
-        categoryLabels,
-        frequencyLabels,
-        daysLabels,
-        units,
-        unitsLabels,
-        initialCategory
-    });
-}
-
-
-// HTMX: opdater template-dropdown når kategori ændres
-async function taskSelectTemplate(req, res) {
-    const category = req.query.category;
-    const initialCategory = req.query.category;
-
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(category);
-
-    // Denne EJS skal kun rendere <div id="templateSelectContainer"> ... </div>
-    return res.render("newPlanDraft/_templateSelect", {
-        templates,
-        initialCategory
-    });
-}
-
-// HTMX: hent felter for valgt template
-async function taskLoadTemplate(req, res) {
-    const templateId = req.query.templateId;
-
-    const initialCategory = req.query.category;
-
-    if (!templateId) {
-        return res.send(""); // tomt svar hvis ingen valgt
-    }
-
-    const tpl = await cleaningTaskTemplateService.findTemplateById(templateId);
-
-    return res.render("newPlanDraft/_templateFields", {
-        tpl,
-        frequencyLabels,
-        unitsLabels,
-        daysLabels,
-        initialCategory,
-        categoryTypes,
-        categoryLabels
-    });
-}
-
-
-async function taskSave(req, res) {
-    const draft = req.session.planDraft;
-
-    const tpl = await cleaningTaskTemplateService.findTemplateById(req.body.templateId);
-
-    const customPrice =
-        req.body.customPrice === "" || req.body.customPrice == null
-            ? null
-            : Number(req.body.customPrice);
-
-    const task = {
-        templateId: tpl._id,
-        name: req.body.name || tpl.name,
-        description: req.body.description || tpl.description,
-        category: tpl.category,
-        frequency: req.body.frequency || tpl.frequency || "weekly",
-        amount: Number(req.body.amount || tpl.amount || 1),
-        durationPerUnit: Number(req.body.durationPerUnit || tpl.durationPerUnit),
-        customPrice,
-        roomName: "",
-        days: req.body.days || tpl.days || []
-    };
-
-    console.log(task);
-
-    draft.tasks.push(task);
-
-    return step4_summary(req, res);
-}
-
-
 module.exports = {
     step1_customer,
-    step2_rooms,
-    saveRooms,
-    step3_tasks,
-    editDailyBundle,
-    saveDailyBundle,
     step6_offer,
     finalizePlan,
     customerLocations,
@@ -481,11 +405,20 @@ module.exports = {
     generateOffer,
     saveSummaryAdjustments,
     step4_summary,
-    taskEditor,
-    taskSave,
-    taskSelectTemplate,
-    taskLoadTemplate,
     saveAsDraftOffer,
     selectCustomer,
-    customerSearch
+    customerSearch,
+    addRoom,
+    removeRoom,
+    updateRoom,
+    reorderRooms,
+    addTaskToRoom,
+    addTask,
+    removeTask,
+    updateTask,
+    addDay,
+    removeDay,
+    addDayToRoom,
+    setDaysForRoom,
+    updateRoomNotes
 };

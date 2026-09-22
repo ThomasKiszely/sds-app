@@ -1,61 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const { requireLogin } = require("../middlewares/requireLogin");
-
+const { validateObjectId } = require("../middlewares/validateObjectId");
 const newPlanController = require("../controllers/newPlanController");
 
-const { validateObjectId } = require("../middlewares/validateObjectId");
-const validateCleaningPlan = require("../middlewares/validateCleaningPlan");
-const validateCleaningTask = require("../middlewares/validateCleaningTask");
-const validateOffer = require("../middlewares/validateOffer");
-const validateOfferPreview = require("../middlewares/validateOfferPreview");
+// Alle editor-ruter i newPlanRoutes kræver login
+router.use(requireLogin);
 
-// Step 1b: Kundeliste (HTMX partial)
-router.get("/customerList", requireLogin, newPlanController.customerList);
+// Fallback til oprettelse hvis /newPlan tilgås direkte
+router.get("/", (req, res) => res.redirect("/newPlanDraft/summary"));
 
-// Step 1c: Vælg lokation (HTMX partial)
-router.get("/locationList", requireLogin, newPlanController.locationList);
+// Hoved-editor visning for eksisterende rengøringsplan
+router.get("/:planId/editor", validateObjectId("planId"), newPlanController.showEditor);
+router.get("/:planId/summary", validateObjectId("planId"), newPlanController.showEditor);
 
-// Step 2: Opret plan
-router.get("/plan", requireLogin, newPlanController.step2_plan);
-router.post("/plan", requireLogin, validateCleaningPlan, newPlanController.savePlan);
+// Editor handlinger: Lokaler
+router.post("/:planId/addRoom", validateObjectId("planId"), newPlanController.addRoom);
+router.post("/:planId/removeRoom", validateObjectId("planId"), newPlanController.removeRoom);
+router.post("/:planId/updateRoom", validateObjectId("planId"), newPlanController.updateRoom);
+router.post("/:planId/reorderRooms", validateObjectId("planId"), newPlanController.reorderRooms);
 
-// Step 2b: tilføj rum
-router.get("/newPlan/rooms", requireLogin, newPlanController.showRoomSelection);
-router.post("/newPlan/rooms", requireLogin, newPlanController.saveRoomSelection);
+// Editor handlinger: Opgaver
+router.post("/:planId/addTask", validateObjectId("planId"), newPlanController.addTask);
+router.post("/:planId/removeTask", validateObjectId("planId"), newPlanController.removeTask);
+router.post("/:planId/updateTask", validateObjectId("planId"), newPlanController.updateTask);
 
+// Editor handlinger: Dagsvalg
+router.post("/:planId/addDayToRoom", validateObjectId("planId"), newPlanController.addDayToRoom);
+router.post("/:planId/setDaysForRoom", validateObjectId("planId"), newPlanController.setDaysForRoom);
+router.post("/:planId/addDay", validateObjectId("planId"), newPlanController.addDay);
+router.post("/:planId/removeDay", validateObjectId("planId"), newPlanController.removeDay);
 
-// Step 3: Tilføj opgaver
-router.get("/tasks", requireLogin, newPlanController.step3_tasks);
-router.get("/tasks/daily", requireLogin, newPlanController.tasks_daily);
-router.get("/tasks/extra", requireLogin, newPlanController.tasks_extra);
-router.get("/tasks/consumables", requireLogin, newPlanController.tasks_consumables);
-router.get("/tasks/windows", requireLogin, newPlanController.tasks_windows);
-router.get("/tasks/list", requireLogin, newPlanController.tasks_list);
-router.get("/tasks/create", requireLogin, newPlanController.tasks_create);
-router.post("/tasks/save", requireLogin, validateCleaningTask, newPlanController.tasks_save);
-
-// DAILY BUNDLE
-router.post("/tasks/dailyBundle/update", requireLogin, newPlanController.tasks_updateDailyBundle);
-router.get("/tasks/dailyBundle/edit", requireLogin, newPlanController.tasks_editDailyBundle);
-router.get("/tasks/dailyBundle/create", requireLogin, newPlanController.tasks_createDailyBundle);
-router.post("/tasks/dailyBundle/save", requireLogin, newPlanController.tasks_saveDailyBundle);
-
-// PREVIEW FOR NY OPGAVE (Skal ligge FØR /:taskId ruterne og UDEN validering)
-router.post("/tasks/previewNew", requireLogin, newPlanController.tasks_previewNew);
-
-// ALMINDELIGE TASKS (:taskId parametriserede ruter)
-router.get("/tasks/:taskId/edit", requireLogin, validateObjectId("taskId"), newPlanController.tasks_edit);
-router.post("/tasks/:taskId/preview", requireLogin, validateObjectId("taskId"), newPlanController.tasks_preview);
-router.delete("/tasks/:taskId/delete", requireLogin, validateObjectId("taskId"), newPlanController.tasks_delete);
-router.patch("/tasks/:taskId/update", requireLogin, validateObjectId("taskId"), validateCleaningTask, newPlanController.tasks_update);
-
-// Step 4: Lav tilbud
-router.get("/offer", requireLogin, newPlanController.step4_offer);
-router.post("/offer/save", requireLogin, validateOffer, newPlanController.saveOffer);
-router.post("/offer/preview", requireLogin, validateOfferPreview, newPlanController.previewOffer);
-
-// Step 1: Vælg kunde (skal ligge til sidst!)
-router.get("/", requireLogin, newPlanController.step1_customer);
+// Editor handlinger: Overordnede justeringer & Noter
+router.post("/:planId/saveSummaryAdjustments", validateObjectId("planId"), newPlanController.saveSummaryAdjustments);
+router.post("/:planId/updateRoomNotes", validateObjectId("planId"), newPlanController.updateRoomNotes);
 
 module.exports = router;

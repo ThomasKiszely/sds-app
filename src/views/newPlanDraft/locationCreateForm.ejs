@@ -1,38 +1,53 @@
-<article class="standard location-create-page">
-    <h1>Tilføj lokation til <%= customer.customerName %></h1>
+<div class="overlay">
+    <div class="overlay-content modal-card">
+        <div class="modal-header">
+            <h2>Tilføj lokation til <%= customer ? customer.customerName : "kunde" %></h2>
+            <button type="button" class="modal-close-btn" data-close-modal title="Luk">&times;</button>
+        </div>
 
-    <form
-            hx-post="/customers/<%= customerId %>/locations?flow=newPlanDraft"
-            hx-target="#locationContainer"
-            hx-swap="innerHTML"
-            hx-on:error="alert(event.detail.response)"
-    >
+        <form hx-post="/customers/<%= customerId %>/locations?flow=newPlanDraft"
+              hx-target="#locationContainer"
+              hx-swap="innerHTML">
 
-        <h2>Lokation</h2>
+            <div class="modal-body-scroll">
+                <div class="form-section">
+                    <h3>Lokationsoplysninger</h3>
+                    <div class="form-group">
+                        <label for="locName">Lokationsnavn</label>
+                        <input type="text" id="locName" name="name" required placeholder="f.eks. Hovedkontor eller Afdeling Nord">
+                    </div>
 
-        <label for="locName">Lokationsnavn</label>
-        <input type="text" id="locName" name="name" required>
+                    <div class="form-group">
+                        <label for="locAddress">Adresse</label>
+                        <input type="text" id="locAddress" name="address" required placeholder="Vejnavn 10, 1000 By">
+                    </div>
+                </div>
 
-        <label for="locAddress">Adresse</label>
-        <input type="text" id="locAddress" name="address" required>
+                <div class="form-section">
+                    <h3>Kontaktperson på lokationen</h3>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label for="contactName">Navn</label>
+                            <input type="text" id="contactName" name="contactPerson[name]" required placeholder="Fulde navn">
+                        </div>
 
-        <h2>Kontaktperson</h2>
+                        <div class="form-group">
+                            <label for="contactPhone">Telefon</label>
+                            <input type="text" id="contactPhone" name="contactPerson[phone]" required placeholder="Direkte telefon">
+                        </div>
 
-        <label for="contactName">Navn</label>
-        <input type="text" id="contactName" name="contactPerson[name]" required>
+                        <div class="form-group">
+                            <label for="contactEmail">Email</label>
+                            <input type="email" id="contactEmail" name="contactPerson[email]" required placeholder="email@firma.dk">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <label for="contactPhone">Telefon</label>
-        <input type="text" id="contactPhone" name="contactPerson[phone]" required>
-
-        <label for="contactEmail">Email</label>
-        <input type="email" id="contactEmail" name="contactPerson[email]" required>
-
-        <button type="submit">Tilføj lokation</button>
-    </form>
-
-    <button class="button-secondary"
-            hx-get="/newPlanDraft/customerLocations?customerId=<%= customerId %>"
-            hx-target="#locationContainer">
-        Tilbage
-    </button>
-</article>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Tilføj lokation</button>
+                <button type="button" class="btn btn-secondary btn-modal-cancel" data-close-modal>Annuller</button>
+            </div>
+        </form>
+    </div>
+</div>

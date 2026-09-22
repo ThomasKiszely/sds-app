@@ -146,7 +146,7 @@
                         <li>
                             <strong><%= c.name %></strong>
                             – <%= (c.customPrice ?? 0).toFixed(2) %> kr pr stk
-                            – <%= c.quantity %> stk
+                            – <%= c.amount || c.quantity || 1 %> stk
 
                             <% if (c.description && c.description.trim().length > 0) { %>
                                 <div><em><%= c.description %></em></div>

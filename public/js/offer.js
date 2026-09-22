@@ -2,10 +2,12 @@ function wireOfferAdvancedToggle(root) {
     const btn = root.querySelector("#toggleAdvancedBtn");
     const box = root.querySelector("#advanced");
 
-    if (btn && box) {
-        btn.addEventListener("click", () => {
+    if (btn && box && !btn._advancedBound) {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
             box.classList.toggle("hidden");
         });
+        btn._advancedBound = true;
     }
 }
 

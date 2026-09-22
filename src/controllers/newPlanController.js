@@ -1,740 +1,253 @@
+// controllers/newPlanController.js
+
 const newPlanService = require("../services/newPlanService");
-const cleaningTaskService = require("../services/cleaningTaskService");
-const cleaningPlanService = require("../services/cleaningPlanService");
-const customerService = require("../services/customerService");
-const locationService = require("../services/locationService");
-const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
-const offerService = require("../services/offerService");
-const roomTemplateService = require("../services/roomTemplateService");
 
-const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
-const { days, daysLabels } = require("../utils/dayEnum");
-const { frequencies, frequencyLabels, frequencyMultipliers } = require("../utils/frequencyEnum");
-const { units, unitsLabels } = require("../utils/unitEnum");
-const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
-const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
-const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
-const { calculateTaskPrice } = require("../services/priceService");
-
-// ------------------------------------------------------------
-// STEP 1: Vælg kunde
-// ------------------------------------------------------------
-async function step1_customer(req, res) {
-    res.render("newPlan/step1_customer", { user: req.session.user });
-}
-
-async function customerList(req, res) {
-    const customers = await customerService.getActiveCustomers();
-    res.render("newPlan/partials/customerList", { customers });
-}
-
-
-// ------------------------------------------------------------
-// STEP 2: Vælg lokation / opret plan
-// ------------------------------------------------------------
-async function locationList(req, res, next) {
+/**
+ * GET /newPlan/:planId/editor (og /newPlan/:planId/summary)
+ * Viser editoren for en eksisterende rengøringsplan gemt i DB
+ */
+async function showEditor(req, res, next) {
     try {
-        const customerId = req.query.customerId;
-        const locations = await locationService.getLocationsForCustomer(customerId);
-
-        return res.render("newPlan/locationList", {
-            customerId,
-            locations,
-            user: req.session.user
-        });
+        const planId = req.params.planId;
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
     } catch (err) {
         next(err);
     }
 }
 
-async function step2_plan(req, res) {
-    const customerId = req.query.customerId;
-    const locationId = req.query.locationId;
-    const planId = req.query.planId;
-
-    if (planId) {
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-
-        return res.render("newPlan/step2_plan", {
-            customerId: plan.customerId,
-            locationId: plan.locationId,
-            planId: plan._id,
-            planName: plan.name
-        });
-    }
-
-    if (!locationId) {
-        return res.render("newPlan/locationList", {
-            customerId,
-            locations: await locationService.getLocationsForCustomer(customerId),
-            user: req.session.user
-        });
-    }
-
-    return res.render("newPlan/step2_plan", {
-        customerId,
-        locationId,
-        planId: null,
-        planName: null
-    });
-}
-
-async function savePlan(req, res) {
+/**
+ * POST /newPlan/:planId/addRoom
+ */
+async function addRoom(req, res, next) {
     try {
-        const plan = await newPlanService.createPlan({
-            customerId: req.body.customerId,
-            locationId: req.body.locationId,
-            nameFromUI: req.body.name,
-            description: req.body.description
-        });
+        const planId = req.params.planId;
+        const { templateId, name, size } = req.body;
 
-        return res.render("newPlan/partials/tasks", {
-            planId: plan._id,
-            locationId: plan.locationId
-        });
+        await newPlanService.addRoomToPlan(planId, { templateId, name, size });
 
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-// ------------------------------------------------------------
-// STEP 3: Opgaver
-// ------------------------------------------------------------
-async function step3_tasks(req, res) {
-    const planId = req.query.planId;
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-
-    if (!req.headers['hx-request']) {
-        return res.render("index", {
-            user: req.session.user,
-            loadMe: false
-        });
-    }
-
-    res.render("newPlan/partials/tasks", {
-        planId,
-        customerId: plan.customerId
-    });
-}
-
-
-// ------------------------------------------------------------
-// TASKS: Daglig / Extra / Consumables / Windows
-// ------------------------------------------------------------
-async function tasks_daily(req, res) {
-    const planId = req.query.planId;
-
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-
-    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-
-    const hourlyRate = plan.hourlyRate;
-
-    const tasks = rawTasks.map(t => {
-        const plain = t.toObject();
-        const prices = calculateTaskPrice(plain, hourlyRate);
-        return { ...plain, ...prices };
-    });
-
-    const grouped = groupSdsTasksByRoom(tasks);
-
-    return res.render("newPlan/partials/tasks/daily", {
-        plan,
-        templates,
-        tasks,
-        grouped,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-
-}
-
-
-async function tasks_extra(req, res) {
-    const planId = req.query.planId;
-
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.extra);
-
-    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-    const tasks = rawTasks.filter(t => t.category === categoryTypes.extra);
-
-    return res.render("newPlan/partials/tasks/extra", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-}
-
-
-async function tasks_consumables(req, res) {
-    const planId = req.query.planId;
-
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.consumables);
-
-    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-    const tasks = rawTasks.filter(t => t.category === categoryTypes.consumables);
-
-    return res.render("newPlan/partials/tasks/consumables", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        frequencies,
-        frequencyMultipliers,
-        customerId: plan.customerId
-    });
-}
-
-async function tasks_windows(req, res) {
-    const planId = req.query.planId;
-
-    const plan = await cleaningPlanService.findCleaningPlanById(planId);
-    const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.windows);
-
-    const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-    const tasks = rawTasks.filter(t => t.category === categoryTypes.windows);
-
-    return res.render("newPlan/partials/tasks/windows", {
-        plan,
-        templates,
-        tasks,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        customerId: plan.customerId
-    });
-}
-
-
-
-async function tasks_edit(req, res) {
+/**
+ * POST /newPlan/:planId/removeRoom
+ */
+async function removeRoom(req, res, next) {
     try {
-        const task = await newPlanService.getEditTaskViewModel(req.params.taskId);
+        const planId = req.params.planId;
+        const { roomName } = req.body;
 
-        if (task.category === categoryTypes.consumables) {
-            return res.render("newPlan/partials/tasks/editConsumable", {
-                task,
-                frequencies,
-                frequencyLabels,
-                frequencyMultipliers
-            });
-        }
+        await newPlanService.removeRoomFromPlan(planId, roomName);
 
-        return res.render("newPlan/partials/tasks/editTask", {
-            task,
-            days,
-            daysLabels,
-            frequencies,
-            frequencyLabels,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes
-        });
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-async function tasks_update(req, res) {
+/**
+ * POST /newPlan/:planId/updateRoom
+ */
+async function updateRoom(req, res, next) {
     try {
-        const vm = await newPlanService.updateTask(req.params.taskId, req.body);
+        const planId = req.params.planId;
+        const { oldRoomName, newRoomName, size } = req.body;
 
-        const grouped = groupSdsTasksByRoom(vm.tasks);
+        await newPlanService.updateRoomInPlan(planId, { oldRoomName, newRoomName, size });
 
-        return res.render("newPlan/partials/tasks/taskList", {
-            ...vm,
-            grouped,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            frequencyMultipliers
-        });
-
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-async function tasks_preview(req, res) {
+/**
+ * POST /newPlan/:planId/reorderRooms
+ */
+async function reorderRooms(req, res, next) {
     try {
-        const price = await newPlanService.previewTaskPrice(req.params.taskId, req.body);
-        return res.send(`${price} kr.`);
-    } catch (error) {
-        return res.send("Fejl");
+        const planId = req.params.planId;
+        const { order } = req.body;
+
+        await newPlanService.reorderRoomsInPlan(planId, order);
+
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-async function tasks_delete(req, res) {
+/**
+ * POST /newPlan/:planId/addTask
+ */
+async function addTask(req, res, next) {
     try {
-        const vm = await newPlanService.deleteTask(req.params.taskId);
+        const planId = req.params.planId;
+        const { templateId, roomName } = req.body;
 
-        const grouped = groupSdsTasksByRoom(vm.tasks);
+        await newPlanService.addTaskToPlan(planId, { templateId, roomName });
 
-        return res.render("newPlan/partials/tasks/taskList", {
-            ...vm,
-            grouped,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            frequencyMultipliers
-        });
-
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-async function tasks_list(req, res) {
-    const vm = await newPlanService.listTasks(req.query.planId);
-
-    const grouped = groupSdsTasksByRoom(vm.tasks);
-
-    return res.render("newPlan/partials/tasks/taskList", {
-        ...vm,
-        grouped,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyLabels,
-        frequencyMultipliers
-    });
-}
-
-
-
-async function step4_offer(req, res) {
-    const vm = await newPlanService.getOfferStep4ViewModel(req.query.planId);
-
-    const grouped = groupSdsTasksByRoom(vm.tasks);
-
-    const consumables = vm.tasks.filter(t => t.category === categoryTypes.consumables);
-    const normalTasks = vm.tasks.filter(t => t.category !== categoryTypes.consumables);
-
-    res.render("newPlan/step4_offer", {
-        ...vm,
-        tasks: normalTasks,
-        consumables,
-        grouped,
-        frequencyLabels,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes,
-        daysLabels,
-        frequencyMultipliers,
-        paymentTerms,
-        paymentTermLabels,
-        currentPaymentTerms: vm.paymentTerms,
-        terminationNotice,
-        terminationNoticeLabels,
-    });
-}
-
-
-async function tasks_updateDailyBundle(req, res) {
+/**
+ * POST /newPlan/:planId/removeTask
+ */
+async function removeTask(req, res, next) {
     try {
-        const planId = req.body.planId;
+        const planId = req.params.planId;
+        const { taskId, taskIndex } = req.body;
 
-        await newPlanService.updateDailyBundle(planId, req.body);
+        await newPlanService.removeTaskFromPlan(planId, { taskId, taskIndex });
 
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-
-        const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-        const hourlyRate = plan.hourlyRate;
-
-        const tasks = rawTasks.map(t => {
-            const plain = t.toObject();
-            const prices = calculateTaskPrice(plain, hourlyRate);
-            return { ...plain, ...prices };
-        });
-
-        const grouped = groupSdsTasksByRoom(tasks);
-
-        return res.render("newPlan/partials/tasks/daily", {
-            plan,
-            templates,
-            tasks,
-            grouped,   // VIGTIGT
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            customerId: plan.customerId
-        });
-
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-
-async function previewOffer(req, res) {
-    const total = await newPlanService.getOfferPreview(
-        req.body.planId,
-        Number(req.body.discountPercent || 0),
-        Number(req.body.environmentalFee || 0)
-    );
-
-    return res.send(`${total.toFixed(2)} kr.`);
-}
-
-async function saveOffer(req, res) {
-    const offer = await offerService.createOffer(
-        req.body.planId,
-        {
-            discountPercent: Number(req.body.discountPercent || 0),
-            environmentalFeePercent: Number(req.body.environmentalFee || 0),
-            paymentTerms: req.body.paymentTerms,
-            terminationNotice: req.body.terminationNotice,
-        }
-    );
-
-    // HTMX-SPECIFIK REDIRECT MED TARGET = "#content"
-    res.setHeader("HX-Location", JSON.stringify({
-        path: `/offers/${offer._id}/view`,
-        target: "#content",
-        swap: "innerHTML"
-    }));
-
-    return res.status(200).end();
-}
-
-
-
-
-async function tasks_editDailyBundle(req, res) {
+/**
+ * POST /newPlan/:planId/updateTask
+ */
+async function updateTask(req, res, next) {
     try {
-        const planId = req.query.planId;
-        const roomName = req.query.roomName;
+        const planId = req.params.planId;
+        const { taskId, taskIndex, amount, frequency, durationPerUnit, customPrice } = req.body;
 
-        if (!roomName) {
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Lokalenavn mangler" }));
-            return res.status(400).end();
-        }
+        await newPlanService.updateTaskInPlan(planId, { taskId, taskIndex, amount, frequency, durationPerUnit, customPrice });
 
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-
-        const notesEntry = plan.roomNotes.find(r => r.roomName === roomName);
-        const existingNotes = notesEntry ? notesEntry.notes : [];
-
-
-        // Find SDS-opgaver for dette rum (robust)
-        const sdsTasks = await cleaningTaskService.findSdsTasksForRoom(planId, roomName);
-
-        if (sdsTasks.length !== 3) {
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Bundle mangler opgaver" }));
-            return res.status(400).end();
-        }
-
-        // Sortér dem efter kategori, så rækkefølgen er stabil
-        const sorted = sdsTasks.sort((a, b) => a.category.localeCompare(b.category));
-
-        return res.render("newPlan/partials/tasks/editDailyBundle", {
-            planId,
-            roomName,
-            tasks: sorted,
-            days,
-            daysLabels,
-            frequencies,
-            frequencyLabels,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            existingNotes
-        });
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-async function tasks_createDailyBundle(req, res) {
+/**
+ * POST /newPlan/:planId/addDayToRoom
+ */
+async function addDayToRoom(req, res, next) {
     try {
-        const planId = req.query.planId;
+        const planId = req.params.planId;
+        const { roomName, day } = req.body;
 
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
+        await newPlanService.addDayToRoomInPlan(planId, { roomName, day });
 
-        // Find alle templates for SDS-kategorier
-        const dailyTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-        const floorTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.floor);
-        const inventoryTemplates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.inventory);
-
-        // Find præcis én template pr kategori (robust)
-        const soigneringTemplate = dailyTemplates[0];
-        const gulvTemplate       = floorTemplates[0];
-        const inventarTemplate   = inventoryTemplates[0];
-
-        if (!soigneringTemplate || !gulvTemplate || !inventarTemplate) {
-            res.setHeader("HX-Trigger", JSON.stringify({ toast: "Mangler SDS-skabeloner" }));
-            return res.status(400).end();
-        }
-
-        return res.render("newPlan/partials/tasks/createDailyBundle", {
-            plan,
-            soigneringTemplate,
-            gulvTemplate,
-            inventarTemplate,
-            days,
-            daysLabels,
-            frequencies,
-            frequencyLabels,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes
-        });
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-async function tasks_saveDailyBundle(req, res) {
+/**
+ * POST /newPlan/:planId/setDaysForRoom
+ */
+async function setDaysForRoom(req, res, next) {
     try {
-        const planId = req.body.planId;
+        const planId = req.params.planId;
+        const { roomName, days } = req.body;
 
-        // Opret SDS-bundle via service (robust)
-        await newPlanService.createDailyBundle(planId, req.body);
+        await newPlanService.setDaysForRoomInPlan(planId, { roomName, days });
 
-        // Hent plan + tasks til visning
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-        const templates = await cleaningTaskTemplateService.getTemplatesByCategory(categoryTypes.daily);
-
-        const rawTasks = await cleaningPlanService.getTasksForPlan(planId);
-        const hourlyRate = plan.hourlyRate;
-
-        const tasks = rawTasks.map(t => {
-            const plain = t.toObject();
-            const prices = calculateTaskPrice(plain, hourlyRate);
-            return { ...plain, ...prices };
-        });
-
-        const grouped = groupSdsTasksByRoom(tasks);
-
-        return res.render("newPlan/partials/tasks/daily", {
-            plan,
-            templates,
-            tasks,
-            grouped,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            customerId: plan.customerId
-        });
-
-
-    } catch (error) {
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-async function tasks_create(req, res) {
-    const template = await cleaningTaskTemplateService.findTemplateById(req.query.templateId);
-
-    const task = {
-        _id: null,
-        planId: req.query.planId,
-        templateId: template._id,
-        name: template.name,
-        description: template.description,
-        category: template.category,
-        unit: template.unit,
-        durationPerUnit: template.durationPerUnit,
-        frequency: template.frequency,
-        amount: template.amount ?? 0,
-        roomName: template.roomName ?? "",
-        customPrice: template.customPrice ?? null,
-        days: template.days ?? [],
-    };
-
-    if (template.category === categoryTypes.consumables) {
-        return res.render("newPlan/partials/tasks/editConsumable", {
-            task,
-        frequencies,
-        frequencyLabels,
-        frequencyMultipliers
-        });
-    }
-
-    return res.render("newPlan/partials/tasks/editTask", {
-        task,
-        days,
-        daysLabels,
-        frequencies,
-        frequencyLabels,
-        units,
-        unitsLabels,
-        categoryLabels,
-        categoryTypes
-    });
-}
-
-async function tasks_save(req, res) {
+/**
+ * POST /newPlan/:planId/addDay
+ */
+async function addDay(req, res, next) {
     try {
-        await newPlanService.addTaskFromTemplate(
-            req.body.planId,
-            req.body.templateId,
-            req.body
-        );
+        const planId = req.params.planId;
+        const { taskId, taskIndex, templateId, roomName, day } = req.body;
 
-        // Send en HTMX redirect signal til klienten om at genindlæse listen
-        const vm = await newPlanService.listTasks(req.body.planId);
-        const grouped = groupSdsTasksByRoom(vm.tasks);
+        await newPlanService.addDayToTaskInPlan(planId, { taskId, taskIndex, templateId, roomName, day });
 
-        return res.render("newPlan/partials/tasks/taskList", {
-            ...vm,
-            grouped,
-            units,
-            unitsLabels,
-            categoryLabels,
-            categoryTypes,
-            daysLabels,
-            frequencyLabels,
-            frequencyMultipliers
-        });
-    } catch (error) {
-        console.error("Save Task Error:", error);
-        res.setHeader("HX-Trigger", JSON.stringify({ toast: error.message || "Fejl ved gem" }));
-        return res.status(500).end();
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-
-async function tasks_previewNew(req, res) {
+/**
+ * POST /newPlan/:planId/removeDay
+ */
+async function removeDay(req, res, next) {
     try {
-        const price = await newPlanService.previewNewTaskPrice(req.body);
+        const planId = req.params.planId;
+        const { taskId, taskIndex, templateId, roomName, day } = req.body;
 
-        // HTMX forventer formateret pris
-        if (req.body.category === categoryTypes.consumables) {
-            return res.send(`${price.toFixed(2)} kr pr stk`);
-        } else if (price > 0) {
-            return res.send(`${price.toFixed(2)} kr./måned`);
-        } else {
-            return res.send("0.00 kr.");
-        }
-    } catch (error) {
-        console.error("Preview fejl:", error);
-        return res.send("0.00 kr.");
+        await newPlanService.removeDayFromPlan(planId, { taskId, taskIndex, templateId, roomName, day });
+
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
 }
 
-async function showRoomSelection(req, res) {
-    const templates = await roomTemplateService.getAllRoomTemplates();
+/**
+ * POST /newPlan/:planId/saveSummaryAdjustments
+ */
+async function saveSummaryAdjustments(req, res, next) {
+    try {
+        const planId = req.params.planId;
+        await newPlanService.saveSummaryAdjustmentsInPlan(planId, req.body);
 
-    return res.render("newPlan/rooms", {
-        templates
-    });
-}
-
-async function saveRoomSelection(req, res) {
-    const { selectedTemplates = [], counts = {} } = req.body;
-
-    const templates = await roomTemplateService.getAllRoomTemplates();
-
-    const rooms = [];
-
-    for (const templateId of selectedTemplates) {
-        const template = templates.find(t => t._id.toString() === templateId);
-        const count = Number(counts[templateId] || 1);
-
-        for (let i = 1; i <= count; i++) {
-            rooms.push({
-                templateId,
-                name: template.name,
-                index: i
-            });
-        }
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
     }
-
-    req.session.planDraft.rooms = rooms;
-
-    return res.redirect("/newPlan/tasks");
 }
 
+/**
+ * POST /newPlan/:planId/updateRoomNotes
+ */
+async function updateRoomNotes(req, res, next) {
+    try {
+        const planId = req.params.planId;
+        const { roomName, notes } = req.body;
+
+        await newPlanService.updateRoomNotesInPlan(planId, roomName, notes);
+
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
+    } catch (err) {
+        next(err);
+    }
+}
 
 module.exports = {
-    step1_customer,
-    customerList,
-    locationList,
-    step2_plan,
-    savePlan,
-    step3_tasks,
-    tasks_daily,
-    tasks_edit,
-    tasks_update,
-    step4_offer,
-    saveOffer,
-    tasks_preview,
-    tasks_extra,
-    tasks_consumables,
-    tasks_windows,
-    tasks_delete,
-    tasks_list,
-    tasks_updateDailyBundle,
-    previewOffer,
-    tasks_editDailyBundle,
-    tasks_createDailyBundle,
-    tasks_saveDailyBundle,
-    tasks_create,
-    tasks_save,
-    tasks_previewNew,
-    showRoomSelection,
-    saveRoomSelection
+    showEditor,
+    addRoom,
+    removeRoom,
+    updateRoom,
+    reorderRooms,
+    addTask,
+    removeTask,
+    updateTask,
+    addDayToRoom,
+    setDaysForRoom,
+    addDay,
+    removeDay,
+    saveSummaryAdjustments,
+    updateRoomNotes
 };

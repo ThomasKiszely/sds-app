@@ -2,6 +2,7 @@
 
 const { frequencies, frequencyMultipliers } = require("../utils/frequencyEnum");
 
+// Frekvenser der giver månedlig pris
 const monthlyFrequencies = [
     frequencies.weekly,
     frequencies.biweekly,
@@ -11,59 +12,63 @@ const monthlyFrequencies = [
     frequencies.yearly
 ];
 
+// Frekvenser der IKKE må tælle med i månedlig pris
+const nonMonthlyFrequencies = [
+    frequencies.none,
+    frequencies.adHoc
+];
+
+/**
+ * Beregner effektiv multiplier baseret på frekvens og antal dage.
+ */
 function getEffectiveMultiplier(frequency, days) {
+    if (!monthlyFrequencies.includes(frequency)) return 0;
+
     const base = frequencyMultipliers[frequency] || 0;
     const dayCount = Array.isArray(days) && days.length > 0 ? days.length : 1;
-    return monthlyFrequencies.includes(frequency) ? base * dayCount : 0;
+
+    return base * dayCount;
 }
 
+/**
+ * Beregner pris for en enkelt task.
+ */
 function calculateTaskPrice(task, hourlyRate) {
 
     const amount = Number(task.amount ?? 0);
     const durationPerUnit = Number(task.durationPerUnit ?? 0);
-    const frequency = task.frequency || null;
-    const days = task.days || [];
+    const frequency = task.frequency || frequencies.none;
+    const days = Array.isArray(task.days) ? task.days : [];
 
+    // Varighed i minutter
+    const duration = durationPerUnit > 0
+        ? round(durationPerUnit * amount)
+        : 0;
+
+    // Pris pr. gang (minutter → kr.)
+    const pricePerTime = duration > 0
+        ? round(duration * (hourlyRate / 60))
+        : 0;
+
+    // Grundpris (customPrice > beregnet pris)
+    const basePrice =
+        task.customPrice != null
+            ? Number(task.customPrice)
+            : pricePerTime;
+
+    // Månedlig multiplier
     const multiplier = getEffectiveMultiplier(frequency, days);
 
-    const duration =
-        durationPerUnit > 0
-            ? durationPerUnit * amount
-            : 0;
+    // Månedlig pris
+    const monthlyPrice = multiplier > 0
+        ? round(basePrice * multiplier)
+        : 0;
 
-    const pricePerTime =
-        durationPerUnit > 0
-            ? duration * (hourlyRate / 60)
-            : 0;
+    // Pris pr. gang (kun hvis ikke månedlig)
+    const pricePerOccurrence = monthlyPrice > 0 ? 0 : basePrice;
 
-    let basePrice;
-
-    if (durationPerUnit > 0) {
-        basePrice =
-            task.customPrice != null
-                ? Number(task.customPrice)
-                : pricePerTime;
-    } else {
-        basePrice =
-            task.customPrice != null
-                ? Number(task.customPrice)
-                : 0;
-    }
-
-    const monthlyPrice =
-        multiplier > 0
-            ? basePrice * multiplier
-            : 0;
-
-    const pricePerOccurrence =
-        monthlyPrice > 0
-            ? 0
-            : basePrice;
-
-    const totalPrice =
-        monthlyPrice > 0
-            ? monthlyPrice
-            : basePrice;
+    // Totalpris (månedlig eller pr. gang)
+    const totalPrice = monthlyPrice > 0 ? monthlyPrice : 0;
 
     return {
         duration,
@@ -71,22 +76,34 @@ function calculateTaskPrice(task, hourlyRate) {
         basePrice,
         monthlyPrice,
         pricePerOccurrence,
-        totalPrice
+        totalPrice,
+        frequency
     };
 }
 
+/**
+ * Beregner totaler for hele planen.
+ */
 function calculateTotals({ tasks, discountPercent, environmentalFeePercent }) {
+
+    // Subtotal = kun månedlige priser
     const subtotal = tasks.reduce((sum, t) => {
-        const price = t.monthlyPrice > 0 ? t.monthlyPrice : t.pricePerTime;
-        return sum + (price || 0);
+
+        // Ad hoc / none må IKKE tælle med
+        if (nonMonthlyFrequencies.includes(t.frequency)) {
+            return sum;
+        }
+
+        return sum + (t.monthlyPrice || 0);
+
     }, 0);
 
-    const discountAmount = subtotal * (discountPercent / 100);
+    const discountAmount = round(subtotal * (discountPercent / 100));
     const afterDiscount = subtotal - discountAmount;
 
-    const environmentalFeeAmount = afterDiscount * (environmentalFeePercent / 100);
+    const environmentalFeeAmount = round(afterDiscount * (environmentalFeePercent / 100));
 
-    const total = afterDiscount + environmentalFeeAmount;
+    const total = round(afterDiscount + environmentalFeeAmount);
 
     return {
         subtotal,
@@ -98,7 +115,12 @@ function calculateTotals({ tasks, discountPercent, environmentalFeePercent }) {
     };
 }
 
-
+/**
+ * Stabil rounding.
+ */
+function round(value) {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+}
 
 module.exports = {
     calculateTaskPrice,

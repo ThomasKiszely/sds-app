@@ -1,148 +1,265 @@
-<article class="standard summary">
+<%
+    const effectiveBaseUrl = (typeof baseUrl !== 'undefined' && baseUrl) ? baseUrl : '/newPlanDraft';
+    const effectiveIsEditing = (typeof isEditing !== 'undefined') ? isEditing : false;
+    const effectivePlanId = (typeof planId !== 'undefined' && planId) ? planId : (typeof draft !== 'undefined' && draft?.planId ? draft.planId : (typeof plan !== 'undefined' && plan?._id ? plan._id : ''));
+%>
+<article class="editor-workspace" id="editorWorkspace" data-base-url="<%= effectiveBaseUrl %>" data-plan-id="<%= effectivePlanId %>" data-is-editing="<%= effectiveIsEditing %>">
 
-    <h1>Opsummering af rengøringsplan</h1>
+    <!-- KOMPAKT KUNDE- OG LOKATIONSSEKTION -->
+    <section class="customer-section-wrapper card" id="customerSectionWrapper">
+        <div class="customer-metadata-bar <%= !customer ? 'no-customer' : '' %>" id="customerMetaBar" title="<%= customer ? (!effectiveIsEditing ? 'Klik for at skifte kunde eller lokation' : '') : 'Klik for at vælge kunde' %>">
+            <div class="meta-bar-left">
+                <div class="meta-icon-badge">
+                    <span class="meta-icon">🏢</span>
+                </div>
+                <% if (customer) { %>
+                    <div class="meta-content">
+                        <span class="meta-caption">Kunde & Lokation</span>
+                        <div class="meta-names">
+                            <strong class="meta-customer-name"><%= customer.customerName %></strong>
+                            <% if (location) { %>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-location-name"><%= location.name %></span>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="meta-content">
+                        <span class="meta-caption warning-text">Ingen kunde valgt</span>
+                        <span class="meta-hint">Klik for at vælge eller oprette en kunde til denne rengøringsplan</span>
+                    </div>
+                <% } %>
+            </div>
 
-    <!-- SDS-OPGAVER -->
-    <section>
-        <h2>Rum</h2>
+            <% if (!effectiveIsEditing) { %>
+            <div class="meta-bar-right">
+                <button type="button"
+                        class="btn btn-secondary btn-sm toggle-customer-picker-btn"
+                        id="toggleCustomerPickerBtn">
+                    <%= customer ? "Skift kunde / lokation" : "Vælg kunde" %>
+                    <span class="toggle-arrow">▼</span>
+                </button>
+            </div>
+            <% } %>
+        </div>
 
-        <% Object.keys(grouped).forEach(roomName => { %>
-            <h3><%= roomName %></h3>
+        <% if (!effectiveIsEditing) { %>
+        <!-- FULD KUNDE- OG LOKATIONSVÆLGER (Kombinerede snippets) -->
+        <div id="customerPickerPanel" class="customer-picker-panel <%= customer ? 'hidden' : '' %>">
+            <div class="picker-panel-header">
+                <div class="picker-header-title">
+                    <span class="picker-icon">🔍</span>
+                    <div>
+                        <h3>Kunde- og lokationsvælger</h3>
+                        <p class="picker-subtitle">Vælg en eksisterende kunde og lokation, eller opret nye direkte herfra</p>
+                    </div>
+                </div>
+                <% if (customer) { %>
+                    <button type="button" class="btn-close-picker" id="closeCustomerPickerBtn" title="Luk">&times;</button>
+                <% } %>
+            </div>
 
-            <ul class="item-list">
-                <% grouped[roomName].sds.forEach(t => { %>
-                    <li>
-                        <strong><%= t.name %></strong>
-                        — <%= t.monthlyPrice.toFixed(2) %> kr/måned
-                    </li>
-                <% }) %>
-            </ul>
+            <div class="picker-grid">
+                <!-- VENSTRE KOLONNE: KUNDESØGNING & VALG -->
+                <div class="picker-col">
+                    <div class="picker-col-top">
+                        <label for="customerSearch" class="picker-col-label">1. Vælg eller søg kunde</label>
+                        <button type="button"
+                                class="btn-create-modal"
+                                hx-get="/customers/create?flow=newPlanDraft"
+                                hx-target="#overlay">
+                            + Opret ny kunde
+                        </button>
+                    </div>
 
-            <% const roomNoteObj = draft.roomNotes?.find(r => r.roomName === roomName); %>
+                    <div class="search-box">
+                        <input id="customerSearch"
+                               type="text"
+                               name="search"
+                               placeholder="Søg kunder på navn, adresse eller CVR..."
+                               hx-get="/newPlanDraft/customerSearch"
+                               hx-trigger="keyup changed delay:300ms"
+                               hx-target="#customerResults"
+                               hx-include="#customerSearch">
+                    </div>
 
-            <% if (roomNoteObj && roomNoteObj.notes.length > 0) { %>
-                <div class="room-notes">
-                    <strong>Bemærkninger:</strong><br>
-                    <% roomNoteObj.notes.forEach(n => { %>
-                        <div><%= n %></div>
-                    <% }) %>
+                    <div class="filter-row customer-select-row">
+                        <select id="customerId"
+                                name="customerId"
+                                hx-get="/newPlanDraft/customerLocations"
+                                hx-target="#locationContainer"
+                                hx-trigger="change">
+                            <option value="" disabled <%= !customer ? "selected" : "" %>>
+                                <%= customer ? customer.customerName : "Vælg kunde fra søgning ovenfor…" %>
+                            </option>
+                            <% if (customer) { %>
+                                <option value="<%= customer._id %>" selected>
+                                    <%= customer.customerName %>
+                                </option>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <!-- Live søgeresultater -->
+                    <div id="customerResults" class="customer-results"></div>
                 </div>
 
-            <% } %>
+                <!-- HØJRE KOLONNE: LOKATIONSVALG -->
+                <div class="picker-col">
+                    <div class="picker-col-top">
+                        <label class="picker-col-label">2. Vælg lokation</label>
+                        <% if (customer) { %>
+                            <button type="button"
+                                    class="btn-create-modal"
+                                    hx-get="/customers/<%= customer._id %>/locations/create?flow=newPlanDraft"
+                                    hx-target="#overlay">
+                                + Opret ny lokation
+                            </button>
+                        <% } %>
+                    </div>
 
+                    <div id="locationContainer" class="location-container-box">
+                        <% if (customer) { %>
+                            <div hx-get="/newPlanDraft/customerLocations?customerId=<%= customer._id %>"
+                                 hx-trigger="load"
+                                 hx-target="#locationContainer">
+                                <p class="loading-text">Henter lokationer...</p>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-picker-hint">
+                                <span class="empty-icon">📍</span>
+                                <p>Vælg en kunde til venstre for at se eller oprette lokationer.</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
 
-            <button class="button-secondary"
-                    hx-get="/newPlanDraft/tasks/dailyBundle/edit?roomName=<%= roomName %>"
-                    hx-target="#content">
-                Rediger rum
-            </button>
-        <% }) %>
-    </section>
-
-    <hr>
-
-    <!-- ØVRIGE OPGAVER -->
-    <section>
-        <h2>Øvrige opgaver</h2>
-
-        <% const extraTasks = draft.tasks.filter(t =>
-                t.category !== categoryTypes.daily &&
-                t.category !== categoryTypes.floor &&
-                t.category !== categoryTypes.inventory &&
-                t.category !== categoryTypes.consumables
-        ); %>
-
-        <% if (extraTasks.length === 0) { %>
-            <p><em>Ingen øvrige opgaver tilføjet endnu.</em></p>
-        <% } else { %>
-            <ul class="item-list">
-                <% extraTasks.forEach(t => { %>
-                    <li>
-                        <strong><%= t.name %></strong>
-                        — <%= t.monthlyPrice.toFixed(2) %> kr/måned
-                    </li>
-                <% }) %>
-            </ul>
+            <div class="picker-actions-footer">
+                <button type="button"
+                        class="btn btn-primary btn-sm"
+                        hx-get="<%= effectiveBaseUrl %>/summary"
+                        hx-target="#content">
+                    ✓ Gem og opdater visning
+                </button>
+                <% if (customer) { %>
+                    <button type="button" class="btn btn-secondary btn-sm" id="closeCustomerPickerBtn2">
+                        Luk
+                    </button>
+                <% } %>
+            </div>
+        </div>
         <% } %>
-
-        <button class="button-secondary"
-                hx-get="/newPlanDraft/taskEditor?category=<%= categoryTypes.other %>"
-                hx-target="#overlay"
-                hx-swap="innerHTML">
-            Tilføj opgave
-        </button>
-
     </section>
 
-    <hr>
+    <!-- TOP HEADER MED PRIS OG HANDLINGER -->
+    <header class="editor-top-bar card">
+        <div class="editor-top-left">
+            <h1>Rengøringsplan Editor</h1>
+            <div class="plan-meta-info">
+                <% if (customer) { %>
+                    <span class="meta-item">Kunde: <strong><%= customer.customerName %></strong></span>
+                <% } %>
+                <% if (location) { %>
+                    <span class="meta-separator">•</span>
+                    <span class="meta-item">Lokation: <strong><%= location.name %></strong></span>
+                <% } %>
+            </div>
+        </div>
 
-    <!-- FORBRUGSVARER -->
-    <section>
-        <h2>Forbrugsvarer</h2>
+        <div class="editor-top-right">
+            <!-- LIVE PRIS OVERBLIK -->
+            <div class="live-price-box">
+                <div class="price-pill subtotal">
+                    <span class="price-label">Månedlig grundpris:</span>
+                    <strong class="price-amount"><%= monthlyTotal.toFixed(2) %> kr.</strong>
+                </div>
+                <% if (discounts.discountPercent > 0 || environment.environmentalFeePercent > 0) { %>
+                    <div class="price-pill total">
+                        <span class="price-label">Total inkl. tillæg:</span>
+                        <strong class="price-amount"><%= finalTotal.toFixed(2) %> kr./md.</strong>
+                    </div>
+                <% } %>
+            </div>
 
-        <% const consumables = draft.tasks.filter(t =>
-                t.category === categoryTypes.consumables
-        ); %>
+            <!-- HANDLINGSKNAPPER -->
+            <div class="editor-actions">
+                <button type="button"
+                        class="button-secondary btn"
+                        id="toggleAdvancedBtn">
+                    Avanceret
+                </button>
 
-        <% if (consumables.length === 0) { %>
-            <p><em>Ingen forbrugsvarer tilføjet endnu.</em></p>
-        <% } else { %>
-            <ul class="item-list">
-                <% consumables.forEach(c => { %>
-                    <li>
-                        <strong><%= c.name %></strong>
-                        — <%= c.amount %> stk
-                        — <%= c.monthlyPrice.toFixed(2) %> kr/måned
-                    </li>
-                <% }) %>
-            </ul>
-        <% } %>
+                <% if (!effectiveIsEditing) { %>
+<!--                    <button type="button"-->
+<!--                            class="button-secondary btn"-->
+<!--                            id="toggleCustomerPickerBtnHeader">-->
+<!--                        Skift kunde/lokation-->
+<!--                    </button>-->
 
-        <button class="button-secondary"
-                hx-get="/newPlanDraft/taskEditor?category=<%= categoryTypes.consumables %>"
-                hx-target="#overlay"
-                hx-swap="innerHTML">
-            Tilføj opgave
-        </button>
+                    <button class="btn btn-primary btn-cta"
+                            hx-post="<%= effectiveBaseUrl %>/generateOffer"
+                            hx-target="#content">
+                        Videre til tilbud &rarr;
+                    </button>
+                <% } else { %>
+                    <button class="btn btn-primary btn-cta"
+                            hx-get="/customers/<%= customer ? customer._id : '' %>/plans"
+                            hx-target="#content">
+                        ✓ Afslut redigering
+                    </button>
+                <% } %>
+            </div>
+        </div>
+    </header>
 
-    </section>
+    <!-- AVANCEREDE INDSTILLINGER (RABAT / DRIFT-MILJØ / BETALINGSBETINGELSER) -->
+    <section id="advancedSettingsPanel" class="card advanced-settings-panel hidden">
+        <div class="advanced-panel-header">
+            <div class="panel-header-title">
+                <span class="panel-header-icon">⚙️</span>
+                <div>
+                    <h3>Avancerede aftalevilkår & tillæg</h3>
+                    <p class="panel-subtitle">Juster rabat, drift- og miljøtillæg samt aftalebetingelser for denne rengøringsplan</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close-advanced" id="closeAdvancedBtn" title="Luk panel">&times;</button>
+        </div>
 
+        <form hx-post="<%= effectiveBaseUrl %>/saveSummaryAdjustments" hx-target="#content" class="advanced-form-grid">
+            <div class="form-group">
+                <label for="discountPercent">Rabat (%)</label>
+                <div class="input-unit-wrapper">
+                    <input type="number"
+                           id="discountPercent"
+                           name="discountPercent"
+                           value="<%= discounts.discountPercent || 0 %>"
+                           min="0"
+                           max="100"
+                           step="1"
+                           placeholder="0">
+                    <span class="input-unit-symbol">%</span>
+                </div>
+            </div>
 
-    <hr>
+            <div class="form-group">
+                <label for="environmentalFeePercent">Drift- og miljøtillæg (%)</label>
+                <div class="input-unit-wrapper">
+                    <input type="number"
+                           id="environmentalFeePercent"
+                           name="environmentalFeePercent"
+                           value="<%= environment.environmentalFeePercent != null ? environment.environmentalFeePercent : (systemSettings.environmentalFee || 4) %>"
+                           min="0"
+                           max="100"
+                           step="0.5"
+                           placeholder="4">
+                    <span class="input-unit-symbol">%</span>
+                </div>
+            </div>
 
-    <!-- TOTALPRIS -->
-    <section>
-        <h2>Samlet månedlig pris</h2>
-        <p class="plan-total">
-            <strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong>
-        </p>
-    </section>
-
-    <hr>
-
-    <!-- AVANCERET -->
-    <section>
-        <button class="button-secondary" type="button" id="toggleAdvancedBtn">
-            Avanceret
-        </button>
-
-        <div id="advanced" class="hidden" style="margin-top: 1rem;">
-
-            <form hx-post="/newPlanDraft/adjustments" hx-target="#content">
-
-            <label>Rabat (%)</label>
-                <input type="number"
-                       name="discountPercent"
-                       value="<%= discounts.discountPercent || 0 %>"
-                       min="0" max="100">
-
-                <label>Drift- og miljøtillæg (%)</label>
-                <input type="number"
-                       value="<%= systemSettings.environmentalFee %>"
-                       readonly>
-
-                <label>Betalingsbetingelser</label>
-                <select name="paymentTerms">
+            <div class="form-group">
+                <label for="paymentTermsSelect">Betalingsbetingelser</label>
+                <select id="paymentTermsSelect" name="paymentTerms">
                     <% Object.keys(paymentTerms).forEach(key => { %>
                         <option value="<%= paymentTerms[key] %>"
                                 <%= operations.paymentTerms === paymentTerms[key] ? "selected" : "" %>>
@@ -150,9 +267,11 @@
                         </option>
                     <% }) %>
                 </select>
+            </div>
 
-                <label>Opsigelsesvarsel</label>
-                <select name="terminationNotice">
+            <div class="form-group">
+                <label for="terminationNoticeSelect">Opsigelsesvarsel</label>
+                <select id="terminationNoticeSelect" name="terminationNotice">
                     <% Object.keys(terminationNotice).forEach(key => { %>
                         <option value="<%= terminationNotice[key] %>"
                                 <%= operations.terminationNotice === terminationNotice[key] ? "selected" : "" %>>
@@ -160,27 +279,585 @@
                         </option>
                     <% }) %>
                 </select>
+            </div>
 
-                <button class="button-secondary">Opdater</button>
-            </form>
-        </div>
+            <div class="form-group form-actions">
+                <button type="submit" class="btn btn-primary btn-save-advanced">
+                    Opdater vilkår
+                </button>
+            </div>
+        </form>
     </section>
 
-    <hr>
+    <!-- HOVED EDITOR GRID -->
+    <div id="editorGrid" class="editor-grid">
 
-    <!-- VIDERE -->
-    <button class="button-secondary"
-            hx-post="/newPlanDraft/generateOffer"
-            hx-target="#content">
-        Videre til tilbud
-    </button>
-    <button class="button-secondary"
-            hx-get="/newPlanDraft/tasks"
-            hx-target="#content">
-        Tilbage
-    </button>
+        <!-- VENSTRE KOLONNE: SKABELONBIBLIOTEK (LOKALER, OPGAVER, DAGE) -->
+        <aside class="editor-sidebar" aria-label="Skabelonbibliotek">
 
+            <!-- FANE/SEKTION: RUMSKABELONER -->
+            <section class="sidebar-section card is-minimized" data-section-id="rooms">
+                <header class="sidebar-section-header">
+                    <div class="sidebar-header-title">
+                        <h2>Lokaler</h2>
+                        <span class="sidebar-count-badge"><%= (roomTemplates || []).length %></span>
+                    </div>
+                    <button type="button" class="btn-toggle-sidebar" title="Vis/skjul lokaler">
+                        <span class="toggle-sidebar-text">Vis</span>
+                        <span class="toggle-sidebar-icon">▼</span>
+                    </button>
+                </header>
+
+                <div class="sidebar-section-body">
+                    <div id="roomTemplatesList" class="template-list room-templates-list">
+                        <% if (roomTemplates && roomTemplates.length > 0) { %>
+                            <% roomTemplates.forEach(tpl => { %>
+                                <div class="draggable-card room-template-card"
+                                     draggable="true"
+                                     data-template-id="<%= tpl._id %>"
+                                     data-name="<%= tpl.name %>"
+                                     data-size="<%= tpl.defaultSize %>">
+                                    <div class="card-icon">&#9638;</div>
+                                    <div class="card-info">
+                                        <strong class="card-title"><%= tpl.name %></strong>
+                                        <span class="card-badge size-badge"><%= tpl.defaultSize %> m²</span>
+                                    </div>
+                                    <button type="button"
+                                            class="btn-quick-add"
+                                            title="Tilføj lokale til plan"
+                                            hx-post="<%= effectiveBaseUrl %>/addRoom"
+                                            hx-vals='{"templateId": "<%= tpl._id %>"}'
+                                            hx-target="#content">
+                                        +
+                                    </button>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="empty-hint">Ingen rumskabeloner fundet.</p>
+                        <% } %>
+                    </div>
+
+                    <!-- Hurtig opret tomt rum -->
+                    <form class="custom-room-form"
+                          hx-post="<%= effectiveBaseUrl %>/addRoom"
+                          hx-target="#content">
+                        <input type="text" name="name" placeholder="Nyt lokale navn..." required>
+                        <input type="number" name="size" placeholder="m²" value="20" min="1" step="1" required style="width: 70px;">
+                        <button type="submit" class="btn btn-small" title="Tilføj">+</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- FANE/SEKTION: OPGAVESKABELONER -->
+            <% const nonConsumableTasks = (taskTemplates || []).filter(t => t.category !== 'consumables'); %>
+            <section class="sidebar-section card is-minimized" data-section-id="tasks">
+                <header class="sidebar-section-header">
+                    <div class="sidebar-header-title">
+                        <h2>Opgaver</h2>
+                        <span class="sidebar-count-badge"><%= nonConsumableTasks.length %></span>
+                    </div>
+                    <button type="button" class="btn-toggle-sidebar" title="Vis/skjul opgaver">
+                        <span class="toggle-sidebar-text">Vis</span>
+                        <span class="toggle-sidebar-icon">▼</span>
+                    </button>
+                </header>
+
+                <div class="sidebar-section-body">
+                    <!-- Kategori filtre -->
+                    <div class="category-filter-pills" id="taskCategoryFilters">
+                        <button type="button" class="filter-pill active" data-filter="all">Alle</button>
+                        <button type="button" class="filter-pill" data-filter="daily">Daglig</button>
+                        <button type="button" class="filter-pill" data-filter="floor">Gulv</button>
+                        <button type="button" class="filter-pill" data-filter="inventory">Inventar</button>
+                        <button type="button" class="filter-pill" data-filter="windows">Vinduer</button>
+                    </div>
+
+                    <div id="taskTemplatesList" class="template-list task-templates-list">
+                        <% if (nonConsumableTasks && nonConsumableTasks.length > 0) { %>
+                            <% nonConsumableTasks.forEach(tTpl => { %>
+                                <div class="draggable-card task-template-card cat-<%= tTpl.category %>"
+                                     draggable="true"
+                                     data-template-id="<%= tTpl._id %>"
+                                     data-name="<%= tTpl.name %>"
+                                     data-category="<%= tTpl.category %>">
+                                    <div class="task-card-main">
+                                        <strong class="task-title"><%= tTpl.name %></strong>
+                                        <div class="task-meta">
+                                            <span class="card-badge cat-badge cat-<%= tTpl.category %>">
+                                                <%= categoryLabels[tTpl.category] || tTpl.category %>
+                                            </span>
+                                            <span class="unit-tag"><%= unitsLabels[tTpl.unit] || tTpl.unit %></span>
+                                        </div>
+                                    </div>
+                                    <button type="button"
+                                            class="btn-quick-add"
+                                            title="Tilføj direkte til planen"
+                                            hx-post="<%= effectiveBaseUrl %>/addTask"
+                                            hx-vals='{"templateId": "<%= tTpl._id %>"}'
+                                            hx-target="#content">
+                                        +
+                                    </button>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="empty-hint">Ingen opgaveskabeloner fundet.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FANE/SEKTION: FORBRUGSVARER -->
+            <% const consumableTasks = (taskTemplates || []).filter(t => t.category === 'consumables'); %>
+            <section class="sidebar-section card is-minimized" data-section-id="consumables">
+                <header class="sidebar-section-header">
+                    <div class="sidebar-header-title">
+                        <h2>Forbrugsvarer</h2>
+                        <span class="sidebar-count-badge"><%= consumableTasks.length %></span>
+                    </div>
+                    <button type="button" class="btn-toggle-sidebar" title="Vis/skjul forbrugsvarer">
+                        <span class="toggle-sidebar-text">Vis</span>
+                        <span class="toggle-sidebar-icon">▼</span>
+                    </button>
+                </header>
+
+                <div class="sidebar-section-body">
+                    <div id="consumableTemplatesList" class="template-list task-templates-list">
+                        <% if (consumableTasks && consumableTasks.length > 0) { %>
+                            <% consumableTasks.forEach(tTpl => { %>
+                                <div class="draggable-card task-template-card cat-<%= tTpl.category %>"
+                                     draggable="true"
+                                     data-template-id="<%= tTpl._id %>"
+                                     data-name="<%= tTpl.name %>"
+                                     data-category="<%= tTpl.category %>">
+                                    <div class="task-card-main">
+                                        <strong class="task-title"><%= tTpl.name %></strong>
+                                        <div class="task-meta">
+                                            <span class="card-badge cat-badge cat-<%= tTpl.category %>">
+                                                <%= categoryLabels[tTpl.category] || 'Forbrugsvare' %>
+                                            </span>
+                                            <span class="unit-tag"><%= unitsLabels[tTpl.unit] || tTpl.unit %></span>
+                                        </div>
+                                    </div>
+                                    <button type="button"
+                                            class="btn-quick-add"
+                                            title="Tilføj direkte til planen"
+                                            hx-post="<%= effectiveBaseUrl %>/addTask"
+                                            hx-vals='{"templateId": "<%= tTpl._id %>"}'
+                                            hx-target="#content">
+                                        +
+                                    </button>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="empty-hint">Ingen forbrugsvarer fundet.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </section>
+
+
+        </aside>
+
+        <!-- HØJRE KOLONNE: PLANLÆGNINGSOMRÅDE (LOKALER OG OPGAVER I PLANEN) -->
+        <main class="editor-main" aria-label="Planlagte lokaler og opgaver">
+
+            <div class="plan-header-bar">
+                <h2>Lokaler i planen (<%= roomsList.length %>)</h2>
+                <span class="plan-header-hint">Træk lokaler eller opgaver herover</span>
+            </div>
+
+            <div id="planRoomsList" class="plan-rooms-container">
+
+                <% if (roomsList.length === 0) { %>
+                    <!-- TOM PLAN PLACEHOLDER -->
+                    <div class="empty-plan-dropzone" id="emptyPlanPlaceholder">
+                        <div class="dropzone-icon">&#8681;</div>
+                        <h3>Planen er tom endnu</h3>
+                        <p>Træk et lokale hertil fra listen til venstre, eller klik på <strong>+</strong> ud for et lokale for at komme i gang.</p>
+                    </div>
+                <% } else { %>
+
+                    <% roomsList.forEach(room => { %>
+                        <article class="plan-room-card card is-minimized" data-room-name="<%= room.name %>">
+
+                            <!-- LOKALE HEADER -->
+                            <header class="room-card-header">
+                                <div class="room-drag-handle" title="Træk for at ændre rækkefølge">&#9776;</div>
+
+                                <!-- Redigerbart lokalenavn -->
+                                <div class="room-title-wrapper">
+                                    <input type="text"
+                                           class="room-name-input inline-edit-input"
+                                           name="newRoomName"
+                                           value="<%= room.name %>"
+                                           title="Klik for at omdøbe lokalet"
+                                           hx-post="<%= effectiveBaseUrl %>/updateRoom"
+                                           hx-vals='{"oldRoomName": "<%= room.name %>"}'
+                                           hx-target="#content"
+                                           hx-trigger="change">
+                                </div>
+
+                                <!-- Redigerbar størrelse (amount i m²) -->
+                                <div class="room-size-control">
+                                    <label>Størrelse:</label>
+                                    <input type="number"
+                                           class="room-size-input inline-edit-input"
+                                           name="size"
+                                           value="<%= room.size %>"
+                                           min="0"
+                                           step="1"
+                                           title="Lokalets størrelse i m²"
+                                           hx-post="<%= effectiveBaseUrl %>/updateRoom"
+                                           hx-vals='{"oldRoomName": "<%= room.name %>", "newRoomName": "<%= room.name %>"}'
+                                           hx-target="#content"
+                                           hx-trigger="change">
+                                    <span class="unit-text">m²</span>
+                                </div>
+
+                                <!-- Programkode (hvis SDS opgaver) -->
+                                <% if (room.programCode && room.programCode !== "000") { %>
+                                    <span class="program-code-chip" title="Programkode (Daglig / Gulv / Inventar)">
+                                        Kode: <strong><%= room.programCode %></strong>
+                                    </span>
+                                <% } %>
+
+                                <!-- Opgave antal & Dage oversigt (Synlig i header / minimeret visning) -->
+                                <div class="room-summary-badges">
+                                    <span class="room-tasks-badge" title="Antal opgaver i lokalet">
+                                        <%= (room.tasks || []).length %> <%= (room.tasks || []).length === 1 ? 'opgave' : 'opgaver' %>
+                                    </span>
+                                    <% if (room.days && room.days.length > 0) { %>
+                                        <span class="room-days-summary-badge" title="<%= room.days.map(d => daysLabels[d] || d).join(', ') %>">
+                                            <%= room.days.length %> <%= room.days.length === 1 ? 'dag' : 'dage' %>
+                                        </span>
+                                    <% } %>
+                                </div>
+
+                                <!-- Lokalets samlede månedlige pris -->
+                                <div class="room-total-price">
+                                    <span class="price-badge"><%= room.totalPrice.toFixed(2) %> kr./md.</span>
+                                </div>
+
+                                <!-- Toggle minimér / redigér knap -->
+                                <button type="button"
+                                        class="btn-toggle-room"
+                                        title="Klik for at redigere lokalet">
+                                    <span class="toggle-room-text">Rediger</span>
+                                    <span class="toggle-room-icon">▼</span>
+                                </button>
+
+                                <!-- Slet lokale -->
+                                <button type="button"
+                                        class="btn-icon-delete"
+                                        title="Slet dette lokale"
+                                        hx-post="<%= effectiveBaseUrl %>/removeRoom"
+                                        hx-vals='{"roomName": "<%= room.name %>"}'
+                                        hx-target="#content">
+                                    &times;
+                                </button>
+                            </header>
+
+                            <!-- LOKALETS INDHOLD (MINIMERET INDTIL DER TRYKKES FOR AT REDIGERE) -->
+                            <div class="room-card-body">
+                                <!-- LOKALETS DAGE (HURTIG-TILDELING OG DROPOMRÅDE) -->
+                                <div class="room-days-bar">
+                                <span class="days-label">Dage for lokalet:</span>
+
+                                <div class="room-days-dropzone" data-room-name="<%= room.name %>">
+                                    <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                        <% const isRoomDayActive = (room.days || []).includes(dayKey); %>
+                                        <button type="button"
+                                                class="room-day-pill <%= isRoomDayActive ? 'active' : '' %>"
+                                                title="<%= daysLabels[dayKey] %> (klik for at slå til/fra)"
+                                                hx-post="<%= isRoomDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDayToRoom' %>"
+                                                hx-vals='{"roomName": "<%= room.name %>", "day": "<%= dayKey %>"}'
+                                                hx-target="#content">
+                                            <%= daysLabels[dayKey].substring(0, 3) %>
+                                        </button>
+                                    <% }) %>
+                                </div>
+
+                                <div class="room-days-shortcuts">
+                                    <button type="button"
+                                            class="btn-shortcut"
+                                            title="Sæt Man-Fre på lokalet"
+                                            hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
+                                            hx-vals='{"roomName": "<%= room.name %>", "days": "[\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\"]"}'
+                                            hx-target="#content">
+                                        Nulstil
+                                    </button>
+                                    <button type="button"
+                                            class="btn-shortcut"
+                                            title="Nulstil dage"
+                                            hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
+                                            hx-vals='{"roomName": "<%= room.name %>", "days": "[]"}'
+                                            hx-target="#content">
+                                        Nulstil
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- LOKALETS OPGAVER -->
+                            <div class="room-tasks-section">
+                                <div class="room-tasks-dropzone" data-room-name="<%= room.name %>">
+
+                                    <% if (room.tasks && room.tasks.length > 0) { %>
+                                        <div class="task-items-list">
+                                            <% room.tasks.forEach(task => { %>
+                                                <div class="plan-task-row cat-<%= task.category %>"
+                                                     data-template-id="<%= task.templateId %>"
+                                                     data-task-index="<%= task._idx %>">
+
+                                                    <!-- Kategori badge & Opgavenavn -->
+                                                    <div class="task-info-col">
+                                                        <span class="cat-pill cat-<%= task.category %>">
+                                                            <%= categoryLabels[task.category] || task.category %>
+                                                        </span>
+                                                        <strong class="task-name"><%= task.name %></strong>
+                                                    </div>
+
+                                                    <!-- Størrelse / Mængde (AMOUNT) -->
+                                                    <div class="task-amount-col">
+                                                        <label class="compact-label">Mængde:</label>
+                                                        <input type="number"
+                                                               class="inline-edit-input task-amount-input"
+                                                               name="amount"
+                                                               value="<%= task.amount %>"
+                                                               min="0"
+                                                               step="0.5"
+                                                               title="Mængde / areal"
+                                                               hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                               hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                               hx-target="#content"
+                                                               hx-trigger="change">
+                                                        <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
+                                                    </div>
+
+                                                    <!-- Frekvens -->
+                                                    <div class="task-freq-col">
+                                                        <label class="compact-label">Frekvens:</label>
+                                                        <select class="inline-edit-select task-freq-select"
+                                                                name="frequency"
+                                                                title="Frekvens"
+                                                                hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                                hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                                hx-target="#content"
+                                                                hx-trigger="change">
+                                                            <% Object.keys(frequencyLabels).forEach(fk => { %>
+                                                                <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
+                                                                    <%= frequencyLabels[fk] %>
+                                                                </option>
+                                                            <% }) %>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Dage for opgaven -->
+                                                    <div class="task-days-col">
+                                                        <label class="compact-label">Dage:</label>
+                                                        <div class="task-days-mini-zone"
+                                                             data-room-name="<%= room.name %>"
+                                                             data-template-id="<%= task.templateId %>"
+                                                             data-task-index="<%= task._idx %>">
+                                                            <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                                                <% const isTaskDayActive = (task.days || []).includes(dayKey); %>
+                                                                <button type="button"
+                                                                        class="mini-day-pill <%= isTaskDayActive ? 'active' : '' %>"
+                                                                        title="<%= daysLabels[dayKey] %>: <%= isTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
+                                                                        hx-post="<%= isTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
+                                                                        hx-vals='{"roomName": "<%= room.name %>", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
+                                                                        hx-target="#content">
+                                                                    <%= daysLabels[dayKey].substring(0, 2) %>
+                                                                </button>
+                                                            <% }) %>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Opgavepris -->
+                                                    <div class="task-price-col">
+                                                        <span class="task-price-value">
+                                                            <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
+                                                            <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Slet opgave -->
+                                                    <div class="task-action-col">
+                                                        <button type="button"
+                                                                class="btn-icon-delete-small"
+                                                                title="Fjern opgave"
+                                                                hx-post="<%= effectiveBaseUrl %>/removeTask"
+                                                                hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                                hx-target="#content">
+                                                            &times;
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="empty-room-tasks-hint">
+                                            <span>Træk en opgave hertil for at føje den til <strong><%= room.name %></strong></span>
+                                        </div>
+                                    <% } %>
+
+                                </div>
+                            </div>
+
+                            <!-- LOKALENOTER (BEMÆRKNINGER) -->
+                            <details class="room-notes-dropdown">
+                                <summary class="notes-summary">Bemærkninger til lokalet</summary>
+                                <div class="notes-content">
+                                    <textarea name="notes"
+                                              class="room-notes-textarea"
+                                              placeholder="Skriv eventuelle bemærkninger om adgang, nøgler, særlige krav her..."
+                                              hx-post="<%= effectiveBaseUrl %>/updateRoomNotes"
+                                              hx-vals='{"roomName": "<%= room.name %>"}'
+                                              hx-target="#content"
+                                              hx-trigger="change"><%= ((draft.roomNotes || []).find(n => n.roomName === room.name)?.notes || []).join('\n') %></textarea>
+                                </div>
+                            </details>
+                            </div>
+
+                        </article>
+                    <% }) %>
+
+                <% } %>
+
+                <!-- ØVRIGE OPGAVER OG FORBRUGSVARER (DIREKTE I PLANEN UDEN LOKALE) -->
+                <article class="plan-room-card card general-tasks-card is-minimized" data-room-name="__general__">
+                    <header class="room-card-header general-card-header">
+                        <div class="room-title-wrapper">
+                            <h3>Øvrige opgaver & Tillæg (uden lokale)</h3>
+                            <span class="section-subtext">Vinduespolering, forbrugsvarer og opgaver der ikke tilhører et specifikt lokale</span>
+                        </div>
+
+                        <!-- Opgave antal oversigt -->
+                        <div class="room-summary-badges">
+                            <span class="room-tasks-badge" title="Antal øvrige opgaver">
+                                <%= (generalTasks || []).length %> <%= (generalTasks || []).length === 1 ? 'opgave' : 'opgaver' %>
+                            </span>
+                        </div>
+
+                        <% if (generalTasks && generalTasks.length > 0) { %>
+                            <%
+                                const generalTotal = generalTasks.reduce((sum, t) => sum + (t.monthlyPrice > 0 ? t.monthlyPrice : (t.pricePerTime || t.totalPrice || 0)), 0);
+                            %>
+                            <div class="room-total-price">
+                                <span class="price-badge"><%= generalTotal.toFixed(2) %> kr.</span>
+                            </div>
+                        <% } %>
+
+                        <!-- Toggle minimér / redigér knap -->
+                        <button type="button"
+                                class="btn-toggle-room"
+                                title="Klik for at redigere øvrige opgaver">
+                            <span class="toggle-room-text">Rediger</span>
+                            <span class="toggle-room-icon">▼</span>
+                        </button>
+                    </header>
+
+                    <div class="room-card-body">
+                        <div class="room-tasks-section">
+                            <div class="room-tasks-dropzone general-tasks-dropzone" id="generalTasksDropzone" data-room-name="">
+                            <% if (generalTasks && generalTasks.length > 0) { %>
+                                <div class="task-items-list">
+                                    <% generalTasks.forEach(task => { %>
+                                        <div class="plan-task-row cat-<%= task.category %>"
+                                             data-template-id="<%= task.templateId %>"
+                                             data-task-index="<%= task._idx %>">
+
+                                            <div class="task-info-col">
+                                                <span class="cat-pill cat-<%= task.category %>">
+                                                    <%= categoryLabels[task.category] || task.category %>
+                                                </span>
+                                                <strong class="task-name"><%= task.name %></strong>
+                                            </div>
+
+                                            <div class="task-amount-col">
+                                                <label class="compact-label">Mængde:</label>
+                                                <input type="number"
+                                                       class="inline-edit-input task-amount-input"
+                                                       name="amount"
+                                                       value="<%= task.amount %>"
+                                                       min="0"
+                                                       step="0.5"
+                                                       title="Mængde / antal / areal"
+                                                       hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                       hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                       hx-target="#content"
+                                                       hx-trigger="change">
+                                                <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
+                                            </div>
+
+                                            <div class="task-freq-col">
+                                                <label class="compact-label">Frekvens:</label>
+                                                <select class="inline-edit-select task-freq-select"
+                                                        name="frequency"
+                                                        title="Frekvens"
+                                                        hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                        hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                        hx-target="#content"
+                                                        hx-trigger="change">
+                                                    <% Object.keys(frequencyLabels).forEach(fk => { %>
+                                                        <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
+                                                            <%= frequencyLabels[fk] %>
+                                                        </option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+
+                                            <div class="task-days-col">
+                                                <label class="compact-label">Dage:</label>
+                                                <div class="task-days-mini-zone"
+                                                     data-room-name=""
+                                                     data-template-id="<%= task.templateId %>"
+                                                     data-task-index="<%= task._idx %>">
+                                                    <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                                        <% const isGenTaskDayActive = (task.days || []).includes(dayKey); %>
+                                                        <button type="button"
+                                                                class="mini-day-pill <%= isGenTaskDayActive ? 'active' : '' %>"
+                                                                title="<%= daysLabels[dayKey] %>: <%= isGenTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
+                                                                hx-post="<%= isGenTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
+                                                                hx-vals='{"roomName": "", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
+                                                                hx-target="#content">
+                                                            <%= daysLabels[dayKey].substring(0, 2) %>
+                                                        </button>
+                                                    <% }) %>
+                                                </div>
+                                            </div>
+
+                                            <div class="task-price-col">
+                                                <span class="task-price-value">
+                                                    <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
+                                                    <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
+                                                </span>
+                                            </div>
+
+                                            <div class="task-action-col">
+                                                <button type="button"
+                                                        class="btn-icon-delete-small"
+                                                        title="Fjern opgave"
+                                                        hx-post="<%= effectiveBaseUrl %>/removeTask"
+                                                        hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                        hx-target="#content">
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-dropzone-hint">
+                                    <span class="dropzone-text">&#8681; Træk opgaver hertil (eller klik + i menuen) for at føje dem direkte til planen uden lokale</span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    </div>
+                </article>
+
+            </div>
+        </main>
+    </div>
 
 </article>
-
-<div hx-swap-oob="innerHTML:#overlay"></div>

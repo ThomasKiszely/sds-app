@@ -1,64 +1,67 @@
 <header class="topbar">
     <div class="topbar-left">
-        <button class="hamburger">☰ Menu</button>
+        <button type="button" class="hamburger" aria-label="Hovedmenu">☰ Menu</button>
     </div>
 
     <div class="topbar-right">
         <span class="username"
+              role="button"
+              tabindex="0"
               hx-get="/me"
               hx-target="#content">
             <%= user.userName %>
         </span>
 
-        <button id="topbarBackBtn">Tilbage</button>
+        <button type="button" id="topbarBackBtn">Tilbage</button>
     </div>
 
-    <nav class="dropdown">
-        <button class="dropdown-item"
+    <nav class="dropdown" aria-label="Dropdown navigation">
+        <button type="button"
+                class="dropdown-item"
                 hx-get="/indexContent"
                 hx-target="#content">
             Forside
         </button>
 
-        <button class="dropdown-item"
-                hx-get="/newPlanDraft/customer"
+        <button type="button"
+                class="dropdown-item"
+                hx-get="/newPlanDraft/summary"
                 hx-target="#content">
             Hurtig beregning
         </button>
 
-        <button class="dropdown-item"
-                hx-get="/newPlan"
-                hx-target="#content">
-            Opret plan
-        </button>
-
-        <button class="dropdown-item"
+        <button type="button"
+                class="dropdown-item"
                 hx-get="/customers"
                 hx-target="#content">
             Kunder
         </button>
 
         <% if (user.role === 'admin') { %>
-            <button class="dropdown-item"
+            <button type="button"
+                    class="dropdown-item"
                     hx-get="/cleaningTaskTemplates/page"
                     hx-target="#content">
                 Opgaver
             </button>
 
-            <button class="dropdown-item"
+            <button type="button"
+                    class="dropdown-item"
                     hx-get="/roomTemplates/page"
                     hx-target="#content">
                 Lokaler
             </button>
 
-            <button class="dropdown-item"
+            <button type="button"
+                    class="dropdown-item"
                     hx-get="/admin"
                     hx-target="#content">
                 Admin
             </button>
         <% } %>
 
-        <button class="dropdown-item"
+        <button type="button"
+                class="dropdown-item"
                 hx-post="/users/logout"
                 hx-redirect="/login">
             Log ud

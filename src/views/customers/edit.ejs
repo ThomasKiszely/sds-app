@@ -11,37 +11,37 @@
                value="<%= customer.customerNumber %>"
                required>
 
-        <label>Navn</label>
-        <input type="text" name="customerName" value="<%= customer.customerName %>" required>
+        <label for="customerName">Navn</label>
+        <input type="text" id="customerName" name="customerName" value="<%= customer.customerName %>" required>
 
-        <label>Telefon</label>
-        <input type="text" name="phoneNumber" value="<%= customer.phoneNumber %>" required>
+        <label for="phoneNumber">Telefon</label>
+        <input type="text" id="phoneNumber" name="phoneNumber" value="<%= customer.phoneNumber %>" required>
 
-        <label>Email</label>
-        <input type="email" name="customerEmail" value="<%= customer.customerEmail %>" required>
+        <label for="customerEmail">Email</label>
+        <input type="email" id="customerEmail" name="customerEmail" value="<%= customer.customerEmail %>" required>
 
-        <label>CVR</label>
-        <input type="number" name="cvr" value="<%= customer.cvr %>">
+        <label for="cvr">CVR</label>
+        <input type="number" id="cvr" name="cvr" value="<%= customer.cvr %>">
 
         <h2>Kontaktperson</h2>
-        <label>Navn</label>
-        <input type="text" name="contactPerson.name" value="<%= customer.contactPerson.name %>" required>
+        <label for="contactPersonName">Navn</label>
+        <input type="text" id="contactPersonName" name="contactPerson.name" value="<%= customer.contactPerson.name %>" required>
 
-        <label>Telefon</label>
-        <input type="text" name="contactPerson.phone" value="<%= customer.contactPerson.phone %>" required>
+        <label for="contactPersonPhone">Telefon</label>
+        <input type="text" id="contactPersonPhone" name="contactPerson.phone" value="<%= customer.contactPerson.phone %>" required>
 
-        <label>Email</label>
-        <input type="email" name="contactPerson.email" value="<%= customer.contactPerson.email %>" required>
+        <label for="contactPersonEmail">Email</label>
+        <input type="email" id="contactPersonEmail" name="contactPerson.email" value="<%= customer.contactPerson.email %>" required>
 
         <h2>Adresser</h2>
-        <label>Kundeadresse</label>
-        <input type="text" name="customerAddress" value="<%= customer.customerAddress %>" required>
+        <label for="customerAddress">Kundeadresse</label>
+        <input type="text" id="customerAddress" name="customerAddress" value="<%= customer.customerAddress %>" required>
 
-        <label>Faktureringsadresse</label>
-        <input type="text" name="billingAddress" value="<%= customer.billingAddress %>" required>
+        <label for="billingAddress">Faktureringsadresse</label>
+        <input type="text" id="billingAddress" name="billingAddress" value="<%= customer.billingAddress %>" required>
 
-        <button>Gem</button>
+        <button type="submit">Gem</button>
     </form>
 
-    <button hx-get="/customers" hx-target="#content">Tilbage</button>
+    <button type="button" class="button-secondary" hx-get="/customers" hx-target="#content">Tilbage</button>
 </article>

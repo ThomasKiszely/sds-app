@@ -5,50 +5,45 @@ const router = express.Router();
 
 const draftController = require("../controllers/newPlanDraftController");
 
-// STEP 1: Vælg kunde
+// STEP 1: Vælg kunde & lokation
 router.get("/customer", draftController.step1_customer);
 router.get("/customerLocations", draftController.customerLocations);
 router.get("/customerSearch", draftController.customerSearch);
 router.get("/selectCustomer", draftController.selectCustomer);
-
-
 router.post("/saveLocation", draftController.saveLocation);
 
-// STEP 2: Vælg rum
-router.get("/rooms", draftController.step2_rooms);
-router.post("/rooms", draftController.saveRooms);
-
-// STEP 3: Generér tasks (SDS bundles) i session
-router.get("/tasks", draftController.step3_tasks);
-
-
-// STEP 4: Rediger SDS bundle
-router.get("/tasks/dailyBundle/edit", draftController.editDailyBundle);
-router.post("/tasks/dailyBundle/save", draftController.saveDailyBundle);
-
-// STEP 4: Summary (den store editor)
+// Editor visning (den store træk-og-slip editor)
 router.get("/summary", draftController.step4_summary);
+
+// Editor handlinger: Lokaler
+router.post("/addRoom", draftController.addRoom);
+router.post("/removeRoom", draftController.removeRoom);
+router.post("/updateRoom", draftController.updateRoom);
+router.post("/reorderRooms", draftController.reorderRooms);
+
+// Editor handlinger: Opgaver
+router.post("/addTask", draftController.addTask);
+router.post("/addTaskToPlan", draftController.addTask);
+router.post("/addTaskToRoom", draftController.addTaskToRoom);
+router.post("/removeTask", draftController.removeTask);
+router.post("/updateTask", draftController.updateTask);
+
+// Editor handlinger: Dage
+router.post("/addDay", draftController.addDay);
+router.post("/removeDay", draftController.removeDay);
+router.post("/addDayToRoom", draftController.addDayToRoom);
+router.post("/setDaysForRoom", draftController.setDaysForRoom);
+
+// Editor handlinger: Justeringer & Noter
 router.post("/summary", draftController.saveSummaryAdjustments);
-router.post("/adjustments", draftController.saveSummaryAdjustments)
+router.post("/adjustments", draftController.saveSummaryAdjustments);
+router.post("/saveSummaryAdjustments", draftController.saveSummaryAdjustments);
+router.post("/updateRoomNotes", draftController.updateRoomNotes);
 
-
-// Generér tilbud (offer snapshot)
+// Tilbud & afslutning
 router.post("/generateOffer", draftController.generateOffer);
-
-router.get("/taskEditor", draftController.taskEditor);
-router.post("/taskSave", draftController.taskSave);
-
-
-// STEP 6: Tilbud
 router.get("/offer", draftController.step6_offer);
-router.get("/taskLoadTemplate", draftController.taskLoadTemplate);
-
-router.get("/taskSelectTemplate", draftController.taskSelectTemplate);
-
 router.post("/saveAsDraftOffer", draftController.saveAsDraftOffer);
-
-// STEP 8: Opret cleaningPlan i databasen
 router.post("/finalize", draftController.finalizePlan);
-
 
 module.exports = router;

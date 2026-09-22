@@ -7,17 +7,19 @@
 
     <form hx-post="/roomTemplates" hx-target="#content">
 
-        <label>Navn</label>
+        <label for="templateName">Navn</label>
         <input
                 type="text"
+                id="templateName"
                 name="name"
                 value="<%= formData?.name || '' %>"
                 required
         >
 
-        <label>Standard størrelse (m²)</label>
+        <label for="defaultSize">Standard størrelse (m²)</label>
         <input
                 type="number"
+                id="defaultSize"
                 name="defaultSize"
                 value="<%= formData?.defaultSize || '' %>"
                 required
@@ -28,8 +30,8 @@
 
         <h2>Rengøringsopgaver</h2>
 
-        <label>Soigneringsskabelon</label>
-        <select name="daily" required>
+        <label for="dailyTemplate">Soigneringsskabelon</label>
+        <select id="dailyTemplate" name="daily" required>
             <option value="">Vælg...</option>
             <% soigneringTemplates.forEach(t => { %>
                 <option value="<%= t._id %>" <%= formData?.daily === t._id.toString() ? 'selected' : '' %>>
@@ -38,8 +40,8 @@
             <% }) %>
         </select>
 
-        <label>Gulvskabelon</label>
-        <select name="floor" required>
+        <label for="floorTemplate">Gulvskabelon</label>
+        <select id="floorTemplate" name="floor" required>
             <option value="">Vælg...</option>
             <% gulvTemplates.forEach(t => { %>
                 <option value="<%= t._id %>" <%= formData?.floor === t._id.toString() ? 'selected' : '' %>>
@@ -48,8 +50,8 @@
             <% }) %>
         </select>
 
-        <label>Inventarskabelon</label>
-        <select name="inventory" required>
+        <label for="inventoryTemplate">Inventarskabelon</label>
+        <select id="inventoryTemplate" name="inventory" required>
             <option value="">Vælg...</option>
             <% inventarTemplates.forEach(t => { %>
                 <option value="<%= t._id %>" <%= formData?.inventory === t._id.toString() ? 'selected' : '' %>>
@@ -59,8 +61,8 @@
         </select>
 
 
-        <button>Opret</button>
+        <button type="submit">Opret</button>
     </form>
 
-    <button hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
+    <button type="button" class="button-secondary" hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
 </article>

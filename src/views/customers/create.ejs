@@ -1,50 +1,135 @@
-<article class="standard customer-create-page">
-    <h1>Opret kunde</h1>
+<% if (flow === 'newPlanDraft') { %>
+    <div class="overlay">
+        <div class="overlay-content modal-card">
+            <div class="modal-header">
+                <h2>Opret ny kunde</h2>
+                <button type="button" class="modal-close-btn" data-close-modal title="Luk">&times;</button>
+            </div>
 
-    <form hx-post="/customers"
-          hx-target="#content"
-          hx-on:error="alert(event.detail.response)">
+            <form hx-post="/customers"
+                  hx-target="#content">
 
-        <input type="hidden" name="flow" value="<%= flow || '' %>">
+                <input type="hidden" name="flow" value="newPlanDraft">
 
-        <h2>Grundoplysninger</h2>
+                <div class="modal-body-scroll">
+                    <div class="form-section">
+                        <h3>Grundoplysninger</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="customerNumber">Kundenummer (8 cifre)</label>
+                                <input type="text" id="customerNumber" name="customerNumber" pattern="\d{8}" required placeholder="f.eks. 12345678">
+                            </div>
+                            <div class="form-group">
+                                <label for="customerName">Kundenavn</label>
+                                <input type="text" id="customerName" name="customerName" required placeholder="f.eks. SDS Rengøring A/S">
+                            </div>
+                        </div>
 
-        <label for="customerNumber">Kundenummer (8 cifre)</label>
-        <input type="text" id="customerNumber" name="customerNumber" pattern="\d{8}" required>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="phoneNumber">Telefon</label>
+                                <input type="text" id="phoneNumber" name="phoneNumber" required placeholder="12345678">
+                            </div>
+                            <div class="form-group">
+                                <label for="customerEmail">Email</label>
+                                <input type="email" id="customerEmail" name="customerEmail" required placeholder="kontakt@firma.dk">
+                            </div>
+                        </div>
 
-        <label for="customerName">Kundenavn</label>
-        <input type="text" id="customerName" name="customerName" required>
+                        <div class="form-group">
+                            <label for="cvr">CVR-nummer</label>
+                            <input type="number" id="cvr" name="cvr" placeholder="12345678">
+                        </div>
+                    </div>
 
-        <label for="phoneNumber">Telefon</label>
-        <input type="text" id="phoneNumber" name="phoneNumber" required>
+                    <div class="form-section">
+                        <h3>Kontaktperson</h3>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="contactName">Navn</label>
+                                <input type="text" id="contactName" name="contactPerson[name]" required placeholder="Fulde navn">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactPhone">Telefon</label>
+                                <input type="text" id="contactPhone" name="contactPerson[phone]" required placeholder="Direkte telefon">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Email</label>
+                                <input type="email" id="contactEmail" name="contactPerson[email]" required placeholder="kontakt@firma.dk">
+                            </div>
+                        </div>
+                    </div>
 
-        <label for="customerEmail">Email</label>
-        <input type="email" id="customerEmail" name="customerEmail" required>
+                    <div class="form-section">
+                        <h3>Adresser</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="customerAddress">Kundeadresse</label>
+                                <input type="text" id="customerAddress" name="customerAddress" required placeholder="Vejnavn 1, 1000 By">
+                            </div>
+                            <div class="form-group">
+                                <label for="billingAddress">Faktureringsadresse</label>
+                                <input type="text" id="billingAddress" name="billingAddress" required placeholder="Fakturavej 2, 1000 By">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <label for="cvr">CVR</label>
-        <input type="number" id="cvr" name="cvr">
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Opret kunde</button>
+                    <button type="button" class="btn btn-secondary btn-modal-cancel" data-close-modal>Annuller</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<% } else { %>
+    <article class="standard customer-create-page">
+        <h1>Opret kunde</h1>
 
-        <h2>Kontaktperson</h2>
+        <form hx-post="/customers"
+              hx-target="#content">
 
-        <label for="contactName">Navn</label>
-        <input type="text" id="contactName" name="contactPerson[name]" required>
+            <input type="hidden" name="flow" value="<%= flow || '' %>">
 
-        <label for="contactPhone">Telefon</label>
-        <input type="text" id="contactPhone" name="contactPerson[phone]" required>
+            <h2>Grundoplysninger</h2>
 
-        <label for="contactEmail">Email</label>
-        <input type="email" id="contactEmail" name="contactPerson[email]" required>
+            <label for="customerNumber">Kundenummer (8 cifre)</label>
+            <input type="text" id="customerNumber" name="customerNumber" pattern="\d{8}" required>
 
-        <h2>Adresser</h2>
+            <label for="customerName">Kundenavn</label>
+            <input type="text" id="customerName" name="customerName" required>
 
-        <label for="customerAddress">Kundeadresse</label>
-        <input type="text" id="customerAddress" name="customerAddress" required>
+            <label for="phoneNumber">Telefon</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" required>
 
-        <label for="billingAddress">Faktureringsadresse</label>
-        <input type="text" id="billingAddress" name="billingAddress" required>
+            <label for="customerEmail">Email</label>
+            <input type="email" id="customerEmail" name="customerEmail" required>
 
-        <button type="submit">Opret kunde</button>
-    </form>
+            <label for="cvr">CVR</label>
+            <input type="number" id="cvr" name="cvr">
 
-    <button class="button-secondary" hx-get="/customers" hx-target="#content">Tilbage</button>
-</article>
+            <h2>Kontaktperson</h2>
+
+            <label for="contactName">Navn</label>
+            <input type="text" id="contactName" name="contactPerson[name]" required>
+
+            <label for="contactPhone">Telefon</label>
+            <input type="text" id="contactPhone" name="contactPerson[phone]" required>
+
+            <label for="contactEmail">Email</label>
+            <input type="email" id="contactEmail" name="contactPerson[email]" required>
+
+            <h2>Adresser</h2>
+
+            <label for="customerAddress">Kundeadresse</label>
+            <input type="text" id="customerAddress" name="customerAddress" required>
+
+            <label for="billingAddress">Faktureringsadresse</label>
+            <input type="text" id="billingAddress" name="billingAddress" required>
+
+            <button type="submit">Opret kunde</button>
+        </form>
+
+        <button class="button-secondary" hx-get="/customers" hx-target="#content">Tilbage</button>
+    </article>
+<% } %>

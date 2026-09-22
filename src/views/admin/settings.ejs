@@ -13,13 +13,13 @@
                 value="<%= settings.inflationRate %>"
         >
 
-        <button>Gem</button>
+        <button type="submit">Gem</button>
     </form>
 
     <form hx-post="/admin/settings/environmentalFee" hx-target="#settings-message">
         <label for="environmentalFee">Drift- og miljøtillæg (%)</label>
         <input type="number" step="0.01" name="environmentalFee" id="environmentalFee" value="<%= settings.environmentalFee %>">
-        <button>Gem</button>
+        <button type="submit">Gem</button>
     </form>
 
     <h2>Timepris</h2>
@@ -33,7 +33,7 @@
                 id="hourlyRate"
                 value="<%= settings.hourlyRate %>"
         >
-        <button>Gem</button>
+        <button type="submit">Gem</button>
     </form>
 
     <div id="settings-message"></div>

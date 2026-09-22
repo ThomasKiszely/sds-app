@@ -1,5 +1,5 @@
 <article class="standard roomTemplate-edit-page">
-    <h1>Rediger loakleskabelon</h1>
+    <h1>Rediger lokaleskabelon</h1>
 
     <% if (error) { %>
         <div class="error-box"><%= error %></div>
@@ -10,18 +10,18 @@
             hx-target="#content"
             hx-swap="innerHTML">
 
-        <label>Navn</label>
-        <input type="text" name="name" value="<%= template.name %>" required>
+        <label for="templateName">Navn</label>
+        <input type="text" id="templateName" name="name" value="<%= template.name %>" required>
 
-        <label>Standard størrelse (m²)</label>
-        <input type="number" name="defaultSize" value="<%= template.defaultSize %>" required>
+        <label for="defaultSize">Standard størrelse (m²)</label>
+        <input type="number" id="defaultSize" name="defaultSize" value="<%= template.defaultSize %>" required>
 
         <input type="hidden" name="bundleType" value="daily">
 
         <h2>SDS-opgaver</h2>
 
-        <label>Soigneringsskabelon</label>
-        <select name="daily" required>
+        <label for="dailyTemplate">Soigneringsskabelon</label>
+        <select id="dailyTemplate" name="daily" required>
             <option value="">Vælg...</option>
             <% soigneringTemplates.forEach(t => { %>
                 <option value="<%= t._id %>"
@@ -31,8 +31,8 @@
             <% }) %>
         </select>
 
-        <label>Gulvskabelon</label>
-        <select name="floor" required>
+        <label for="floorTemplate">Gulvskabelon</label>
+        <select id="floorTemplate" name="floor" required>
             <option value="">Vælg...</option>
             <% gulvTemplates.forEach(t => { %>
                 <option value="<%= t._id %>"
@@ -42,8 +42,8 @@
             <% }) %>
         </select>
 
-        <label>Inventarskabelon</label>
-        <select name="inventory" required>
+        <label for="inventoryTemplate">Inventarskabelon</label>
+        <select id="inventoryTemplate" name="inventory" required>
             <option value="">Vælg...</option>
             <% inventarTemplates.forEach(t => { %>
                 <option value="<%= t._id %>"
@@ -67,5 +67,5 @@
         <button type="submit" class="danger">Slet</button>
     </form>
 
-    <button hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
+    <button type="button" class="button-secondary" hx-get="/roomTemplates/page" hx-target="#content">Tilbage</button>
 </article>

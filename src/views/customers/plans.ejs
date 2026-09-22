@@ -4,7 +4,7 @@
 
     <nav class="nav-group">
         <button
-                hx-get="/newPlan/plan?customerId=<%= customerId %>"
+                hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
                 hx-target="#content">
             Opret ny rengøringsplan
         </button>
@@ -15,7 +15,7 @@
         <p>Der er endnu ingen rengøringsplaner for denne kunde.</p>
 
         <button
-                hx-get="/newPlan/plan?customerId=<%= customerId %>"
+                hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
                 hx-target="#content">
             Opret ny rengøringsplan
         </button>
@@ -66,7 +66,7 @@
                         </button>
 
                         <button class="btn btn-fixed"
-                                hx-get="/cleaningPlans/<%= plan._id %>/edit"
+                                hx-get="/newPlan/<%= plan._id %>/editor"
                                 hx-target="#content">
                             Rediger plan
                         </button>

@@ -372,96 +372,9 @@ async function generatePlanPdf(req, res) {
 async function editPlan(req, res, next) {
     try {
         const { planId } = req.params;
-
-        // Hent planen
-        const plan = await cleaningPlanService.findCleaningPlanById(planId);
-        if (!plan) return res.status(404).send("Plan ikke fundet");
-
-        // Hent tasks
-        const tasks = await cleaningPlanService.getTasksForPlan(planId);
-
-        // Beregn priser
-        const hourlyRate = plan.hourlyRate;
-        const enrichedTasks = tasks.map(t => {
-            const plain = t.toObject();
-            const prices = calculateTaskPrice(plain, hourlyRate);
-            return { ...plain, ...prices };
-        });
-
-        // Gruppér rum
-        const grouped = groupSdsTasksByRoom(enrichedTasks);
-
-        // Tilføj "other"
-        for (const roomName of Object.keys(grouped)) {
-            grouped[roomName].other = enrichedTasks.filter(t =>
-                t.roomName === roomName &&
-                ![
-                    categoryTypes.daily,
-                    categoryTypes.floor,
-                    categoryTypes.inventory
-                ].includes(t.category)
-            );
-        }
-
-        // Øvrige opgaver
-        const noRoomTasks = enrichedTasks.filter(t =>
-            (!t.roomName || t.roomName.trim() === "") &&
-            t.monthlyPrice > 0
-        );
-
-        const adHocTasks = enrichedTasks.filter(t =>
-            t.monthlyPrice === 0 &&
-            t.customPrice != null &&
-            t.category !== "consumables"
-        );
-
-        const consumables = enrichedTasks.filter(t =>
-            t.category === "consumables"
-        );
-
-        // Kunde + adresse
-        const customer = await customerService.getCustomerById(plan.customerId);
-        const { street, zip, city } = require("../utils/addressUtil").parseAddress(customer.customerAddress);
-
-        // Labels
-        const { daysLabels } = require("../utils/dayEnum");
-        const { frequencyLabels } = require("../utils/frequencyEnum");
-
-        // SDS-instruktioner
-        const {
-            dailyDescriptions,
-            floorDescriptions,
-            inventoryDescriptions
-        } = cleaningPlanService.extractInstructionDescriptions(enrichedTasks);
-
-        const monthlyTotal = enrichedTasks
-            .filter(t => t.monthlyPrice > 0)
-            .reduce((sum, t) => sum + t.monthlyPrice, 0);
-
-
-        // Render editor-view
-        return res.render("plans/edit", {
-            plan,
-            tasks: enrichedTasks,
-            grouped,
-            roomNotes: plan.roomNotes,
-            noRoomTasks,
-            adHocTasks,
-            consumables,
-            dailyDescriptions,
-            floorDescriptions,
-            inventoryDescriptions,
-            customer,
-            street,
-            zip,
-            city,
-            daysLabels,
-            frequencyLabels,
-            user: req.session.user,
-            monthlyTotal,
-            categoryTypes
-        });
-
+        const newPlanService = require("../services/newPlanService");
+        const vm = await newPlanService.buildExistingPlanViewModel(planId);
+        return res.render("newPlanDraft/summary", vm);
     } catch (err) {
         next(err);
     }

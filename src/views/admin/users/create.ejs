@@ -2,32 +2,32 @@
     <h1>Opret ny bruger</h1>
 
     <form hx-post="/users" hx-target="#content">
-        <label>Brugernavn</label>
-        <input type="text" name="userName" required>
+        <label for="userName">Brugernavn</label>
+        <input type="text" id="userName" name="userName" required>
 
-        <label>Fulde navn</label>
-        <input type="text" name="fullName" required>
+        <label for="fullName">Fulde navn</label>
+        <input type="text" id="fullName" name="fullName" required>
 
-        <label>Stilling</label>
-        <input type="text" name="position">
+        <label for="position">Stilling</label>
+        <input type="text" id="position" name="position">
 
-        <label>Telefonnummer</label>
-        <input type="text" name="phoneNumber">
+        <label for="phoneNumber">Telefonnummer</label>
+        <input type="text" id="phoneNumber" name="phoneNumber">
 
-        <label>Email</label>
-        <input type="email" name="email">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email">
 
-        <label>Arbejdsadresse</label>
-        <input type="text" name="address">
+        <label for="address">Arbejdsadresse</label>
+        <input type="text" id="address" name="address">
 
-        <label>Rolle</label>
-        <select name="role" required>
+        <label for="role">Rolle</label>
+        <select id="role" name="role" required>
             <option value="admin">Admin</option>
             <option value="user">Bruger</option>
         </select>
 
-        <button>Opret</button>
+        <button type="submit">Opret</button>
     </form>
 
-    <button hx-get="/admin/users" hx-target="#content">Tilbage</button>
+    <button type="button" class="button-secondary" hx-get="/admin/users" hx-target="#content">Tilbage</button>
 </article>

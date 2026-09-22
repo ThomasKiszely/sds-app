@@ -8,15 +8,15 @@
 <table class="standard responsive-table">
     <thead>
     <tr>
-        <th>Brugernavn</th>
-        <th>Fulde navn</th>
-        <th>Stilling</th>
-        <th>Telefon</th>
-        <th>Email</th>
-        <th>Adresse</th>
-        <th>Rolle</th>
-        <th>Status</th>
-        <th>Handlinger</th>
+        <th scope="col">Brugernavn</th>
+        <th scope="col">Fulde navn</th>
+        <th scope="col">Stilling</th>
+        <th scope="col">Telefon</th>
+        <th scope="col">Email</th>
+        <th scope="col">Adresse</th>
+        <th scope="col">Rolle</th>
+        <th scope="col">Status</th>
+        <th scope="col">Handlinger</th>
     </tr>
     </thead>
 
@@ -49,9 +49,7 @@
                 <% } %>
             </td>
 
-            <td class="actions">
-
-            <td>
+            <td class="actions" data-label="Handlinger">
                 <!-- Rediger bruger -->
                 <button hx-get="/users/<%= user._id %>/edit"
                         hx-target="#content">
@@ -124,3 +122,4 @@
     <% }) %>
     </tbody>
 </table>
+</article>
