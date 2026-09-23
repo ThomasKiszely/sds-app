@@ -10,6 +10,7 @@ const systemSettingsService = require("../services/systemSettingsService");
 
 
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 require('dotenv').config();
 const { userError } = require("../utils/userError");
 const { categoryTypes } = require("../utils/categoryEnum");
@@ -64,8 +65,11 @@ async function createOffer(
     const signatureToken = crypto.randomBytes(32).toString("hex");
     const signatureTokenExpiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
 
+    // Tilbuddets id genereres på forhånd, så acceptlinket peger på tilbuddet (ruten slår op på offer-id)
+    const offerId = new mongoose.Types.ObjectId();
+
     const signatureLink =
-        `${process.env.BASE_URL || "https://sds-app-production-a900.up.railway.app"}/offers/${planId}/accept?token=${signatureToken}`;
+        `${process.env.BASE_URL || "https://sds-app-production-a900.up.railway.app"}/offers/${offerId}/accept?token=${signatureToken}`;
 
     const snapshot = {
         offerMeta: {
@@ -142,6 +146,7 @@ async function createOffer(
     };
 
     const offer = await offerRepo.create({
+        _id: offerId,
         customerId: plan.customerId,
         planId,
         snapshot,

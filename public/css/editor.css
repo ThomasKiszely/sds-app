@@ -1496,7 +1496,7 @@
 
 .plan-task-row {
     display: grid;
-    grid-template-columns: 2.2fr 1.2fr 1.4fr 2.2fr 1.2fr auto;
+    grid-template-columns: 1fr 1.3fr 1fr auto;
     gap: 0.75rem;
     align-items: center;
     background: #ffffff;
@@ -1519,19 +1519,25 @@
     }
 }
 
-.task-info-col {
+/* Kategori på egen linje under opgavenavnet */
+.plan-task-row > .task-info-col {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    overflow: hidden;
+    gap: 0.4rem;
+    margin-bottom: 0.1rem;
 }
 
-.task-name {
+/* Opgavenavn på egen linje over kolonnerne (mængde, frekvens ...) */
+.plan-task-row > .task-name {
+    grid-column: 1 / -1;
+    margin-bottom: -0.55rem;
     font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.3;
     color: #1e293b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .task-amount-col,
@@ -1540,6 +1546,14 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+}
+
+/* Dage på egen linje nederst i opgaverækken (order: 1 flytter den efter pris/slet) */
+.plan-task-row > .task-days-col {
+    grid-column: 1 / -1;
+    order: 1;
+    padding-top: 0.45rem;
+    border-top: 1px dashed #e2e8f0;
 }
 
 .compact-label {
@@ -1576,7 +1590,7 @@
 .task-days-mini-zone {
     display: flex;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0.25rem;
     flex-wrap: wrap;
     min-height: 26px;
     padding: 0.1rem 0.2rem;

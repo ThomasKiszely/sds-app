@@ -483,7 +483,7 @@ async function buildEditorViewModel(draft, systemSettings, customer, location) {
                 rm.otherTasks.push(t);
             }
 
-            const itemPrice = t.monthlyPrice > 0 ? t.monthlyPrice : (t.pricePerTime || t.totalPrice || 0);
+            const itemPrice = t.monthlyPrice > 0 ? t.monthlyPrice : (t.pricePerOccurrence || t.pricePerTime || t.totalPrice || 0);
             rm.totalPrice += itemPrice;
 
             if (Array.isArray(t.days)) {

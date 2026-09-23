@@ -70,7 +70,7 @@ app.use(
         rolling: true,
         cookie: {
             httpOnly: true,
-            secure: false, // Railway håndterer HTTPS foran
+            secure: "auto", // HTTPS på Railway (via trust proxy), HTTP lokalt
             sameSite: 'lax',
             maxAge: 1000 * 60 * 60 * 24 * 7
         }

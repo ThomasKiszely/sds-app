@@ -23,7 +23,7 @@
 
             <td>
                 <button
-                        hx-post="/cleaningTaskTemplates/<%= t._id %>/reactivate"
+                        hx-patch="/cleaningTaskTemplates/<%= t._id %>/reactivate"
                         hx-target="#content"
                         hx-confirm="Vil du genaktivere denne skabelon?">
                     Genaktiver

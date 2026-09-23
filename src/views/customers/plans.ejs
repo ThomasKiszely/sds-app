@@ -112,7 +112,7 @@
                             </button>
                         <% } else { %>
                             <button class="btn btn-fixed"
-                                    hx-patch="/cleaningPlans/<%= plan._id %>?context=customerPlans/reactivate"
+                                    hx-patch="/cleaningPlans/<%= plan._id %>/reactivate?context=customerPlans&customerId=<%= customerId %>"
                                     hx-target="#content">
                                 Aktivér
                             </button>

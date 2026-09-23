@@ -38,7 +38,7 @@ router.post("/:customerId/locations",
 );
 
 // REACTIVATE CUSTOMER
-router.put("/customers/:id/reactivate",
+router.put("/:id/reactivate",
     validateObjectId("id"),
     customerController.reactivateCustomer
 );

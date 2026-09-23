@@ -85,7 +85,7 @@ async function acceptView(req, res, next) {
         const offer = await offerService.getOfferById(req.params.id);
         if (!offer) return res.status(404).send("Tilbud ikke fundet");
 
-        if (offer.signatureToken !== req.query.token) {
+        if (!offer.signatureToken || offer.signatureToken !== req.query.token) {
             return res.status(403).render("offers/invalid");
         }
 
@@ -113,7 +113,7 @@ async function acceptOffer(req, res, next) {
             return next({ isUserError: true, message: "Tilbud findes ikke" });
         }
 
-        if (offer.signatureToken !== req.query.token) {
+        if (!offer.signatureToken || offer.signatureToken !== req.query.token) {
             return res.status(403).render("offers/invalid");
         }
 

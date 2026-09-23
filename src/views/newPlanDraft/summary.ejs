@@ -561,161 +561,163 @@
                             <div class="room-card-body">
                                 <!-- LOKALETS DAGE (HURTIG-TILDELING OG DROPOMRÅDE) -->
                                 <div class="room-days-bar">
-                                <span class="days-label">Dage for lokalet:</span>
+                                    <span class="days-label">Dage for lokalet:</span>
 
-                                <div class="room-days-dropzone" data-room-name="<%= room.name %>">
-                                    <% Object.keys(daysLabels).forEach(dayKey => { %>
-                                        <% const isRoomDayActive = (room.days || []).includes(dayKey); %>
+                                    <div class="room-days-dropzone" data-room-name="<%= room.name %>">
+                                        <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                            <% const isRoomDayActive = (room.days || []).includes(dayKey); %>
+                                            <button type="button"
+                                                    class="room-day-pill <%= isRoomDayActive ? 'active' : '' %>"
+                                                    title="<%= daysLabels[dayKey] %> (klik for at slå til/fra)"
+                                                    hx-post="<%= isRoomDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDayToRoom' %>"
+                                                    hx-vals='{"roomName": "<%= room.name %>", "day": "<%= dayKey %>"}'
+                                                    hx-target="#content">
+                                                <%= daysLabels[dayKey].substring(0, 3) %>
+                                            </button>
+                                        <% }) %>
+                                    </div>
+
+                                    <div class="room-days-shortcuts">
                                         <button type="button"
-                                                class="room-day-pill <%= isRoomDayActive ? 'active' : '' %>"
-                                                title="<%= daysLabels[dayKey] %> (klik for at slå til/fra)"
-                                                hx-post="<%= isRoomDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDayToRoom' %>"
-                                                hx-vals='{"roomName": "<%= room.name %>", "day": "<%= dayKey %>"}'
+                                                class="btn-shortcut"
+                                                title="Sæt Man-Fre på lokalet"
+                                                hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
+                                                hx-vals='{"roomName": "<%= room.name %>", "days": "[\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\"]"}'
                                                 hx-target="#content">
-                                            <%= daysLabels[dayKey].substring(0, 3) %>
+                                            Man–Fre
                                         </button>
-                                    <% }) %>
+                                        <button type="button"
+                                                class="btn-shortcut"
+                                                title="Nulstil dage"
+                                                hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
+                                                hx-vals='{"roomName": "<%= room.name %>", "days": "[]"}'
+                                                hx-target="#content">
+                                            Nulstil
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div class="room-days-shortcuts">
-                                    <button type="button"
-                                            class="btn-shortcut"
-                                            title="Sæt Man-Fre på lokalet"
-                                            hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
-                                            hx-vals='{"roomName": "<%= room.name %>", "days": "[\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\"]"}'
-                                            hx-target="#content">
-                                        Nulstil
-                                    </button>
-                                    <button type="button"
-                                            class="btn-shortcut"
-                                            title="Nulstil dage"
-                                            hx-post="<%= effectiveBaseUrl %>/setDaysForRoom"
-                                            hx-vals='{"roomName": "<%= room.name %>", "days": "[]"}'
-                                            hx-target="#content">
-                                        Nulstil
-                                    </button>
-                                </div>
-                            </div>
+                                <!-- LOKALETS OPGAVER -->
+                                <div class="room-tasks-section">
+                                    <div class="room-tasks-dropzone" data-room-name="<%= room.name %>">
 
-                            <!-- LOKALETS OPGAVER -->
-                            <div class="room-tasks-section">
-                                <div class="room-tasks-dropzone" data-room-name="<%= room.name %>">
+                                        <% if (room.tasks && room.tasks.length > 0) { %>
+                                            <div class="task-items-list">
+                                                <% room.tasks.forEach(task => { %>
+                                                    <div class="plan-task-row cat-<%= task.category %>"
+                                                         data-template-id="<%= task.templateId %>"
+                                                         data-task-index="<%= task._idx %>">
 
-                                    <% if (room.tasks && room.tasks.length > 0) { %>
-                                        <div class="task-items-list">
-                                            <% room.tasks.forEach(task => { %>
-                                                <div class="plan-task-row cat-<%= task.category %>"
-                                                     data-template-id="<%= task.templateId %>"
-                                                     data-task-index="<%= task._idx %>">
-
-                                                    <!-- Kategori badge & Opgavenavn -->
-                                                    <div class="task-info-col">
-                                                        <span class="cat-pill cat-<%= task.category %>">
-                                                            <%= categoryLabels[task.category] || task.category %>
-                                                        </span>
+                                                        <!-- Kategori badge & Opgavenavn -->
                                                         <strong class="task-name"><%= task.name %></strong>
-                                                    </div>
 
-                                                    <!-- Størrelse / Mængde (AMOUNT) -->
-                                                    <div class="task-amount-col">
-                                                        <label class="compact-label">Mængde:</label>
-                                                        <input type="number"
-                                                               class="inline-edit-input task-amount-input"
-                                                               name="amount"
-                                                               value="<%= task.amount %>"
-                                                               min="0"
-                                                               step="0.5"
-                                                               title="Mængde / areal"
-                                                               hx-post="<%= effectiveBaseUrl %>/updateTask"
-                                                               hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                               hx-target="#content"
-                                                               hx-trigger="change">
-                                                        <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
-                                                    </div>
+                                                        <div class="task-info-col">
+                                                            <label class="compact-label">Kategori:</label>
+                                                            <span class="cat-pill cat-<%= task.category %>">
+                                                                <%= categoryLabels[task.category] || task.category %>
+                                                            </span>
+                                                        </div>
 
-                                                    <!-- Frekvens -->
-                                                    <div class="task-freq-col">
-                                                        <label class="compact-label">Frekvens:</label>
-                                                        <select class="inline-edit-select task-freq-select"
-                                                                name="frequency"
-                                                                title="Frekvens"
-                                                                hx-post="<%= effectiveBaseUrl %>/updateTask"
-                                                                hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                                hx-target="#content"
-                                                                hx-trigger="change">
-                                                            <% Object.keys(frequencyLabels).forEach(fk => { %>
-                                                                <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
-                                                                    <%= frequencyLabels[fk] %>
-                                                                </option>
-                                                            <% }) %>
-                                                        </select>
-                                                    </div>
+                                                        <!-- Størrelse / Mængde (AMOUNT) -->
+                                                        <div class="task-amount-col">
+                                                            <label class="compact-label">Mængde:</label>
+                                                            <input type="number"
+                                                                   class="inline-edit-input task-amount-input"
+                                                                   name="amount"
+                                                                   value="<%= task.amount %>"
+                                                                   min="0"
+                                                                   step="0.5"
+                                                                   title="Mængde / areal"
+                                                                   hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                                   hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                                   hx-target="#content"
+                                                                   hx-trigger="change">
+                                                            <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
+                                                        </div>
 
-                                                    <!-- Dage for opgaven -->
-                                                    <div class="task-days-col">
-                                                        <label class="compact-label">Dage:</label>
-                                                        <div class="task-days-mini-zone"
-                                                             data-room-name="<%= room.name %>"
-                                                             data-template-id="<%= task.templateId %>"
-                                                             data-task-index="<%= task._idx %>">
-                                                            <% Object.keys(daysLabels).forEach(dayKey => { %>
-                                                                <% const isTaskDayActive = (task.days || []).includes(dayKey); %>
-                                                                <button type="button"
-                                                                        class="mini-day-pill <%= isTaskDayActive ? 'active' : '' %>"
-                                                                        title="<%= daysLabels[dayKey] %>: <%= isTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
-                                                                        hx-post="<%= isTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
-                                                                        hx-vals='{"roomName": "<%= room.name %>", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
-                                                                        hx-target="#content">
-                                                                    <%= daysLabels[dayKey].substring(0, 2) %>
-                                                                </button>
-                                                            <% }) %>
+                                                        <!-- Frekvens -->
+                                                        <div class="task-freq-col">
+                                                            <label class="compact-label">Frekvens:</label>
+                                                            <select class="inline-edit-select task-freq-select"
+                                                                    name="frequency"
+                                                                    title="Frekvens"
+                                                                    hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                                    hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                                    hx-target="#content"
+                                                                    hx-trigger="change">
+                                                                <% Object.keys(frequencyLabels).forEach(fk => { %>
+                                                                    <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
+                                                                        <%= frequencyLabels[fk] %>
+                                                                    </option>
+                                                                <% }) %>
+                                                            </select>
+                                                        </div>
+
+                                                        <!-- Dage for opgaven -->
+                                                        <div class="task-days-col">
+                                                            <label class="compact-label">Dage:</label>
+                                                            <div class="task-days-mini-zone"
+                                                                 data-room-name="<%= room.name %>"
+                                                                 data-template-id="<%= task.templateId %>"
+                                                                 data-task-index="<%= task._idx %>">
+                                                                <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                                                    <% const isTaskDayActive = (task.days || []).includes(dayKey); %>
+                                                                    <button type="button"
+                                                                            class="mini-day-pill <%= isTaskDayActive ? 'active' : '' %>"
+                                                                            title="<%= daysLabels[dayKey] %>: <%= isTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
+                                                                            hx-post="<%= isTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
+                                                                            hx-vals='{"roomName": "<%= room.name %>", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
+                                                                            hx-target="#content">
+                                                                        <%= daysLabels[dayKey].substring(0, 2) %>
+                                                                    </button>
+                                                                <% }) %>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Opgavepris -->
+                                                        <div class="task-price-col">
+                                                            <span class="task-price-value">
+                                                                <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
+                                                                <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
+                                                            </span>
+                                                        </div>
+
+                                                        <!-- Slet opgave -->
+                                                        <div class="task-action-col">
+                                                            <button type="button"
+                                                                    class="btn-icon-delete-small"
+                                                                    title="Fjern opgave"
+                                                                    hx-post="<%= effectiveBaseUrl %>/removeTask"
+                                                                    hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                                    hx-target="#content">
+                                                                &times;
+                                                            </button>
                                                         </div>
                                                     </div>
+                                                <% }) %>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="empty-room-tasks-hint">
+                                                <span>Træk en opgave hertil for at føje den til <strong><%= room.name %></strong></span>
+                                            </div>
+                                        <% } %>
 
-                                                    <!-- Opgavepris -->
-                                                    <div class="task-price-col">
-                                                        <span class="task-price-value">
-                                                            <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
-                                                            <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
-                                                        </span>
-                                                    </div>
-
-                                                    <!-- Slet opgave -->
-                                                    <div class="task-action-col">
-                                                        <button type="button"
-                                                                class="btn-icon-delete-small"
-                                                                title="Fjern opgave"
-                                                                hx-post="<%= effectiveBaseUrl %>/removeTask"
-                                                                hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                                hx-target="#content">
-                                                            &times;
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            <% }) %>
-                                        </div>
-                                    <% } else { %>
-                                        <div class="empty-room-tasks-hint">
-                                            <span>Træk en opgave hertil for at føje den til <strong><%= room.name %></strong></span>
-                                        </div>
-                                    <% } %>
-
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- LOKALENOTER (BEMÆRKNINGER) -->
-                            <details class="room-notes-dropdown">
-                                <summary class="notes-summary">Bemærkninger til lokalet</summary>
-                                <div class="notes-content">
-                                    <textarea name="notes"
-                                              class="room-notes-textarea"
-                                              placeholder="Skriv eventuelle bemærkninger om adgang, nøgler, særlige krav her..."
-                                              hx-post="<%= effectiveBaseUrl %>/updateRoomNotes"
-                                              hx-vals='{"roomName": "<%= room.name %>"}'
-                                              hx-target="#content"
-                                              hx-trigger="change"><%= ((draft.roomNotes || []).find(n => n.roomName === room.name)?.notes || []).join('\n') %></textarea>
-                                </div>
-                            </details>
+                                <!-- LOKALENOTER (BEMÆRKNINGER) -->
+                                <details class="room-notes-dropdown">
+                                    <summary class="notes-summary">Bemærkninger til lokalet</summary>
+                                    <div class="notes-content">
+                                        <textarea name="notes"
+                                                  class="room-notes-textarea"
+                                                  placeholder="Skriv eventuelle bemærkninger om adgang, nøgler, særlige krav her..."
+                                                  hx-post="<%= effectiveBaseUrl %>/updateRoomNotes"
+                                                  hx-vals='{"roomName": "<%= room.name %>"}'
+                                                  hx-target="#content"
+                                                  hx-trigger="change"><%= ((draft.roomNotes || []).find(n => n.roomName === room.name)?.notes || []).join('\n') %></textarea>
+                                    </div>
+                                </details>
                             </div>
 
                         </article>
@@ -740,7 +742,7 @@
 
                         <% if (generalTasks && generalTasks.length > 0) { %>
                             <%
-                                const generalTotal = generalTasks.reduce((sum, t) => sum + (t.monthlyPrice > 0 ? t.monthlyPrice : (t.pricePerTime || t.totalPrice || 0)), 0);
+                                const generalTotal = generalTasks.reduce((sum, t) => sum + (t.monthlyPrice > 0 ? t.monthlyPrice : (t.pricePerOccurrence || 0)), 0);
                             %>
                             <div class="room-total-price">
                                 <span class="price-badge"><%= generalTotal.toFixed(2) %> kr.</span>
@@ -759,100 +761,102 @@
                     <div class="room-card-body">
                         <div class="room-tasks-section">
                             <div class="room-tasks-dropzone general-tasks-dropzone" id="generalTasksDropzone" data-room-name="">
-                            <% if (generalTasks && generalTasks.length > 0) { %>
-                                <div class="task-items-list">
-                                    <% generalTasks.forEach(task => { %>
-                                        <div class="plan-task-row cat-<%= task.category %>"
-                                             data-template-id="<%= task.templateId %>"
-                                             data-task-index="<%= task._idx %>">
+                                <% if (generalTasks && generalTasks.length > 0) { %>
+                                    <div class="task-items-list">
+                                        <% generalTasks.forEach(task => { %>
+                                            <div class="plan-task-row cat-<%= task.category %>"
+                                                 data-template-id="<%= task.templateId %>"
+                                                 data-task-index="<%= task._idx %>">
 
-                                            <div class="task-info-col">
-                                                <span class="cat-pill cat-<%= task.category %>">
-                                                    <%= categoryLabels[task.category] || task.category %>
-                                                </span>
                                                 <strong class="task-name"><%= task.name %></strong>
-                                            </div>
 
-                                            <div class="task-amount-col">
-                                                <label class="compact-label">Mængde:</label>
-                                                <input type="number"
-                                                       class="inline-edit-input task-amount-input"
-                                                       name="amount"
-                                                       value="<%= task.amount %>"
-                                                       min="0"
-                                                       step="0.5"
-                                                       title="Mængde / antal / areal"
-                                                       hx-post="<%= effectiveBaseUrl %>/updateTask"
-                                                       hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                       hx-target="#content"
-                                                       hx-trigger="change">
-                                                <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
-                                            </div>
+                                                <div class="task-info-col">
+                                                    <label class="compact-label">Kategori:</label>
+                                                    <span class="cat-pill cat-<%= task.category %>">
+                                                        <%= categoryLabels[task.category] || task.category %>
+                                                    </span>
+                                                </div>
 
-                                            <div class="task-freq-col">
-                                                <label class="compact-label">Frekvens:</label>
-                                                <select class="inline-edit-select task-freq-select"
-                                                        name="frequency"
-                                                        title="Frekvens"
-                                                        hx-post="<%= effectiveBaseUrl %>/updateTask"
-                                                        hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                        hx-target="#content"
-                                                        hx-trigger="change">
-                                                    <% Object.keys(frequencyLabels).forEach(fk => { %>
-                                                        <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
-                                                            <%= frequencyLabels[fk] %>
-                                                        </option>
-                                                    <% }) %>
-                                                </select>
-                                            </div>
+                                                <div class="task-amount-col">
+                                                    <label class="compact-label">Mængde:</label>
+                                                    <input type="number"
+                                                           class="inline-edit-input task-amount-input"
+                                                           name="amount"
+                                                           value="<%= task.amount %>"
+                                                           min="0"
+                                                           step="0.5"
+                                                           title="Mængde / antal / areal"
+                                                           hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                           hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                           hx-target="#content"
+                                                           hx-trigger="change">
+                                                    <span class="unit-tag"><%= unitsLabels[task.unit] || task.unit %></span>
+                                                </div>
 
-                                            <div class="task-days-col">
-                                                <label class="compact-label">Dage:</label>
-                                                <div class="task-days-mini-zone"
-                                                     data-room-name=""
-                                                     data-template-id="<%= task.templateId %>"
-                                                     data-task-index="<%= task._idx %>">
-                                                    <% Object.keys(daysLabels).forEach(dayKey => { %>
-                                                        <% const isGenTaskDayActive = (task.days || []).includes(dayKey); %>
-                                                        <button type="button"
-                                                                class="mini-day-pill <%= isGenTaskDayActive ? 'active' : '' %>"
-                                                                title="<%= daysLabels[dayKey] %>: <%= isGenTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
-                                                                hx-post="<%= isGenTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
-                                                                hx-vals='{"roomName": "", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
-                                                                hx-target="#content">
-                                                            <%= daysLabels[dayKey].substring(0, 2) %>
-                                                        </button>
-                                                    <% }) %>
+                                                <div class="task-freq-col">
+                                                    <label class="compact-label">Frekvens:</label>
+                                                    <select class="inline-edit-select task-freq-select"
+                                                            name="frequency"
+                                                            title="Frekvens"
+                                                            hx-post="<%= effectiveBaseUrl %>/updateTask"
+                                                            hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                            hx-target="#content"
+                                                            hx-trigger="change">
+                                                        <% Object.keys(frequencyLabels).forEach(fk => { %>
+                                                            <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>>
+                                                                <%= frequencyLabels[fk] %>
+                                                            </option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+
+                                                <div class="task-days-col">
+                                                    <label class="compact-label">Dage:</label>
+                                                    <div class="task-days-mini-zone"
+                                                         data-room-name=""
+                                                         data-template-id="<%= task.templateId %>"
+                                                         data-task-index="<%= task._idx %>">
+                                                        <% Object.keys(daysLabels).forEach(dayKey => { %>
+                                                            <% const isGenTaskDayActive = (task.days || []).includes(dayKey); %>
+                                                            <button type="button"
+                                                                    class="mini-day-pill <%= isGenTaskDayActive ? 'active' : '' %>"
+                                                                    title="<%= daysLabels[dayKey] %>: <%= isGenTaskDayActive ? 'Aktiv (klik for at fjerne)' : 'Inaktiv (klik for at tilføje)' %>"
+                                                                    hx-post="<%= isGenTaskDayActive ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
+                                                                    hx-vals='{"roomName": "", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
+                                                                    hx-target="#content">
+                                                                <%= daysLabels[dayKey].substring(0, 2) %>
+                                                            </button>
+                                                        <% }) %>
+                                                    </div>
+                                                </div>
+
+                                                <div class="task-price-col">
+                                                    <span class="task-price-value">
+                                                        <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
+                                                        <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
+                                                    </span>
+                                                </div>
+
+                                                <div class="task-action-col">
+                                                    <button type="button"
+                                                            class="btn-icon-delete-small"
+                                                            title="Fjern opgave"
+                                                            hx-post="<%= effectiveBaseUrl %>/removeTask"
+                                                            hx-vals='{"taskIndex": "<%= task._idx %>"}'
+                                                            hx-target="#content">
+                                                        &times;
+                                                    </button>
                                                 </div>
                                             </div>
-
-                                            <div class="task-price-col">
-                                                <span class="task-price-value">
-                                                    <%= (task.monthlyPrice > 0 ? task.monthlyPrice : (task.pricePerOccurrence || 0)).toFixed(2) %> kr.
-                                                    <small><%= task.monthlyPrice > 0 ? '/md.' : ' pr gang' %></small>
-                                                </span>
-                                            </div>
-
-                                            <div class="task-action-col">
-                                                <button type="button"
-                                                        class="btn-icon-delete-small"
-                                                        title="Fjern opgave"
-                                                        hx-post="<%= effectiveBaseUrl %>/removeTask"
-                                                        hx-vals='{"taskIndex": "<%= task._idx %>"}'
-                                                        hx-target="#content">
-                                                    &times;
-                                                </button>
-                                            </div>
-                                        </div>
-                                    <% }) %>
-                                </div>
-                            <% } else { %>
-                                <div class="empty-dropzone-hint">
-                                    <span class="dropzone-text">&#8681; Træk opgaver hertil (eller klik + i menuen) for at føje dem direkte til planen uden lokale</span>
-                                </div>
-                            <% } %>
+                                        <% }) %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-dropzone-hint">
+                                        <span class="dropzone-text">&#8681; Træk opgaver hertil (eller klik + i menuen) for at føje dem direkte til planen uden lokale</span>
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </article>
 
