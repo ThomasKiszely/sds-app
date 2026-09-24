@@ -567,6 +567,7 @@
                     const willBeExpanded = card.classList.contains('is-minimized');
                     if (willBeExpanded) {
                         window._expandedRooms.add(roomName);
+                        card.classList.add('is-opening');
                         updateCardState(true);
                     } else {
                         window._expandedRooms.delete(roomName);
@@ -624,6 +625,7 @@
                     const willBeExpanded = section.classList.contains('is-minimized');
                     if (willBeExpanded) {
                         window._expandedSidebarSections.add(sectionId);
+                        section.classList.add('is-opening');
                         updateSectionState(true);
                     } else {
                         window._expandedSidebarSections.delete(sectionId);
@@ -698,6 +700,54 @@
     document.addEventListener('DOMContentLoaded', initEditor);
     document.addEventListener('htmx:afterSwap', initEditor);
     document.addEventListener('htmx:load', initEditor);
+
+    /* --------------------------------------------------
+       BEVAR SCROLL-POSITION VED OPDATERING AF EDITOREN
+       #content udskiftes ved hver ændring, så de scrollbare
+       paneler starter forfra. Gem positionen før swap og
+       gendan den bagefter, hvis editoren stadig vises.
+    -------------------------------------------------- */
+    const SCROLL_SELECTORS = ['.editor-main', '.editor-sidebar', '.template-list'];
+    let savedScroll = null;
+
+    document.addEventListener('htmx:beforeSwap', function (e) {
+        const target = e.detail && e.detail.target;
+        if (!target || target.id !== 'content' || !target.querySelector('.editor-main')) {
+            savedScroll = null;
+            return;
+        }
+        if (e.detail.shouldSwap) target.classList.add('is-refreshing');
+        savedScroll = {
+            window: window.scrollY,
+            panels: SCROLL_SELECTORS.map(sel =>
+                Array.from(target.querySelectorAll(sel)).map(el => el.scrollTop))
+        };
+    });
+
+    // Registreres efter initEditor, så rum-udvidelser er anvendt før gendannelse
+    document.addEventListener('htmx:afterSwap', function (e) {
+        const target = e.detail && e.detail.target;
+        if (!savedScroll || !target || target.id !== 'content') return;
+        const state = savedScroll;
+        savedScroll = null;
+        if (!target.querySelector('.editor-main')) return;
+
+        SCROLL_SELECTORS.forEach((sel, i) => {
+            target.querySelectorAll(sel).forEach((el, j) => {
+                if (state.panels[i][j] != null) el.scrollTop = state.panels[i][j];
+            });
+        });
+        window.scrollTo(0, state.window);
+    });
+
+    // Slå transitions til igen, når det nye indhold er tegnet færdigt
+    document.addEventListener('htmx:afterSettle', function (e) {
+        const target = e.detail && e.detail.target;
+        if (!target || !target.classList.contains('is-refreshing')) return;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            target.classList.remove('is-refreshing');
+        }));
+    });
 
     window.initEditorSortables = initEditor;
 })();

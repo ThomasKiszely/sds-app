@@ -900,6 +900,10 @@
 
 .sidebar-section-body {
     display: block;
+}
+
+/* Fade kun når brugeren selv åbner sektionen — ikke ved HTMX-genindlæsning */
+.sidebar-section.is-opening .sidebar-section-body {
     animation: fadeInBody 0.15s ease;
 }
 
@@ -1208,6 +1212,10 @@
 
 .room-card-body {
     display: block;
+}
+
+/* Fade kun når brugeren selv åbner lokalet — ikke ved HTMX-genindlæsning */
+.plan-room-card.is-opening .room-card-body {
     animation: fadeInBody 0.15s ease;
 }
 
@@ -2589,4 +2597,12 @@
         animation-duration: .01ms !important;
         transition-duration: .01ms !important;
     }
+}
+
+/* Slå transitions fra mens HTMX genindlæser editoren, så kort og knapper
+   ikke "glider" fra standardtilstand til deres aktuelle tilstand (blink) */
+#content.is-refreshing *,
+#content.is-refreshing *::before,
+#content.is-refreshing *::after {
+    transition: none !important;
 }
