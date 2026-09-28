@@ -1,3 +1,123 @@
 .hidden {
     display: none;
 }
+
+/* Tilbudsvisning (offers/view) */
+.offer-document {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.offer-document p {
+    margin-bottom: var(--space-1);
+}
+
+.offer-document section {
+    margin: var(--space-2) 0;
+}
+
+.offer-document ul {
+    margin: var(--space-1) 0 var(--space-2);
+    padding-left: 1.2rem;
+}
+
+.offer-document li {
+    margin-bottom: 4px;
+}
+
+.offer-document hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-2) 0;
+}
+
+.offer-document-logo-row {
+    text-align: right;
+    margin-bottom: var(--space-1);
+}
+
+.offer-document-logo {
+    height: 60px;
+    width: auto;
+}
+
+.offer-status {
+    padding: .6rem .8rem;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-2);
+}
+
+.offer-status-accepted {
+    background: #e6ffe6;
+    border-left: 4px solid #33aa33;
+}
+
+.offer-status-sent {
+    background: #e6f3ff;
+    border-left: 4px solid #3399ff;
+}
+
+.offer-status-draft {
+    background: #fff4e6;
+    border-left: 4px solid #ff9900;
+}
+
+.offer-top-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 var(--space-3);
+}
+
+.offer-recipient div {
+    margin-bottom: 2px;
+}
+
+.offer-date {
+    color: #555;
+}
+
+.offer-price {
+    font-weight: bold;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+}
+
+.offer-closing-note {
+    font-weight: bold;
+}
+
+.offer-accept-box {
+    margin: var(--space-2) 0;
+    padding: var(--space-2);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    background: var(--card-bg);
+}
+
+.offer-accept-box p {
+    margin: 0 0 .4rem;
+}
+
+.offer-accept-box a {
+    color: var(--primary-color);
+    word-break: break-all;
+}
+
+.offer-signoff {
+    margin-top: var(--space-2);
+}
+
+.offer-signoff strong {
+    display: block;
+}
+
+.offer-downloads {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+}

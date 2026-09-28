@@ -16,6 +16,7 @@ const { userError } = require("../utils/userError");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
 const { terminationNotice: terminationNoticeEnum, terminationNoticeLabels } = require("../utils/terminationNotice");
+const { paymentTermLabels } = require("../utils/paymentTerms");
 
 async function getOfferById(id) {
     return await offerRepo.findById(id);
@@ -23,7 +24,7 @@ async function getOfferById(id) {
 
 async function createOffer(
     planId,
-    { discountPercent = 0, environmentalFeePercent, paymentTerms, terminationNotice }
+    { discountPercent = 0, environmentalFeePercent, paymentTerms, terminationNotice, sender = {} }
 ) {
     const plan = await cleaningPlanRepo.findById(planId);
     if (!plan) throw userError("Rengøringsplanen findes ikke");
@@ -89,10 +90,19 @@ async function createOffer(
             indexRegulationPercent: plan.indexRegulationPercent,
             totalMonthlyPrice: totals.total,
             paymentTerms: paymentTerms || plan.paymentTerms,
+            paymentTermsLabel: paymentTermLabels[paymentTerms || plan.paymentTerms],
             terminationNotice: terminationNotice || terminationNoticeEnum.month3,
             terminationNoticeLabel: terminationNoticeLabels[terminationNotice || terminationNoticeEnum.month3],
             createdAt: plan.createdAt,
             updatedAt: plan.updatedAt
+        },
+
+        sender: {
+            fullName: sender.fullName || null,
+            position: sender.position || null,
+            phoneNumber: sender.phoneNumber || null,
+            email: sender.email || null,
+            address: sender.address || null
         },
 
         customer: {

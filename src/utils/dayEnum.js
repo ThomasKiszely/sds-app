@@ -17,3 +17,13 @@ module.exports.daysLabels = {
     saturday: "Lørdag",
     sunday: "Søndag",
 }
+
+module.exports.daysShortLabels = {
+    monday: "man",
+    tuesday: "tirs",
+    wednesday: "ons",
+    thursday: "tors",
+    friday: "fre",
+    saturday: "lør",
+    sunday: "søn",
+}

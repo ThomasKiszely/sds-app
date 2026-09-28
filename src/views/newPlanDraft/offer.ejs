@@ -1,7 +1,7 @@
 <article class="standard wizard-step">
 
     <h2>Tilbud (kladde)</h2>
-    <p><em>Dette er en kladde. Intet er gemt endnu.</em></p>
+    <p class="wizard-subtitle"><em>Dette er en kladde. Intet er gemt endnu.</em></p>
 
     <section class="offer-summary">
 
@@ -145,8 +145,7 @@
                     <% consumables.forEach(c => { %>
                         <li>
                             <strong><%= c.name %></strong>
-                            – <%= (c.customPrice ?? 0).toFixed(2) %> kr pr stk
-                            – <%= c.amount || c.quantity || 1 %> stk
+                             <%= (c.customPrice ?? 0).toFixed(2) %> kr pr stk
 
                             <% if (c.description && c.description.trim().length > 0) { %>
                                 <div><em><%= c.description %></em></div>

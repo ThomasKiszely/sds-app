@@ -1,5 +1,12 @@
 <article class="standard cleaning-plan">
 
+    <!-- DOWNLOAD -->
+    <div class="plan-downloads">
+        <a href="/cleaningPlans/<%= plan._id %>/planPdf" class="button-link" target="_blank">
+            Download rengøringsplan (PDF)
+        </a>
+    </div>
+
     <!-- PROGRAMKODE-FORKLARING -->
     <section class="programcode-info">
         <h2>Forklaring på programkoder</h2>
@@ -66,6 +73,34 @@
     </section>
 
     <hr>
+
+    <!-- TIDSFORBRUG PR. RUM (kun intern visning) -->
+    <% if (Object.keys(roomTimeBreakdown).length > 0) { %>
+        <section class="room-time">
+            <h2>Tidsforbrug pr. rum</h2>
+
+            <% for (const roomName in roomTimeBreakdown) { %>
+                <% const room = roomTimeBreakdown[roomName]; %>
+
+                <div class="room-time-card">
+                    <h3>
+                        <%= roomName %><% if (room.size) { %> – <%= room.size %> m²<% } %>
+                    </h3>
+                    <ul>
+                        <% room.lines.forEach(line => { %>
+                            <li>
+                                <strong><%= line.label %>:</strong>
+                                <%= line.duration %>
+                                <% if (line.days) { %> – <%= line.days %><% } %>
+                            </li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <% } %>
+        </section>
+
+        <hr>
+    <% } %>
 
     <!-- RENGØRINGSINSTRUKTION -->
     <section class="instructions">
@@ -141,7 +176,6 @@
                     <li>
                         <strong><%= c.name %></strong>
                         – <%= (c.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr pr stk
-                        – <%= c.amount %> stk
                         <% if (c.description) { %><div><em><%= c.description %></em></div><% } %>
                     </li>
                 <% }) %>
@@ -149,5 +183,20 @@
             <p><em>Faktureres efter forbrug</em></p>
         <% } %>
     </section>
+
+    <!-- TID I ALT PR. DAG (kun intern visning) -->
+    <% if (dailyTimeTotals.length > 0) { %>
+        <hr>
+
+        <section class="daily-time-totals">
+            <h2>Tid i alt pr. dag</h2>
+
+            <ul>
+                <% dailyTimeTotals.forEach(d => { %>
+                    <li><strong><%= d.day %>:</strong> <%= d.duration %></li>
+                <% }) %>
+            </ul>
+        </section>
+    <% } %>
 
 </article>

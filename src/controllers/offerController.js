@@ -50,10 +50,13 @@ async function viewOffer(req, res, next) {
 
         const { street, zip, city } = parseAddress(customer.customerAddress);
 
+        const senderAddress = parseAddress(offer.snapshot?.sender?.address || "Maglemølle 25, 4700 Næstved");
+
         return res.render("offers/view", {
             offer,
             snapshot: offer.snapshot,
             user: req.session.user,
+            senderAddress,
 
             customer,
             street,

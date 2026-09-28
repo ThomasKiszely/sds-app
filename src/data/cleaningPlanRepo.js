@@ -10,7 +10,7 @@ async function findById(id) {
 }
 
 async function findByIdWithCustomer(id) {
-    return CleaningPlan.findById(id).populate("customerId");
+    return CleaningPlan.findById(id).populate("customerId").populate("locationId");
 }
 
 async function findByCustomerId(customerId) {

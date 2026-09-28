@@ -4,112 +4,159 @@
     <meta charset="UTF-8">
     <title>Tilbud</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-        .header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-        .company-info { float: right; text-align: right; }
-        .customer-info { margin-top: 20px; margin-bottom: 30px; }
-        h1 { margin-bottom: 0; }
-        h2, h3 { margin-bottom: 0.3rem; }
-        .section { margin-bottom: 1.5rem; }
-        .tasks ul { margin-top: 0.3rem; }
-        .discount { color: #008000; }
-        .footer { margin-top: 40px; font-size: 0.9rem; color: #666; border-top: 1px solid #ccc; padding-top: 10px; }
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        p {
+            margin: 0 0 10pt;
+        }
+
+        .top-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20pt;
+        }
+
+        .recipient div {
+            margin-bottom: 1pt;
+        }
+
+        .price-figure {
+            font-weight: bold;
+        }
+
+        ul.consumables {
+            margin: 4pt 0 12pt;
+            padding-left: 16pt;
+        }
+
+        ul.consumables li {
+            margin-bottom: 3pt;
+        }
+
+        .closing-note {
+            font-weight: bold;
+        }
+
+        .accept-box {
+            margin: 16pt 0;
+            padding: 10pt 14pt;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #f8f8f8;
+            break-inside: avoid;
+        }
+
+        .accept-box p {
+            margin: 0 0 4pt;
+        }
+
+        .accept-box a {
+            color: #A02121;
+            word-break: break-all;
+        }
+
+        .signoff {
+            break-inside: avoid;
+        }
+
+        .signoff strong {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="company-info">
-        <strong>SDS Rengøring</strong><br>
-        Maglemølle 25<br>
-        4700 Næstved<br>
-        CVR: 12345678<br>
-        Telefon: 72 41 10 01<br>
-        Email: info@s-ds.dk
+<div class="top-line">
+    <div class="recipient">
+        <div><strong><%= snapshot.customer.name %></strong></div>
+        <div><%= snapshot.customer.street %></div>
+        <div><%= snapshot.customer.zip %> <%= snapshot.customer.city %></div>
+        <% if (snapshot.customer.contactPerson?.name) { %>
+            <div>Att. <%= snapshot.customer.contactPerson.name %></div>
+        <% } %>
     </div>
 
-    <h1>Tilbud</h1>
-    <p>
-        Tilbudsnummer: <%= offer._id %><br>
-        Dato: <%= offer.createdAt.toLocaleDateString("da-DK") %>
-    </p>
+    <div>
+        <%= snapshot.customer.city ? snapshot.customer.city + "," : "" %>
+        <%= offer.createdAt.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) %>
+    </div>
 </div>
 
-<div class="customer-info">
-    <h2>Kunde</h2>
+<p>
+    Hej <%= (snapshot.customer.contactPerson?.name || snapshot.customer.name).split(" ")[0] %>
+</p>
+
+<p>Som aftalt sender jeg et tilbud på baggrund af den fremsendte rengøringsplan.</p>
+
+<p>
+    Prisen for rengøring jf. rengøringsplanen andrager
+    <span class="price-figure"><%= snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr.</span>
+    ekskl. moms pr. måned.
+</p>
+
+<% if (snapshot.plan.environmentalFeePercent > 0) { %>
     <p>
-        <strong><%= snapshot.customer.name %></strong><br>
-        <%= snapshot.customer.street %><br>
-        <%= snapshot.customer.zip %> <%= snapshot.customer.city %><br>
-        Email: <%= snapshot.customer.email %><br>
-        Kontaktperson: <%= snapshot.customer.contactPerson?.name %><br>
-        Telefon: <%= snapshot.customer.contactPerson?.phone %>
+        Heri er indregnet et drifts- og miljøtillæg på <%= snapshot.plan.environmentalFeePercent %>%,
+        svarende til <%= snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr.
     </p>
-</div>
+<% } %>
 
-<div class="section">
-    <h2>Fast pris for rengøring</h2>
+<p>
+    Betalingsbetingelser: <%= snapshot.plan.paymentTermsLabel || snapshot.plan.paymentTerms %><br>
+    Opsigelsesvarsel: <%= snapshot.plan.terminationNoticeLabel %>
+</p>
 
-    <p>Den samlede pris for rengøring jf. rengøringsplanen andrager:</p>
+<p>De ekstra opgaver som fremgår på planen, bliver faktureret på timepris + materialer.</p>
 
-    <p style="font-size: 1.3rem; font-weight: bold;">
-        <%= snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. ekskl. moms pr. måned
-    </p>
+<p>Timeprisen andrager kroner ekskl. moms <%= Number(snapshot.plan.hourlyRate || 0).toFixed(2) %>,-</p>
 
-    <% if (snapshot.plan.discountPercent > 0) { %>
-        <p class="discount">
-            Rabat: <%= snapshot.plan.discountAmount.toFixed(2) %> kr
-        </p>
-    <% } %>
-
-    <% if (snapshot.plan.environmentalFeePercent > 0) { %>
-        <p>
-            Drift- og miljøtillæg:
-            <%= snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr
-        </p>
-    <% } %>
-
-    <p>
-        Betalingsbetingelser: <%= snapshot.plan.paymentTerms %><br>
-        Opsigelsesvarsel: <%= snapshot.plan.terminationNoticeLabel %>
-    </p>
-</div>
-
-<div class="section tasks">
-    <h2>Opgaver</h2>
-
-    <% snapshot.tasks.forEach(t => { %>
-        <p>
-            <strong><%= t.name %></strong><br>
-            Frekvens: <%= t.frequencyLabel %><br>
-            Pris pr. måned: <%= t.monthlyPrice.toFixed(2) %> kr.
-        </p>
-    <% }) %>
-
-    <% if (snapshot.consumables.length) { %>
-        <h3>Forbrugsvarer</h3>
+<% if (snapshot.consumables && snapshot.consumables.length > 0) { %>
+    <p>Forbrugsvarer.</p>
+    <ul class="consumables">
         <% snapshot.consumables.forEach(c => { %>
-            <p>
-                <strong><%= c.name %></strong><br>
-                Mængde: <%= c.amount %> stk<br>
-                Pris pr. stk: <%= c.pricePerUnit %> kr ekskl. moms<br>
-                <% if (c.description) { %>
-                    <em><%= c.description %></em>
-                <% } %>
-            </p>
+            <li>
+                <%= c.name %> &ndash; <%= c.amount %> <%= c.unitLabel %>
+                &ndash; pris <%= Number(c.pricePerUnit || 0).toFixed(2) %> kr ekskl. moms
+            </li>
         <% }) %>
-    <% } %>
+    </ul>
+<% } %>
+
+<p class="closing-note">
+    Ovenstående rengøringsvederlag indeholder løn til medarbejdere, feriepenge, ATP og rengøringsmidler,
+    samt andre omkostninger der er forbundet med at servicere jer, herunder egenkontrol.
+</p>
+
+<p class="closing-note">
+    Hvis der er spørgsmål eller ønsker om yderligere information, er du selvfølgelig velkommen til at kontakte mig.
+</p>
+
+<div class="accept-box">
+    <p>Tilbuddet accepteres digitalt via nedenstående link:</p>
+    <a href="<%= snapshot.signatureLink %>"><%= snapshot.signatureLink %></a>
 </div>
 
-<div class="section">
-    <h2>Accept af tilbud</h2>
-    <p>Klik her for at acceptere tilbuddet:</p>
-    <p><a href="<%= snapshot.signatureLink %>"><%= snapshot.signatureLink %></a></p>
-</div>
+<div class="signoff">
+    <p>Med venlig hilsen</p>
 
-<div class="footer">
-    Service Division Sjælland – Professionel rengøring og service<br>
-    Dette tilbud er gyldigt i 30 dage fra modtagelse.
+    <p>
+        <strong><%= snapshot.sender?.fullName || "SDS Rengøring" %></strong>
+        <% if (snapshot.sender?.position) { %><%= snapshot.sender.position %><br><% } %>
+        SDS Rengøring<br>
+        <%= senderAddress.street %><br>
+        <%= senderAddress.zip %> <%= senderAddress.city %><br>
+        Tlf. <%= snapshot.sender?.phoneNumber || "72 41 10 01" %>
+        <% if (snapshot.sender?.email) { %><br><%= snapshot.sender.email %><% } %>
+    </p>
 </div>
 
 </body>

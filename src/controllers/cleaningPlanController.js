@@ -253,6 +253,9 @@ async function viewPlan(req, res, next) {
             inventoryDescriptions
         } = cleaningPlanService.extractInstructionDescriptions(enrichedTasks);
 
+        const roomTimeBreakdown = cleaningPlanService.buildRoomTimeBreakdown(grouped);
+        const dailyTimeTotals = cleaningPlanService.buildDailyTimeTotals(grouped);
+
 
         // Send ALT til view’et
         return res.render("plans/view", {
@@ -272,7 +275,9 @@ async function viewPlan(req, res, next) {
             user: req.session.user,
             dailyDescriptions,
             floorDescriptions,
-            inventoryDescriptions
+            inventoryDescriptions,
+            roomTimeBreakdown,
+            dailyTimeTotals
         });
 
     } catch (err) {
@@ -342,8 +347,25 @@ async function generatePlanPdf(req, res) {
             inventoryDescriptions
         } = cleaningPlanService.extractInstructionDescriptions(enrichedTasks);
 
+        const operatingDays = cleaningPlanService.describeOperatingDays(enrichedTasks);
+
+        // Kunde- og lokationsoplysninger til "Kundeoplysninger"-blokken
+        const customer = plan.customerId;
+        const location = plan.locationId;
+        const { street, zip, city } = require("../utils/addressUtil").parseAddress(location?.address);
+
         const pdfBuffer = await pdfService.generatePlanPdf({
             plan,
+            customer,
+            location,
+            street,
+            zip,
+            city,
+            operatingDays,
+            sender: {
+                address: req.session.user?.address,
+                phoneNumber: req.session.user?.phoneNumber
+            },
             tasks: enrichedTasks,
             grouped,
             roomNotes,

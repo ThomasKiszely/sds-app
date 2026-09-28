@@ -230,6 +230,48 @@
     transform: scale(1.05);
 }
 
+.plan-downloads {
+    margin-bottom: var(--space-3);
+}
+
+.room-time-card {
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: var(--space-1) var(--space-2);
+    margin-bottom: var(--space-2);
+    background: var(--card-bg);
+}
+
+.room-time-card h3 {
+    margin-bottom: var(--space-1);
+}
+
+.room-time-card ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.room-time-card li {
+    margin-bottom: 2px;
+}
+
+.daily-time-totals ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+.daily-time-totals li {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: .4rem .8rem;
+    background: var(--card-bg);
+}
+
 .btn-warning {
     background: #f0c040;
     color: #000;

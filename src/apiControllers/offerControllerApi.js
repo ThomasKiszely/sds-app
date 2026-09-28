@@ -6,7 +6,14 @@ async function createOffer(req, res, next) {
             req.body.planId,
             {
                 discountPercent: Number(req.body.discountPercent || 0),
-                environmentalFee: Number(req.body.environmentalFee || 1)
+                environmentalFee: Number(req.body.environmentalFee || 1),
+                sender: {
+                    fullName: req.session.user?.fullName,
+                    position: req.session.user?.position,
+                    phoneNumber: req.session.user?.phoneNumber,
+                    email: req.session.user?.email,
+                    address: req.session.user?.address
+                }
             }
         );
 

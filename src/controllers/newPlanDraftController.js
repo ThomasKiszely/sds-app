@@ -340,7 +340,14 @@ async function finalizePlan(req, res) {
         discountPercent: draft.discounts?.discountPercent ?? 0,
         environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 4,
         paymentTerms: draft.operations?.paymentTerms,
-        terminationNotice: draft.operations?.terminationNotice
+        terminationNotice: draft.operations?.terminationNotice,
+        sender: {
+            fullName: req.session.user?.fullName,
+            position: req.session.user?.position,
+            phoneNumber: req.session.user?.phoneNumber,
+            email: req.session.user?.email,
+            address: req.session.user?.address
+        }
     });
 
     // 3. Slet draft – planen er nu låst

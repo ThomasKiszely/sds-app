@@ -35,6 +35,72 @@
 }
 
 
+/* Tilbud (kladde) – normalvisning */
+.wizard-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: var(--space-2);
+}
+
+.offer-summary {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.offer-summary .plan-total {
+    font-size: 1.4rem;
+    margin: 0 0 var(--space-2);
+}
+
+.offer-summary section {
+    margin: 0 auto;
+}
+
+.offer-summary h3 {
+    margin-top: var(--space-2);
+}
+
+.offer-summary h4 {
+    text-align: center;
+    color: var(--secondary-color);
+    margin: var(--space-2) 0 var(--space-1);
+}
+
+.offer-summary ul {
+    list-style: none;
+    max-width: 600px;
+    margin: 0 auto var(--space-2);
+    padding: 0;
+    text-align: left;
+}
+
+.offer-summary li {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--space-2);
+    margin-bottom: var(--space-1);
+}
+
+.offer-summary li > strong:first-child {
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: .3rem;
+}
+
+.offer-summary li > div {
+    margin-top: .3rem;
+    color: #555;
+    font-size: .9rem;
+}
+
+.offer-summary hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-2) 0;
+}
+
 .price-box {
     max-width: 400px;
     margin: 2rem auto;

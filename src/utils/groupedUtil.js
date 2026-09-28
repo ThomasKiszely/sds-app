@@ -1,4 +1,5 @@
 const { categoryTypes } = require("./categoryEnum");
+const { frequencies, frequencyLabels } = require("./frequencyEnum");
 const { calculateProgramCodeForRoom } = require("./programCodeUtil");
 
 function groupSdsTasksByRoom(tasks) {
@@ -32,6 +33,12 @@ function groupSdsTasksByRoom(tasks) {
         sdsTasks.sort((a, b) => a.category.localeCompare(b.category));
 
         rooms[roomName].programCode = calculateProgramCodeForRoom(sdsTasks);
+
+        // SDS-opgaver der ikke sker ugentligt indgår ikke i programkoden (kun days.length tælles),
+        // så de vises i stedet som bemærkninger på rummet (fx "Radiatorer – Halvårlig")
+        rooms[roomName].extraNotes = sdsTasks
+            .filter(t => t.frequency && t.frequency !== frequencies.weekly)
+            .map(t => `${t.name} – ${frequencyLabels[t.frequency] || t.frequency}`);
     }
 
     return rooms;
