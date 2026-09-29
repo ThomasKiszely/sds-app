@@ -1,8 +1,10 @@
 const contractService = require("../services/contractService");
 const cleaningPlanRepo = require("../data/cleaningPlanRepo");
 const customerService = require("../services/customerService");
-const { paymentTermLabels } = require("../utils/paymentTerms");
+const { parseAddress } = require("../utils/addressUtil");
 const { makePdfFilename } = require("../utils/pdfFilenameUtil");
+
+const DEFAULT_SENDER_ADDRESS = "Maglemølle 25, 4700 Næstved";
 
 // Generér kontrakt
 async function generateContract(req, res, next) {
@@ -95,7 +97,14 @@ async function viewContract(req, res, next) {
         const contract = await contractService.getContractById(req.params.id);
         if (!contract) return res.status(404).send("Kontrakt ikke fundet");
 
-        return res.render("contracts/view", { contract, paymentTermLabels });
+        const senderAddress = parseAddress(contract.snapshot?.sender?.address || DEFAULT_SENDER_ADDRESS);
+
+        return res.render("contracts/view", {
+            contract,
+            snapshot: contract.snapshot,
+            senderAddress,
+            user: req.session.user
+        });
     } catch (err) {
         next(err);
     }

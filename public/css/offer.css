@@ -121,3 +121,38 @@
     align-items: center;
     gap: var(--space-1);
 }
+
+/* Kontraktvisning (contracts/view) */
+.contract-parties {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-2) 0;
+}
+
+.contract-parties div div {
+    margin-bottom: 2px;
+}
+
+.contract-signature-block {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: var(--space-3) 0;
+}
+
+.contract-signature-block > div {
+    flex: 1 1 240px;
+}
+
+.contract-signature-date {
+    margin-bottom: var(--space-3);
+    color: #555;
+}
+
+.contract-signature-line {
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+    padding-top: 5px;
+}

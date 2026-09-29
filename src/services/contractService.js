@@ -1,17 +1,15 @@
 const contractRepo = require("../data/contractRepo");
 const cleaningPlanRepo = require("../data/cleaningPlanRepo");
-const customerService = require("../services/customerService");
 const offerService = require("../services/offerService");
 const pdfService = require("../services/pdfService");
 const { parseAddress } = require("../utils/addressUtil");
-const {paymentTerms, paymentTermLabels} = require("../utils/paymentTerms");
 
 // -----------------------------------------------------
 // GENERATE CONTRACT (snapshot + DB record)
 // -----------------------------------------------------
 async function generateContract({ planId, generatedBy = "system" }) {
 
-    const plan = await cleaningPlanRepo.findById(planId);
+    const plan = await cleaningPlanRepo.findByIdWithCustomer(planId);
     if (!plan) throw new Error("Plan findes ikke");
 
     if (!plan.offerId) {
@@ -23,30 +21,39 @@ async function generateContract({ planId, generatedBy = "system" }) {
     const offer = await offerService.getOfferById(offerId);
     if (!offer) throw new Error("Tilbud findes ikke");
 
-    const customer = await customerService.getCustomerById(plan.customerId);
+    const customer = plan.customerId;
     if (!customer) throw new Error("Kunde findes ikke");
 
+    const location = plan.locationId;
+
     const { street, zip, city } = parseAddress(customer.customerAddress);
+    const locationAddress = parseAddress(location?.address || customer.customerAddress);
 
     const snapshot = {
         plan: {
-            name: plan.name,
-            description: plan.description,
-            hourlyRate: plan.hourlyRate,
-            indexRegulationPercent: plan.indexRegulationPercent,
-            paymentTerms: offer.paymentTerms,
-            totalMonthlyPrice: plan.totalMonthlyPrice,
-            terminationNotice: offer.terminationNotice,
-            terminationNoticeLabel: offer.snapshot.plan.terminationNoticeLabel,
+            ...offer.snapshot.plan
         },
+        sender: offer.snapshot.sender || {},
         customer: {
             name: customer.customerName,
             email: customer.customerEmail,
+            phone: customer.phoneNumber,
+            cvr: customer.cvr,
             address: customer.customerAddress,
             street,
             zip,
-            city
+            city,
+            contactPerson: customer.contactPerson
         },
+        location: {
+            name: location?.name || null,
+            address: location?.address || customer.customerAddress,
+            street: locationAddress.street,
+            zip: locationAddress.zip,
+            city: locationAddress.city,
+            contactPerson: location?.contactPerson || null
+        },
+        consumables: offer.snapshot.consumables || [],
         offerId,
         acceptedAt: offer.acceptedAt || null,
         acceptedByName: offer.acceptedByName || null,
@@ -56,7 +63,7 @@ async function generateContract({ planId, generatedBy = "system" }) {
     await contractRepo.deactivateContractsForPlan(planId);
 
     const contract = await contractRepo.create({
-        customerId: plan.customerId,
+        customerId: customer._id,
         planId,
         offerId,
         generatedBy,
@@ -77,13 +84,7 @@ async function getContractPdf(contractId) {
     const contract = await contractRepo.findById(contractId);
     if (!contract) throw new Error("Kontrakt findes ikke");
 
-    // Brug snapshot direkte
-    const snapshot = contract.snapshot;
-
-    // Generér PDF i memory
-    const pdfBuffer = await pdfService.generateContractPdf(snapshot, contract.paymentTerms, paymentTermLabels);
-
-    return pdfBuffer;
+    return pdfService.generateContractPdf(contract);
 }
 
 // -----------------------------------------------------

@@ -1,5 +1,10 @@
 const Customer = require('../models/Customer');
 
+// Undgå at søgeord bliver fortolket som regex-syntaks (ReDoS / uventede matches)
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function createCustomer(data) {
     const newCustomer = new Customer(data);
     return await newCustomer.save();
@@ -34,7 +39,7 @@ async function listCustomers({ filter, search, sort, page, pageSize }) {
 
     // Intelligent søgning (ét felt)
     if (search) {
-        const regex = new RegExp(search, "i");
+        const regex = new RegExp(escapeRegExp(search), "i");
 
         const orConditions = [
             { customerName: regex },

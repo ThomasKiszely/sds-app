@@ -83,6 +83,22 @@ const truncate = (str, max = 500) => {
     return str.length > max ? str.substring(0, max) + '... [TRUNCATED]' : str;
 };
 
+// Query-parametre der kan indeholde følsomme værdier (fx tilbuds-acceptlinket)
+// og derfor ikke må havne i klartekst i logfiler på disk
+const SENSITIVE_QUERY_PARAMS = ['token'];
+
+const sanitizeUrl = (originalUrl) => {
+    const [pathPart, queryPart] = originalUrl.split('?');
+    if (!queryPart) return originalUrl;
+
+    const params = new URLSearchParams(queryPart);
+    for (const key of SENSITIVE_QUERY_PARAMS) {
+        if (params.has(key)) params.set(key, '[REDACTED]');
+    }
+
+    return `${pathPart}?${params.toString()}`;
+};
+
 const log = (req, res, next) => {
     if (req.originalUrl === '/favicon.ico') return next();
 
@@ -109,7 +125,7 @@ const log = (req, res, next) => {
 
         logger.emit(
             'log',
-            `${req.requestId} ${req.ip} ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms `
+            `${req.requestId} ${req.ip} ${req.method} ${sanitizeUrl(req.originalUrl)} ${res.statusCode} ${duration}ms `
             + `UA:${userAgent} REF:${referer} HX:${JSON.stringify(hx)} BODY:${body}`
         );
 

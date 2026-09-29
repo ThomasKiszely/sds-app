@@ -1,72 +1,195 @@
-<article class="standard contract-view">
+<article class="standard offer-document contract-document">
+
+    <!-- LOGO -->
+    <div class="offer-document-logo-row">
+        <img class="offer-document-logo" src="/images/sds-logo-red.png" alt="SDS logo">
+    </div>
 
     <h1>Rengøringskontrakt</h1>
 
+    <!-- STATUS -->
+    <% if (snapshot.acceptedAt) { %>
+        <p class="offer-status offer-status-accepted">
+            <strong>Kontrakt i kraft</strong><br>
+            Accepteret af: <%= snapshot.acceptedByName %> (<%= snapshot.acceptedByEmail %>)<br>
+            Dato: <%= snapshot.acceptedAt.toLocaleDateString("da-DK") %>
+        </p>
+    <% } else { %>
+        <p class="offer-status offer-status-draft">
+            <strong>Kontrakt genereret</strong><br>
+            Tilbuddet er endnu ikke accepteret, så kontrakten er ikke trådt i kraft.
+        </p>
+    <% } %>
+
+    <!-- PARTER -->
     <section>
         <h2>Kontraktens parter</h2>
 
-        <p><strong>Leverandør:</strong><br>
-            Service Division Sjælland<br>
-            Maglemølle 25<br>
-            4700 Næstved<br>
-            Tlf.: 72 41 10 01
-        </p>
+        <div class="contract-parties">
+            <div>
+                <strong>Leverandør:</strong><br>
+                Service Division Sjælland<br>
+                <%= senderAddress.street %><br>
+                <%= senderAddress.zip %> <%= senderAddress.city %><br>
+                Tlf. <%= snapshot.sender?.phoneNumber || "72 41 10 01" %>
+            </div>
 
-        <p><strong>Kunde:</strong><br>
-            <%= contract.snapshot.customer.name %><br>
-            <%= contract.snapshot.customer.address %><br>
-            <%= contract.snapshot.customer.zip %> <%= contract.snapshot.customer.city %><br>
-            <%= contract.snapshot.customer.email %>
-        </p>
+            <div>
+                <strong>Kunde:</strong><br>
+                <%= snapshot.customer.name %><br>
+                <%= snapshot.customer.street %><br>
+                <%= snapshot.customer.zip %> <%= snapshot.customer.city %><br>
+                <% if (snapshot.customer.contactPerson?.name) { %>
+                    Att. <%= snapshot.customer.contactPerson.name %><br>
+                <% } %>
+                <%= snapshot.customer.email %>
+            </div>
+        </div>
     </section>
 
+    <hr>
+
+    <!-- RENGØRINGSADRESSE -->
     <section>
         <h2>Rengøringsadresse</h2>
-        <p><%= contract.snapshot.customer.address %></p>
+        <p>
+            <% if (snapshot.location?.name) { %><%= snapshot.location.name %><br><% } %>
+            <%= snapshot.location?.street %><br>
+            <%= snapshot.location?.zip %> <%= snapshot.location?.city %>
+            <% if (snapshot.location?.contactPerson?.name) { %>
+                <br>Att. <%= snapshot.location.contactPerson.name %>
+            <% } %>
+        </p>
     </section>
 
+    <hr>
+
+    <!-- RENGØRINGEN -->
     <section>
         <h2>Rengøringen</h2>
         <p>Rengøring udføres jf. rengøringsvejledning.</p>
 
         <p>
-            <strong>Pris pr. uge:</strong>
-            <%= contract.snapshot.plan.totalMonthlyPrice %> kr. + miljøomkostninger
-        </p>
-    </section>
-
-    <section>
-        <h2>Særlige bestemmelser</h2>
-
-        <p>Alle priser tillægges gældende moms (25%).</p>
-
-        <p><strong>Betalingsbetingelser:</strong> <%= paymentTermLabels[contract.paymentTerms] %></p>
-
-        <p>
-            <strong>Ad hoc‑opgaver:</strong>
-            Faktureres med <%= contract.snapshot.plan.hourlyRate %> kr. pr. time ekskl. moms.
+            <strong>Pris pr. måned:</strong>
+            <span class="offer-price"><%= snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr.</span>
+            ekskl. moms.
         </p>
 
-        <p>Kontrakten kan opsiges med <%= contract.snapshot.plan.terminationNoticeLabel %> varsel.</p>
-    </section>
-
-
-    <section>
-        <h2>Aftalens ikrafttræden</h2>
-        <% if (contract.snapshot.acceptedAt) { %>
-            <p><strong>Accepteret af:</strong> <%= contract.snapshot.acceptedByName %> (<%= contract.snapshot.acceptedByEmail %>)</p>
-            <p><strong>Dato:</strong> <%= contract.snapshot.acceptedAt.toLocaleDateString("da-DK") %></p>
-        <% } else { %>
-            <p>Kontrakten er genereret, men tilbuddet er ikke accepteret.</p>
+        <% if (snapshot.plan.environmentalFeePercent > 0) { %>
+            <p>
+                Heri er indregnet et drifts- og miljøtillæg på <%= snapshot.plan.environmentalFeePercent %>%,
+                svarende til <%= snapshot.plan.environmentalFeeAmount.toFixed(2) %> kr.
+            </p>
         <% } %>
+    </section>
+
+    <!-- FORBRUGSVARER -->
+    <% if (snapshot.consumables && snapshot.consumables.length > 0) { %>
+        <hr>
+
+        <section>
+            <h2>Forbrugsvarer</h2>
+
+            <ul>
+                <% snapshot.consumables.forEach(c => { %>
+                    <li>
+                        <%= c.name %> &ndash; <%= c.amount %> <%= c.unitLabel %>
+                        &ndash; pris <%= Number(c.pricePerUnit || 0).toFixed(2) %> kr ekskl. moms
+                    </li>
+                <% }) %>
+            </ul>
+        </section>
+    <% } %>
+
+    <hr>
+
+    <!-- FORPLIGTELSER -->
+    <section>
+        <h2>Service Division Sjælland forpligter sig til følgende</h2>
+        <ul>
+            <li>Rengøring af aftalte områder på aftalte dage.</li>
+            <li>Rengøringspersonale har tavshedspligt vedrørende fortrolige oplysninger, de vil kunne få kendskab til.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Kunden forpligter sig til</h2>
+        <ul>
+            <li>At Service Division Sjællands personale har adgang til alle nødvendige rum.</li>
+            <li>At stille rengøringsrum til rådighed.</li>
+        </ul>
     </section>
 
     <hr>
 
-    <p>
+    <!-- SÆRLIGE BESTEMMELSER -->
+    <section>
+        <h2>Særlige bestemmelser</h2>
+
+        <ul>
+            <li>Alle ovennævnte priser tillægges den til enhver tid gældende momssats, der pt. udgør 25%.</li>
+            <li>Betalingsbetingelser: <%= snapshot.plan.paymentTermsLabel %>.</li>
+            <li>
+                Der udføres ikke rengøring på danske helligdage. Ønsker kunden en erstatningsrengøring for en
+                planlagt rengøring, der bortfalder som følge af en helligdag, skal kunden selv kontakte
+                leverandøren med henblik på at aftale en alternativ dato.
+            </li>
+            <li>Ad hoc-opgaver faktureres pr. time <%= Number(snapshot.plan.hourlyRate || 0).toFixed(2) %> kr. ekskl. moms.</li>
+            <li>
+                Prisen reguleres én gang årligt efter nettoprisindekset, første gang
+                <%= new Date(snapshot.acceptedAt || contract.generatedAt).getFullYear() + 1 %>.
+            </li>
+            <li>Kontrakten kan opsiges af begge parter med <%= snapshot.plan.terminationNoticeLabel %> varsel.</li>
+            <li>
+                Denne aftale træder i kraft
+                <% if (snapshot.acceptedAt) { %>
+                    den <%= snapshot.acceptedAt.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) %>.
+                <% } else { %>
+                    ved kundens accept af tilbuddet.
+                <% } %>
+            </li>
+        </ul>
+    </section>
+
+    <hr>
+
+    <!-- UNDERSKRIFT -->
+    <div class="contract-signature-block">
+        <div>
+            <div class="contract-signature-date">......................... den ....................</div>
+            <div class="contract-signature-line"></div>
+            Kunden (underskrift)
+        </div>
+
+        <div>
+            <div class="contract-signature-date">......................... den ....................</div>
+            <div class="contract-signature-line"></div>
+            Leverandør (underskrift)
+        </div>
+    </div>
+
+    <!-- MED VENLIG HILSEN -->
+    <div class="offer-signoff">
+        <p>Med venlig hilsen</p>
+
+        <p>
+            <strong><%= snapshot.sender?.fullName || "SDS Rengøring" %></strong>
+            <% if (snapshot.sender?.position) { %><%= snapshot.sender.position %><br><% } %>
+            SDS Rengøring<br>
+            <%= senderAddress.street %><br>
+            <%= senderAddress.zip %> <%= senderAddress.city %><br>
+            Tlf. <%= snapshot.sender?.phoneNumber || "72 41 10 01" %>
+            <% if (snapshot.sender?.email) { %><br><%= snapshot.sender.email %><% } %>
+        </p>
+    </div>
+
+    <hr>
+
+    <!-- DOWNLOAD -->
+    <div class="offer-downloads">
         <a href="/contracts/<%= contract._id %>/pdf" class="button-link" target="_blank" hx-boost="false">
             Download PDF
         </a>
-    </p>
+    </div>
 
 </article>

@@ -79,29 +79,27 @@ async function generateOfferPdf(offer) {
     return pdfBuffer;
 }
 
-async function generateContractPdf(snapshot, paymentTerms, paymentTermLabels) {
+async function generateContractPdf(contract) {
     const templatePath = path.join(__dirname, "../views/contracts/pdf/contractPdf.ejs");
 
-    const html = await ejs.renderFile(templatePath, { snapshot, paymentTerms, paymentTermLabels });
+    const snapshot = contract.snapshot;
+    const sender = snapshot?.sender;
+    const senderAddress = parseAddress(sender?.address || DEFAULT_SENDER_ADDRESS);
+
+    const html = await ejs.renderFile(templatePath, { contract, snapshot, senderAddress });
 
     const browser = await puppeteer.launch({
         headless: "new",
-        args: ["--no-sandbox"]
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
 
-    const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: {
-            top: "20mm",
-            bottom: "20mm",
-            left: "15mm",
-            right: "15mm"
-        }
-    });
+    const pdfBuffer = await page.pdf(buildBrandedPdfOptions({
+        address: sender?.address,
+        phoneNumber: sender?.phoneNumber
+    }));
 
     await browser.close();
     return pdfBuffer;

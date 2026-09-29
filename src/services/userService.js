@@ -191,13 +191,13 @@ async function updateUser(id, { fullName, role, position, phoneNumber, email, ad
     if (role) {
 
         // Regel 1: Admin må ikke nedgradere sig selv
-        if (id === adminId && role !== userRoles.ADMIN) {
+        if (id === adminId && role !== userRoles.admin) {
             throw userError("Du kan ikke nedgradere dig selv fra admin", 400);
         }
 
         // Regel 2: Kun admins må gøre andre til admin
         // (dette er ekstra sikkerhed)
-        if (role === userRoles.ADMIN && user.role !== userRoles.ADMIN) {
+        if (role === userRoles.admin && user.role !== userRoles.admin) {
             // admin ændrer en user til admin → OK
         }
     }
