@@ -64,8 +64,8 @@ async function createCleaningTask(planId, data) {
     const customPrice =
         data.customPrice != null
             ? Number(data.customPrice)
-            : template.pricePerUnit != null
-                ? Number(template.pricePerUnit)
+            : template.customPrice != null
+                ? Number(template.customPrice)
                 : null;
 
     const unit =

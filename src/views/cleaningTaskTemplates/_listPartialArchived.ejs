@@ -7,6 +7,7 @@
         <th>Tid pr. enhed</th>
         <th>Frekvens</th>
         <th>Enhed</th>
+        <th>Pris</th>
         <th>Handlinger</th>
     </tr>
     </thead>
@@ -17,9 +18,10 @@
             <td data-label="Navn"><%= t.name %></td>
             <td data-label="Kategori"><%= categoryLabels[t.category] %></td>
             <td data-label="Beskrivelse"><%= t.description %></td>
-            <td data-label="Tid pr. enhed"><%= t.durationPerUnit %> min</td>
-            <td data-label="Frekvens"><%= frequencyLabels[t.frequency] %></td>
+            <td data-label="Tid pr. enhed"><%= t.isConsumable ? "–" : t.durationPerUnit + " min" %></td>
+            <td data-label="Frekvens"><%= t.isConsumable ? "–" : frequencyLabels[t.frequency] %></td>
             <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
+            <td data-label="Pris"><%= t.customPrice != null ? Number(t.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr" : "–" %></td>
 
             <td>
                 <button

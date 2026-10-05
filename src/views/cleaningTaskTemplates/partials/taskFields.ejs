@@ -3,7 +3,7 @@
     <!-- Pris -->
     <label>Pris</label>
     <input type="number" step="0.01" name="pricePerUnit"
-           value="<%= template.pricePerUnit %>" required>
+           value="<%= template.customPrice ?? template.pricePerUnit ?? "" %>" required>
 
     <!-- Hidden defaults -->
     <input type="hidden" name="durationPerUnit" value="0">

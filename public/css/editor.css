@@ -29,7 +29,7 @@
     padding: 0.65rem 1.25rem;
     cursor: pointer;
     background: #f8fafc;
-    border-left: 5px solid #A02121;
+    border-left: 5px solid var(--primary-color);
     transition: background 0.2s ease;
     user-select: none;
 }
@@ -473,7 +473,7 @@
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-    border-left: 6px solid #A02121;
+    border-left: 6px solid var(--primary-color);
 }
 
 .editor-top-left h1 {
@@ -554,7 +554,7 @@
 }
 
 .btn-cta {
-    background: #A02121 !important;
+    background: var(--primary-color) !important;
     color: #ffffff !important;
     font-weight: bold;
     padding: 0.6rem 1.2rem !important;
@@ -565,7 +565,7 @@
 }
 
 .btn-cta:hover {
-    background: #d40000 !important;
+    background: var(--secondary-color) !important;
 }
 
 /* --------------------------------------------------
@@ -575,7 +575,7 @@
     margin-bottom: 1.5rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-top: 4px solid #A02121;
+    border-top: 4px solid var(--primary-color);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
@@ -941,8 +941,8 @@
 
 .draggable-card:hover {
     background: #ffffff;
-    border-color: #A02121;
-    box-shadow: 0 3px 8px rgba(160, 33, 33, 0.12);
+    border-color: var(--primary-color);
+    box-shadow: 0 3px 8px color-mix(in srgb, var(--primary-color) 12%, transparent);
     transform: translateY(-2px);
 }
 
@@ -1005,9 +1005,9 @@
 }
 
 .btn-quick-add:hover {
-    background: #A02121;
+    background: var(--primary-color);
     color: #ffffff;
-    border-color: #A02121;
+    border-color: var(--primary-color);
     transform: scale(1.1);
 }
 
@@ -1058,9 +1058,9 @@
 }
 
 .filter-pill.active {
-    background: #A02121;
+    background: var(--primary-color);
     color: #ffffff;
-    border-color: #A02121;
+    border-color: var(--primary-color);
 }
 
 /* --------------------------------------------------
@@ -1115,8 +1115,8 @@
 
 .draggable-day-chip:hover {
     background: #ffffff;
-    border-color: #A02121;
-    box-shadow: 0 3px 8px rgba(160, 33, 33, 0.12);
+    border-color: var(--primary-color);
+    box-shadow: 0 3px 8px color-mix(in srgb, var(--primary-color) 12%, transparent);
     transform: translateY(-2px);
 }
 
@@ -1128,7 +1128,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #A02121;
+    background: var(--primary-color);
     display: inline-block;
     margin-right: 0.4rem;
 }
@@ -1328,10 +1328,10 @@
 }
 
 .inline-edit-input:focus {
-    border-color: #A02121;
+    border-color: var(--primary-color);
     background: #ffffff;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(160, 33, 33, 0.15);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 15%, transparent);
 }
 
 .room-size-control {
@@ -1449,8 +1449,8 @@
 
 .room-day-pill:hover,
 .mini-day-pill:hover {
-    border-color: #A02121;
-    color: #A02121;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
     background: #fff5f5;
 }
 
@@ -1716,7 +1716,7 @@
 .room-days-dropzone.drag-over,
 .task-days-mini-zone.drag-over,
 .plan-rooms-container.drag-over {
-    outline: 2px dashed #A02121 !important;
+    outline: 2px dashed var(--primary-color) !important;
     outline-offset: 2px;
     background-color: #fff5f5 !important;
     border-radius: 8px;
@@ -1749,11 +1749,17 @@
     --ed-surface: #ffffff;
     --ed-surface-soft: #f7f7f9;
     --ed-surface-softer: #fbfbfc;
-    --ed-brand: #A02121;
-    --ed-brand-dark: #7d1818;
-    --ed-brand-light: #c53030;
-    --ed-brand-soft: rgba(160, 33, 33, .07);
-    --ed-brand-ring: rgba(160, 33, 33, .18);
+    --ed-brand: var(--primary-color);
+    /* Rød (original) */
+    /* --ed-brand-dark: #7d1818; */
+    /* --ed-brand-light: #c53030; */
+    /* --ed-brand-soft: rgba(160, 33, 33, .07); */
+    /* --ed-brand-ring: rgba(160, 33, 33, .18); */
+    /* Afledt af --primary-color i base.css */
+    --ed-brand-dark: color-mix(in srgb, var(--primary-color) 75%, black);
+    --ed-brand-light: color-mix(in srgb, var(--primary-color) 85%, white);
+    --ed-brand-soft: color-mix(in srgb, var(--primary-color) 7%, transparent);
+    --ed-brand-ring: color-mix(in srgb, var(--primary-color) 18%, transparent);
     --ed-r-sm: 8px;
     --ed-r-md: 12px;
     --ed-r-lg: 16px;
@@ -1866,7 +1872,7 @@
 .btn-create-modal {
     background: var(--ed-brand-soft);
     color: var(--ed-brand);
-    border-color: rgba(160, 33, 33, .22);
+    border-color: color-mix(in srgb, var(--primary-color) 22%, transparent);
     border-radius: var(--ed-r-pill);
     box-shadow: none;
 }
@@ -1997,7 +2003,7 @@
 
 .panel-header-icon {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .18);
+    border-color: color-mix(in srgb, var(--primary-color) 18%, transparent);
     border-radius: 10px;
 }
 
@@ -2041,7 +2047,7 @@
 
 #toggleAdvancedBtn.active {
     background-color: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .25);
+    border-color: color-mix(in srgb, var(--primary-color) 25%, transparent);
     color: var(--ed-brand);
 }
 
@@ -2105,7 +2111,7 @@
 .btn-toggle-sidebar:hover,
 .btn-toggle-room:hover {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .3);
+    border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
     color: var(--ed-brand);
     transform: none;
 }
@@ -2123,7 +2129,7 @@
 }
 
 .sidebar-section:not(.is-minimized) {
-    border-color: rgba(160, 33, 33, .3);
+    border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
     box-shadow: var(--ed-sh-md);
 }
 
@@ -2141,7 +2147,7 @@
 .draggable-day-chip:hover {
     background: #ffffff;
     border-color: var(--ed-brand);
-    box-shadow: 0 6px 16px rgba(160, 33, 33, .14);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--primary-color) 14%, transparent);
 }
 
 .card-title,
@@ -2173,7 +2179,7 @@
 .btn-quick-add {
     background: #ffffff;
     color: var(--ed-brand);
-    border-color: rgba(160, 33, 33, .28);
+    border-color: color-mix(in srgb, var(--primary-color) 28%, transparent);
     border-radius: var(--ed-r-pill);
     font-size: 1rem;
     line-height: 1;
@@ -2184,7 +2190,7 @@
     border-color: var(--ed-brand);
     color: #ffffff;
     transform: scale(1.08);
-    box-shadow: 0 4px 12px rgba(160, 33, 33, .25);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
 .custom-room-form input {
@@ -2212,13 +2218,13 @@
 
 .filter-pill:hover {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .25);
+    border-color: color-mix(in srgb, var(--primary-color) 25%, transparent);
     color: var(--ed-brand);
     transform: none;
 }
 
 .filter-pill.active {
-    box-shadow: 0 2px 8px rgba(160, 33, 33, .22);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--primary-color) 22%, transparent);
     transform: none;
 }
 
@@ -2230,7 +2236,7 @@
 }
 
 .plan-room-card:not(.is-minimized) {
-    border-color: rgba(160, 33, 33, .28);
+    border-color: color-mix(in srgb, var(--primary-color) 28%, transparent);
     box-shadow: var(--ed-sh-md);
 }
 
@@ -2242,7 +2248,7 @@
 
 .plan-room-card:not(.is-minimized) .room-card-header {
     background: linear-gradient(180deg, #fffafa 0%, #fdf2f2 100%);
-    border-bottom-color: rgba(160, 33, 33, .16);
+    border-bottom-color: color-mix(in srgb, var(--primary-color) 16%, transparent);
 }
 
 .plan-room-card.is-minimized .room-card-header:hover {
@@ -2297,7 +2303,7 @@
 .room-total-price .price-badge {
     background: var(--ed-brand-soft);
     color: var(--ed-brand);
-    border-color: rgba(160, 33, 33, .22);
+    border-color: color-mix(in srgb, var(--primary-color) 22%, transparent);
     border-radius: var(--ed-r-pill);
     padding: 0.3rem 0.8rem;
 }
@@ -2350,7 +2356,7 @@
     background: var(--ed-brand);
     border-color: var(--ed-brand-dark);
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(160, 33, 33, .22);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 
 .room-day-pill.active:hover,
@@ -2371,7 +2377,7 @@
 
 .btn-shortcut:hover {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .28);
+    border-color: color-mix(in srgb, var(--primary-color) 28%, transparent);
     color: var(--ed-brand);
     transform: none;
 }
@@ -2387,7 +2393,7 @@
 
 .plan-task-row:hover {
     background: #ffffff;
-    border-color: rgba(160, 33, 33, .28);
+    border-color: color-mix(in srgb, var(--primary-color) 28%, transparent);
     box-shadow: 0 4px 12px rgba(16, 16, 20, .07);
 }
 
@@ -2504,7 +2510,7 @@
 .task-days-mini-zone.drag-over,
 .plan-rooms-container.drag-over {
     outline-color: var(--ed-brand) !important;
-    background-color: rgba(160, 33, 33, .05) !important;
+    background-color: color-mix(in srgb, var(--primary-color) 5%, transparent) !important;
     border-radius: var(--ed-r-sm);
 }
 
@@ -2564,13 +2570,13 @@
 .editor-workspace .btn-secondary:hover,
 .editor-workspace .button-secondary:hover {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .3);
+    border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
     color: var(--ed-brand);
 }
 
 .editor-workspace #toggleAdvancedBtn.active {
     background: var(--ed-brand-soft);
-    border-color: rgba(160, 33, 33, .3);
+    border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
     color: var(--ed-brand);
 }
 

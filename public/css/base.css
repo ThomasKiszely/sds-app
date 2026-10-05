@@ -11,8 +11,12 @@
    THEME VARIABLES
 -------------------------------------------------- */
 :root {
-    --primary-color: #A02121;
-    --secondary-color: #d40000;
+    /* Rød (original) */
+    /* --primary-color: #A02121; */
+    /* --secondary-color: #d40000; */
+    /* Lyseblå */
+    --primary-color: #4A90C2;
+    --secondary-color: #6BB3E0;
     --accent-color: #000000;
     --background-color: #ffffff;
     --text-color: #000000;

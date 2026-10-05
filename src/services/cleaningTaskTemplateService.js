@@ -18,7 +18,7 @@ async function createTemplate(data) {
 
         // Forbrugsvarer
         isConsumable,
-        pricePerUnit: isConsumable ? Number(data.pricePerUnit) : null,
+        customPrice: isConsumable ? Number(data.pricePerUnit) : null,
 
         isActive: true
     });
@@ -65,7 +65,7 @@ async function updateTemplate(id, data) {
 
         // Forbrugsvarer
         isConsumable,
-        pricePerUnit: isConsumable
+        customPrice: isConsumable
             ? Number(data.pricePerUnit)
             : null,
 
