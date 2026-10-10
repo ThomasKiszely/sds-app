@@ -18,12 +18,15 @@ async function pdfOffer(req, res, next) {
             offer = await offerService.getOfferById(offerId);
         }
 
-        if (!offer.signatureToken || !offer.signatureTokenExpiresAt) {
-            return res.status(400).send("Tilbuddet har ikke et gyldigt acceptlink");
-        }
+        // Accepterede tilbud har ikke længere et token – PDF'en viser i stedet accept-info
+        if (offer.status !== "accepted") {
+            if (!offer.signatureToken || !offer.signatureTokenExpiresAt) {
+                return res.status(400).send("Tilbuddet har ikke et gyldigt acceptlink");
+            }
 
-        if (offer.signatureTokenExpiresAt < Date.now()) {
-            return res.status(410).send("Acceptlinket er udløbet");
+            if (offer.signatureTokenExpiresAt < Date.now()) {
+                return res.status(410).send("Acceptlinket er udløbet");
+            }
         }
 
         const pdfBuffer = await pdfService.generateOfferPdf(offer);
@@ -70,18 +73,38 @@ async function viewOffer(req, res, next) {
 }
 
 
-async function sendOffer(req, res, next) {
+// Opretter et tilbud ud fra en eksisterende plan (fx en plan gemt som kladde)
+async function createOfferForPlan(req, res, next) {
     try {
-        const offer = await offerService.sendOffer(req.params.id);
+        const plan = await cleaningPlanService.findCleaningPlanById(req.params.planId);
 
-        return res.render("offers/sent", {
-            offer,
-            user: req.session.user
+        const user = req.session.user;
+        const offer = await offerService.createOffer(plan._id, {
+            discountPercent: plan.discountPercent ?? 0,
+            environmentalFeePercent: plan.environmentalFeePercent,
+            paymentTerms: plan.paymentTerms,
+            terminationNotice: plan.terminationNotice,
+            sender: {
+                fullName: user?.fullName,
+                position: user?.position,
+                phoneNumber: user?.phoneNumber,
+                email: user?.email,
+                address: user?.address
+            }
         });
+
+        res.setHeader("HX-Location", JSON.stringify({
+            path: `/offers/${offer._id}/view`,
+            target: "#content",
+            swap: "innerHTML"
+        }));
+
+        return res.status(200).end();
     } catch (err) {
         next(err);
     }
 }
+
 
 async function acceptView(req, res, next) {
     try {
@@ -157,7 +180,7 @@ async function acceptOffer(req, res, next) {
 
 module.exports = {
     viewOffer,
-    sendOffer,
+    createOfferForPlan,
     acceptView,
     acceptOffer,
     pdfOffer

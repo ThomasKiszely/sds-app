@@ -13,7 +13,6 @@ const { ipKeyGenerator } = require("express-rate-limit");
 const userRouter = require('./routes/userRoutes');
 const customerRouter = require('./routes/customerRoutes');
 const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
-const cleaningTaskRouter = require('./routes/cleaningTaskRoutes');
 const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const adminRouter = require('./routes/adminRoutes');
@@ -133,7 +132,6 @@ app.use('/admin', requireAdmin, adminRouter);
 
 app.use('/cleaningTaskTemplates', requireLogin, cleaningTaskTemplateRouter);
 app.use('/cleaningPlans', requireLogin, cleaningPlanRouter);
-app.use('/cleaningTasks', requireLogin, cleaningTaskRouter);
 app.use('/customers', requireLogin, customerRouter);
 app.use('/locations', requireLogin, locationRouter);
 app.use('/contracts', requireLogin, contractRouter);

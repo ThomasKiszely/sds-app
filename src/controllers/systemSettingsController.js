@@ -2,7 +2,11 @@ const systemSettingsService = require("../services/systemSettingsService");
 
 async function showSettings(req, res) {
     const settings = await systemSettingsService.getSettings();
-    res.render("admin/settings", { settings });
+    res.render("admin/settings", {
+        settings,
+        inflationPercent: settings.inflationRate == null ? "" : Math.round(settings.inflationRate * 10000) / 100,
+        maxInflationPercent: systemSettingsService.MAX_INFLATION_PERCENT
+    });
 }
 
 async function updateInflation(req, res) {

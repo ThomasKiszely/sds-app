@@ -82,7 +82,7 @@
                             </button>
                         <% } else { %>
                             <button class="btn btn-fixed"
-                                    hx-get="/offers/new?planId=<%= plan._id %>"
+                                    hx-post="/offers/plans/<%= plan._id %>"
                                     hx-target="#content">
                                 Opret tilbud
                             </button>

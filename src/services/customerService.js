@@ -5,6 +5,7 @@ const { validateCustomerNumber } = require("../utils/validateCustomerNumber");
 const { userError, ensureExists } = require("../utils/userError");
 
 const locationRepo = require("../data/locationRepo");
+const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../utils/addressUtil");
 
 async function createCustomer(data) {
     // Trim
@@ -17,6 +18,13 @@ async function createCustomer(data) {
     data.contactPerson.name = data.contactPerson.name.trim();
     data.contactPerson.email = data.contactPerson.email.trim();
     data.contactPerson.phone = data.contactPerson.phone.trim();
+
+    // Adresser (kundeadressen bruges i tilbud, kontrakt og PDF)
+    data.customerAddress = normalizeAddress(data.customerAddress);
+    data.billingAddress = normalizeAddress(data.billingAddress);
+    if (!hasZipAndCity(data.customerAddress)) {
+        throw userError(ADDRESS_FORMAT_MESSAGE, 400);
+    }
 
     // Kundenummer
     if (!validateCustomerNumber(data.customerNumber)) {
@@ -57,6 +65,14 @@ async function updateCustomer(id, data) {
     if (data.customerName) data.customerName = data.customerName.trim();
     if (data.customerEmail) data.customerEmail = data.customerEmail.trim();
     if (data.phoneNumber) data.phoneNumber = data.phoneNumber.trim();
+
+    if (data.customerAddress !== undefined) {
+        data.customerAddress = normalizeAddress(data.customerAddress);
+        if (!hasZipAndCity(data.customerAddress)) {
+            throw userError(ADDRESS_FORMAT_MESSAGE, 400);
+        }
+    }
+    if (data.billingAddress) data.billingAddress = normalizeAddress(data.billingAddress);
 
     const updated = await customerRepo.updateCustomer(id, data);
     return updated.toObject();

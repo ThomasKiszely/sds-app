@@ -1,4 +1,5 @@
 const { userRoles } = require("../utils/userRoles");
+const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../utils/addressUtil");
 
 function validateUserUpdate(req, res, next) {
     const { fullName, role, position, phoneNumber, email, address } = req.body;
@@ -64,6 +65,10 @@ function validateUserUpdate(req, res, next) {
         }
         if (forbidden.test(address)) {
             return next(new Error("Adresse indeholder ugyldige tegn"));
+        }
+        req.body.address = normalizeAddress(address);
+        if (!hasZipAndCity(req.body.address)) {
+            return next(new Error(ADDRESS_FORMAT_MESSAGE));
         }
     }
 

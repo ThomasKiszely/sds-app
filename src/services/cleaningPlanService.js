@@ -3,6 +3,7 @@ const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const systemSettingsRepo = require('../data/systemSettingsRepo');
 const { ensureExists, userError } = require("../utils/userError");
 const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
+const { assertHourlyRate, assertEnvironmentalFee, assertInflationRate } = require("../utils/settingsGuard");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { frequencies } = require("../utils/frequencyEnum");
 const { units } = require("../utils/unitEnum");
@@ -50,6 +51,23 @@ function extractInstructionDescriptions(tasks) {
     };
 }
 
+// Opgaver der ikke indgår i programkode-tabellen (SDS-opgaver i et lokale) og ikke er forbrugsvarer.
+// Faste = har månedspris. Pris pr. gang = alt andet (ad hoc, efter aftale, vinduer, hovedrengøring osv.),
+// uanset om prisen kommer fra customPrice eller beregnes ud fra tid. Intet må udelades.
+function categorizeOtherTasks(tasks) {
+    const sdsCategories = [categoryTypes.daily, categoryTypes.floor, categoryTypes.inventory];
+
+    const other = tasks.filter(t =>
+        t.category !== categoryTypes.consumables &&
+        !(sdsCategories.includes(t.category) && t.roomName && t.roomName.trim() !== "")
+    );
+
+    return {
+        monthlyOtherTasks: other.filter(t => t.monthlyPrice > 0),
+        perTimeTasks: other.filter(t => !(t.monthlyPrice > 0))
+    };
+}
+
 async function recalculatePlanTotal(planId) {
     const plan = await cleaningPlanRepo.findById(planId);
     ensureExists(plan, "Rengøringsplan blev ikke fundet.");
@@ -69,7 +87,7 @@ async function recalculatePlanTotal(planId) {
     const totals = calculateTotals({
         tasks: enrichedTasks,
         discountPercent: plan.discountPercent || 0,
-        environmentalFeePercent: plan.environmentalFeePercent ?? systemSettings.environmentalFee
+        environmentalFeePercent: assertEnvironmentalFee(plan.environmentalFeePercent ?? systemSettings.environmentalFee)
     });
 
     await cleaningPlanRepo.updateById(planId, {
@@ -91,19 +109,20 @@ async function createCleaningPlan(data) {
         name: data.name?.trim() || "Rengøringsplan",
         description: data.description?.trim() || "",
         roomNotes: data.roomNotes || [],
-            hourlyRate: data.hourlyRate
-                ? Number(data.hourlyRate)
-                : settings.hourlyRate,
+            hourlyRate: assertHourlyRate(data.hourlyRate || settings.hourlyRate),
         isActive: false,
 
         totalMonthlyPrice: 0,
-        discountPercent: 0,
-        environmentalFeePercent: data.environmentalFeePercent ?? settings.environmentalFee,
+        discountPercent: Number(data.discountPercent) || 0,
+        environmentalFeePercent: assertEnvironmentalFee(data.environmentalFeePercent ?? settings.environmentalFee),
         environmentalFeeAmount: 0,
         subtotalBeforeDiscount: 0,
         discountAmount: 0,
 
-        indexRegulationPercent: settings.inflationRate * 100,
+        indexRegulationPercent: assertInflationRate(settings.inflationRate) * 100,
+
+        paymentTerms: data.paymentTerms,
+        terminationNotice: data.terminationNotice,
     });
 
     return plan;
@@ -312,6 +331,7 @@ module.exports = {
     getPlansForLocation,
     getTasksForPlan,
     extractInstructionDescriptions,
+    categorizeOtherTasks,
     describeOperatingDays,
     buildRoomTimeBreakdown,
     buildDailyTimeTotals,

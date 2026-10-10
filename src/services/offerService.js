@@ -7,6 +7,7 @@ const { categoryLabels } = require("../utils/categoryEnum");
 const { unitsLabels } = require("../utils/unitEnum");
 const { frequencyLabels } = require("../utils/frequencyEnum");
 const systemSettingsService = require("../services/systemSettingsService");
+const { assertEnvironmentalFee } = require("../utils/settingsGuard");
 
 
 const crypto = require("crypto");
@@ -15,7 +16,7 @@ require('dotenv').config();
 const { userError } = require("../utils/userError");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
-const { terminationNotice: terminationNoticeEnum, terminationNoticeLabels } = require("../utils/terminationNotice");
+const { terminationNoticeLabels } = require("../utils/terminationNotice");
 const { paymentTermLabels } = require("../utils/paymentTerms");
 
 async function getOfferById(id) {
@@ -30,7 +31,17 @@ async function createOffer(
     if (!plan) throw userError("Rengøringsplanen findes ikke");
 
     const systemSettings = await systemSettingsService.getSettings();
-    const envFee = environmentalFeePercent ?? systemSettings.environmentalFee;
+    const envFee = assertEnvironmentalFee(environmentalFeePercent ?? systemSettings.environmentalFee);
+
+    // Betalingsbetingelser og opsigelsesvarsel skal vælges eksplicit – ingen stille standard
+    const resolvedPaymentTerms = paymentTerms || plan.paymentTerms;
+    if (!resolvedPaymentTerms) {
+        throw userError("Betalingsbetingelser mangler. Vælg dem under 'Avanceret' på planen, før tilbuddet oprettes.");
+    }
+    const resolvedTerminationNotice = terminationNotice || plan.terminationNotice;
+    if (!resolvedTerminationNotice) {
+        throw userError("Opsigelsesvarsel mangler. Vælg det under 'Avanceret' på planen, før tilbuddet oprettes.");
+    }
 
     const rawTasks = await cleaningTaskRepo.findByPlanId(planId);
     if (!rawTasks || rawTasks.length === 0) {
@@ -89,10 +100,10 @@ async function createOffer(
             environmentalFeeAmount: totals.environmentalFeeAmount,
             indexRegulationPercent: plan.indexRegulationPercent,
             totalMonthlyPrice: totals.total,
-            paymentTerms: paymentTerms || plan.paymentTerms,
-            paymentTermsLabel: paymentTermLabels[paymentTerms || plan.paymentTerms],
-            terminationNotice: terminationNotice || terminationNoticeEnum.month3,
-            terminationNoticeLabel: terminationNoticeLabels[terminationNotice || terminationNoticeEnum.month3],
+            paymentTerms: resolvedPaymentTerms,
+            paymentTermsLabel: paymentTermLabels[resolvedPaymentTerms],
+            terminationNotice: resolvedTerminationNotice,
+            terminationNoticeLabel: terminationNoticeLabels[resolvedTerminationNotice],
             createdAt: plan.createdAt,
             updatedAt: plan.updatedAt
         },
@@ -108,9 +119,8 @@ async function createOffer(
         customer: {
             name: customer.customerName,
             email: customer.customerEmail,
-            phone: customer.customerPhone,
-            cvr: customer.customerCvr,
-            pNumber: customer.customerPNumber,
+            phone: customer.phoneNumber,
+            cvr: customer.cvr,
             address: customer.customerAddress,
             street,
             zip,
@@ -163,8 +173,8 @@ async function createOffer(
         status: "sent",
         signatureToken,
         signatureTokenExpiresAt,
-        paymentTerms: paymentTerms || plan.paymentTerms,
-        terminationNotice: terminationNotice || terminationNoticeEnum.month3,
+        paymentTerms: resolvedPaymentTerms,
+        terminationNotice: resolvedTerminationNotice,
     });
 
     await cleaningPlanRepo.updateById(planId, { offerId: offer._id });
@@ -202,7 +212,9 @@ async function acceptOffer(offerId, { name, email }) {
 
     await offerRepo.update(offerId, offer);
 
+    // Planen er inaktiv indtil kunden har accepteret tilbuddet
     await cleaningPlanRepo.updateById(offer.planId, {
+        isActive: true,
         acceptedAt: offer.acceptedAt,
         acceptedByName: name,
         acceptedByEmail: email

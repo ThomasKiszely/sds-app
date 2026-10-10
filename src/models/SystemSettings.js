@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const systemSettingsSchema = new mongoose.Schema({
-    inflationRate: { type: Number, default: 0.025 }, // 2.5%
-    environmentalFee: { type: Number, default: 1.0 }, // 1%
-    hourlyRate: { type: Number, default: 375 }, // Default hourly rate
+    inflationRate: { type: Number }, // Ingen standard: skal sættes af admin
+    environmentalFee: { type: Number }, // Ingen standard: skal sættes af admin
+    hourlyRate: { type: Number }, // Ingen standard: skal sættes af admin, ellers fejler oprettelse af planer/tilbud
     lastUpdated: { type: Date, default: Date.now }
 });
 

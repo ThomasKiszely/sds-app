@@ -15,6 +15,17 @@ const { units, unitsLabels } = require("../utils/unitEnum");
 const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
 const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
 const systemSettingsService = require("../services/systemSettingsService");
+const { assertEnvironmentalFee } = require("../utils/settingsGuard");
+
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
 
 // HTMX: hent lokationer for valgt kunde
@@ -116,7 +127,7 @@ async function selectCustomer(req, res) {
     req.session.planDraft.customerId = customerId;
 
     return res.send(`
-        <option value="${customer._id}" selected>${customer.customerName}</option>
+        <option value="${customer._id}" selected>${escapeHtml(customer.customerName)}</option>
     `);
 }
 
@@ -140,7 +151,7 @@ async function step4_summary(req, res) {
 
     draft.environment = draft.environment || {};
     if (draft.environment.environmentalFeePercent == null) {
-        draft.environment.environmentalFeePercent = systemSettings.environmentalFee;
+        draft.environment.environmentalFeePercent = assertEnvironmentalFee(systemSettings.environmentalFee);
     }
 
     let customer = null;
@@ -338,7 +349,7 @@ async function finalizePlan(req, res) {
     // 2. Opret offer baseret på cleaningPlan
     const offer = await offerService.createOffer(plan._id, {
         discountPercent: draft.discounts?.discountPercent ?? 0,
-        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 4,
+        environmentalFeePercent: draft.environment?.environmentalFeePercent,
         paymentTerms: draft.operations?.paymentTerms,
         terminationNotice: draft.operations?.terminationNotice,
         sender: {

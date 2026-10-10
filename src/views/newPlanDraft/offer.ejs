@@ -109,14 +109,9 @@
                     <% perTimeTasks.forEach(t => { %>
 
                         <%
-                            const price =
-                                    t.totalPrice != null
-                                            ? Number(t.totalPrice)
-                                            : t.pricePerTime != null && t.pricePerTime > 0
-                                                    ? Number(t.pricePerTime)
-                                                    : t.customPrice != null
-                                                            ? Number(t.customPrice)
-                                                            : 0;
+                            // pricePerOccurrence = pris pr. gang (customPrice eller beregnet).
+                            // totalPrice er kun månedlig pris og er altid 0 for opgaver uden fast månedspris.
+                            const price = Number(t.pricePerOccurrence || t.pricePerTime || t.customPrice || 0);
                         %>
 
                         <li>

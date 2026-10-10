@@ -1,4 +1,5 @@
 const { userRoles } = require("../utils/userRoles");
+const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../utils/addressUtil");
 
 function validateCreateUser(req, res, next) {
     const { userName, fullName, role, position, phoneNumber, email, address } = req.body;
@@ -60,6 +61,10 @@ function validateCreateUser(req, res, next) {
     if (address !== undefined) {
         if (typeof address !== "string" || address.trim().length === 0) {
             return next(new Error("Ugyldig adresse"));
+        }
+        req.body.address = normalizeAddress(address);
+        if (!hasZipAndCity(req.body.address)) {
+            return next(new Error(ADDRESS_FORMAT_MESSAGE));
         }
     }
 

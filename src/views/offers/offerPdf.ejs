@@ -49,9 +49,9 @@
         .accept-box {
             margin: 16pt 0;
             padding: 10pt 14pt;
-            border: 1px solid #ccc;
+            border: 1px solid #000;
             border-radius: 4px;
-            background: #f8f8f8;
+            background: #fff;
             break-inside: avoid;
         }
 
@@ -60,7 +60,7 @@
         }
 
         .accept-box a {
-            color: #A02121;
+            color: #000;
             word-break: break-all;
         }
 
@@ -141,8 +141,19 @@
 </p>
 
 <div class="accept-box">
-    <p>Tilbuddet accepteres digitalt via nedenstående link:</p>
-    <a href="<%= snapshot.signatureLink %>"><%= snapshot.signatureLink %></a>
+    <% if (offer.status === "accepted") { %>
+        <p>Tilbuddet er accepteret digitalt</p>
+        <p>
+            <strong><%= offer.acceptedByName %></strong>
+            <% if (offer.acceptedByEmail) { %>(<%= offer.acceptedByEmail %>)<% } %><br>
+            <% if (offer.acceptedAt) { %>
+                den <%= offer.acceptedAt.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) %>
+            <% } %>
+        </p>
+    <% } else { %>
+        <p>Tilbuddet accepteres digitalt via nedenstående link:</p>
+        <a href="<%= snapshot.signatureLink %>"><%= snapshot.signatureLink %></a>
+    <% } %>
 </div>
 
 <div class="signoff">

@@ -138,12 +138,12 @@
         <h2>Øvrige opgaver</h2>
 
         <!-- Opgaver uden rum -->
-        <% if (noRoomTasks.length > 0) { %>
-            <h3>Opgaver uden lokaler</h3>
+        <% if (monthlyOtherTasks.length > 0) { %>
+            <h3>Faste opgaver</h3>
             <ul>
-                <% noRoomTasks.forEach(t => { %>
+                <% monthlyOtherTasks.forEach(t => { %>
                     <li>
-                        <strong><%= t.name %></strong>
+                        <strong><%= t.name %></strong><% if (t.roomName) { %> (<%= t.roomName %>)<% } %>
                         – <%= frequencyLabels[t.frequency] %>
                         – <%= t.monthlyPrice.toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr./måned
                         <% if (t.description) { %><div><em><%= t.description %></em></div><% } %>
@@ -154,13 +154,13 @@
         <% } %>
 
         <!-- Ad hoc -->
-        <% if (adHocTasks.length > 0) { %>
-            <h3>Pris pr gang – Ad hoc / Vinduer / Efter aftale</h3>
+        <% if (perTimeTasks.length > 0) { %>
+            <h3>Ad hoc/Efter aftale</h3>
             <ul>
-                <% adHocTasks.forEach(t => { %>
+                <% perTimeTasks.forEach(t => { %>
                     <li>
-                        <strong><%= t.name %></strong>
-                        – <%= (t.customPrice ?? 0).toLocaleString("da-DK", { minimumFractionDigits: 2 }) %> kr pr gang
+                        <strong><%= t.name %></strong><% if (t.roomName) { %> (<%= t.roomName %>)<% } %>
+                        – <%= Number(t.pricePerOccurrence || 0) > 0 ? Number(t.pricePerOccurrence).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr pr gang" : "pris efter aftale" %>
                         <% if (t.description) { %><div><em><%= t.description %></em></div><% } %>
                     </li>
                 <% }) %>

@@ -1,6 +1,7 @@
 // services/priceService.js
 
 const { frequencies, frequencyMultipliers } = require("../utils/frequencyEnum");
+const { assertHourlyRate, assertEnvironmentalFee } = require("../utils/settingsGuard");
 
 // Frekvenser der giver månedlig pris
 const monthlyFrequencies = [
@@ -34,6 +35,7 @@ function getEffectiveMultiplier(frequency, days) {
  * Beregner pris for en enkelt task.
  */
 function calculateTaskPrice(task, hourlyRate) {
+    assertHourlyRate(hourlyRate);
 
     const amount = Number(task.amount ?? 0);
     const durationPerUnit = Number(task.durationPerUnit ?? 0);
@@ -85,6 +87,7 @@ function calculateTaskPrice(task, hourlyRate) {
  * Beregner totaler for hele planen.
  */
 function calculateTotals({ tasks, discountPercent, environmentalFeePercent }) {
+    assertEnvironmentalFee(environmentalFeePercent);
 
     // Subtotal = kun månedlige priser
     const subtotal = tasks.reduce((sum, t) => {
@@ -123,6 +126,7 @@ function round(value) {
 }
 
 module.exports = {
+    assertHourlyRate,
     calculateTaskPrice,
     calculateTotals
 };

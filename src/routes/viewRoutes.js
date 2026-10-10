@@ -58,11 +58,6 @@ router.get('/customers/create', requireLogin, (req, res) => {
 });
 
 
-// PLANS
-router.get('/plans', requireLogin, async (req, res) => {
-    res.render('plans', { user: req.session.user });
-});
-
 /*
 // TASKS
 router.get('/tasks', requireLogin, async (req, res) => {

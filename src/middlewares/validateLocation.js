@@ -1,4 +1,5 @@
 const { userError } = require("../utils/userError");
+const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../utils/addressUtil");
 
 function validateLocation(req, res, next) {
     const { name, address, contactPerson } = req.body;
@@ -34,6 +35,10 @@ function validateLocation(req, res, next) {
         }
         if (forbidden.test(address)) {
             return next(userError("Adresse indeholder ugyldige tegn", 400));
+        }
+        req.body.address = normalizeAddress(address);
+        if (!hasZipAndCity(req.body.address)) {
+            return next(userError(ADDRESS_FORMAT_MESSAGE, 400));
         }
     }
 

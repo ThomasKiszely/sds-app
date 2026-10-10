@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { paymentTerms } = require("../utils/paymentTerms");
+const { terminationNotice } = require("../utils/terminationNotice");
 
 const cleaningPlanSchema = new mongoose.Schema({
 
@@ -42,10 +43,10 @@ const cleaningPlanSchema = new mongoose.Schema({
     discountPercent: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
 
-    environmentalFeePercent: { type: Number, default: 4 },
+    environmentalFeePercent: { type: Number, required: true },
     environmentalFeeAmount: { type: Number, default: 0 },
 
-    indexRegulationPercent: { type: Number, default: 2.5 },
+    indexRegulationPercent: { type: Number, required: true },
 
     totalMonthlyPrice: { type: Number, default: 0 },
 
@@ -54,6 +55,13 @@ const cleaningPlanSchema = new mongoose.Schema({
         type: String,
         enum: Object.keys(paymentTerms),
         required: false // du kan sætte til true når UI er klar
+    },
+
+    // Opsigelsesvarsel (dropdown)
+    terminationNotice: {
+        type: String,
+        enum: Object.keys(terminationNotice),
+        required: false
     },
 
     // Tilbud der er accepteret

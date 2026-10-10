@@ -5,6 +5,7 @@ const InflationLog = require('../models/InflationLog');
 const taskRepo = require('../data/cleaningTaskRepo');
 const planRepo = require('../data/cleaningPlanRepo');
 const SystemSettings = require('../models/SystemSettings');
+const { assertInflationRate } = require('../utils/settingsGuard');
 const systemSettingsRepo = require('../data/systemSettingsRepo');
 const cron = require('node-cron');
 
@@ -13,7 +14,9 @@ const { recalculatePlanTotal } = require('../services/cleaningPlanService');
 
 async function getInflationRate() {
     const settings = await SystemSettings.findOne();
-    return settings?.inflationRate ?? 0.025;
+    // Ingen standardværdi: er indeksreguleringen ikke sat, springes reguleringen over
+    // (og logges ikke som kørt, så den prøves igen næste gang)
+    return assertInflationRate(settings?.inflationRate);
 }
 
 function round(value) {

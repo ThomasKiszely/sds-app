@@ -18,6 +18,7 @@ const { units, unitsLabels } = require("../utils/unitEnum");
 const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
 const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
 const { calculateTaskPrice, calculateTotals } = require("./priceService");
+const { assertEnvironmentalFee } = require("../utils/settingsGuard");
 const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
 
@@ -54,7 +55,7 @@ async function buildExistingPlanViewModel(planId) {
     const roomTemplates = await roomTemplateService.getAllRoomTemplates();
     const taskTemplates = await cleaningTaskTemplateService.listTemplates();
 
-    const hourlyRate = plan.hourlyRate || systemSettings?.hourlyRate || 350;
+    const hourlyRate = plan.hourlyRate;
 
     // Berig opgaver med beregnede priser og indeks
     const tasks = rawTasks.map((t, idx) => {
@@ -64,9 +65,7 @@ async function buildExistingPlanViewModel(planId) {
     });
 
     const discountPercent = plan.discountPercent || 0;
-    const environmentalFeePercent = plan.environmentalFeePercent != null
-        ? plan.environmentalFeePercent
-        : (systemSettings ? systemSettings.environmentalFee : 4);
+    const environmentalFeePercent = assertEnvironmentalFee(plan.environmentalFeePercent);
 
     const totals = calculateTotals({
         tasks,
@@ -171,8 +170,8 @@ async function buildExistingPlanViewModel(planId) {
             discounts: { discountPercent: plan.discountPercent || 0 },
             environment: { environmentalFeePercent: plan.environmentalFeePercent },
             operations: {
-                paymentTerms: plan.paymentTerms || paymentTerms.netto30,
-                terminationNotice: plan.terminationNotice || terminationNotice.month3
+                paymentTerms: plan.paymentTerms,
+                terminationNotice: plan.terminationNotice
             },
             roomNotes: plan.roomNotes || []
         },
@@ -192,10 +191,10 @@ async function buildExistingPlanViewModel(planId) {
         environmentalFeeAmount: totals.environmentalFeeAmount,
         finalTotal: totals.total,
         discounts: { discountPercent: plan.discountPercent || 0 },
-        environment: { environmentalFeePercent: plan.environmentalFeePercent ?? (systemSettings?.environmentalFee || 4) },
+        environment: { environmentalFeePercent },
         operations: {
-            paymentTerms: plan.paymentTerms || paymentTerms.netto30,
-            terminationNotice: plan.terminationNotice || terminationNotice.month3
+            paymentTerms: plan.paymentTerms,
+            terminationNotice: plan.terminationNotice
         },
         paymentTerms,
         paymentTermLabels,

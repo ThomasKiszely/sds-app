@@ -1,64 +1,70 @@
 // utils/addressUtil.js
 
+// Danske postnumre er præcis 4 cifre
+const ZIP_PATTERN = /^\d{4}$/;
+
+// Indsætter komma før postnummer, så "Vej 1 4700 Næstved" → "Vej 1, 4700 Næstved".
+// Adresser der allerede har komma, eller som ikke har et 4-cifret postnummer, returneres uændret.
 function normalizeAddress(addr) {
     if (!addr || typeof addr !== "string") return addr;
 
     addr = addr.trim();
 
-    // Hvis der allerede er komma → gør ingenting
     if (addr.includes(",")) {
         return addr;
     }
 
-    // Split på mellemrum
     const parts = addr.split(/\s+/);
 
-    // Find første tal (postnummer)
-    const zipIndex = parts.findIndex(p => /^\d+$/.test(p));
+    // Postnummeret er det sidste 4-cifrede ord (så husnumre som "1234" ikke forveksles)
+    let zipIndex = -1;
+    for (let i = parts.length - 1; i > 0; i--) {
+        if (ZIP_PATTERN.test(parts[i])) {
+            zipIndex = i;
+            break;
+        }
+    }
 
-    // Hvis ingen postnummer → gør ingenting
     if (zipIndex === -1) {
         return addr;
     }
 
-    // Street = alt før postnummer
     const street = parts.slice(0, zipIndex).join(" ");
-
-    // Zip + city = alt efter street
     const zipCity = parts.slice(zipIndex).join(" ");
 
-    // Indsæt komma
     return `${street}, ${zipCity}`;
 }
 
+// Deler en adresse i street / zip / city. Fejler aldrig: manglende dele bliver tomme strenge.
 function parseAddress(fullAddress) {
     if (!fullAddress || typeof fullAddress !== "string") {
         return { street: "", zip: "", city: "" };
     }
 
-    // Først: normaliser adressen (tilføj komma hvis nødvendigt)
-    fullAddress = normalizeAddress(fullAddress).trim();
+    const normalized = normalizeAddress(fullAddress).trim();
 
-    let street = "";
-    let zip = "";
-    let city = "";
-
-    // Split på komma (nu er vi sikre på at der er et)
-    const parts = fullAddress.split(",");
-    street = parts[0].trim();
-
-    const zipCityParts = parts[1].trim().split(/\s+/);
-
-    // Hvis første ord er tal → zip
-    if (zipCityParts.length > 0 && /^\d+$/.test(zipCityParts[0])) {
-        zip = zipCityParts[0];
-        city = zipCityParts.slice(1).join(" ");
-    } else {
-        // Ingen zip → alt er city
-        city = zipCityParts.join(" ");
+    const commaIndex = normalized.indexOf(",");
+    if (commaIndex === -1) {
+        return { street: normalized, zip: "", city: "" };
     }
 
-    return { street, zip, city };
+    const street = normalized.slice(0, commaIndex).trim();
+    const zipCityParts = normalized.slice(commaIndex + 1).trim().split(/\s+/).filter(Boolean);
+
+    if (zipCityParts.length > 0 && ZIP_PATTERN.test(zipCityParts[0])) {
+        return { street, zip: zipCityParts[0], city: zipCityParts.slice(1).join(" ") };
+    }
+
+    return { street, zip: "", city: zipCityParts.join(" ") };
 }
 
-module.exports = { normalizeAddress, parseAddress };
+// Kræver gade, 4-cifret postnummer og by (efter normalisering)
+function hasZipAndCity(fullAddress) {
+    if (!fullAddress || typeof fullAddress !== "string") return false;
+    const { street, zip, city } = parseAddress(fullAddress);
+    return Boolean(street && zip && city);
+}
+
+const ADDRESS_FORMAT_MESSAGE = "Adressen skal indeholde gade, postnummer (4 cifre) og by, fx 'Vejnavn 1, 4700 Næstved'";
+
+module.exports = { normalizeAddress, parseAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE };

@@ -5,15 +5,21 @@ async function getSettings() {
     return systemSettingsRepo.getSettings();
 }
 
-async function updateInflationRate(rate) {
-    const value = Number(rate);
+// Øvre grænse for den årlige indeksregulering (i procent). Reguleringen hæver
+// alle aktive planers timepris, så grænsen forhindrer tastefejl i at give store stigninger.
+const MAX_INFLATION_PERCENT = 10;
 
-    if (isNaN(value) || value < 0 || value > 0.20) {
-        throw userError("Inflation skal være mellem 0% og 20%.", 400);
+// Tager imod procent (fx 2.5 eller "2,5") og gemmer som brøk (0.025)
+async function updateInflationRate(ratePercent) {
+    const raw = String(ratePercent ?? "").trim().replace(",", ".");
+    const percent = Number(raw);
+
+    if (raw === "" || isNaN(percent) || percent < 0 || percent > MAX_INFLATION_PERCENT) {
+        throw userError(`Indeksregulering skal være mellem 0% og ${MAX_INFLATION_PERCENT}%.`, 400);
     }
 
     return systemSettingsRepo.updateSettings({
-        inflationRate: value
+        inflationRate: Math.round(percent * 100) / 10000
     });
 }
 
@@ -39,6 +45,7 @@ async function updateHourlyRate(rate) {
 
 
 module.exports = {
+    MAX_INFLATION_PERCENT,
     getSettings,
     updateInflationRate,
     updateEnvironmentalFee,

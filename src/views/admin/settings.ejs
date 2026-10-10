@@ -4,14 +4,18 @@
     <h2>Indeksregulering</h2>
 
     <form hx-post="/admin/settings/inflation" hx-target="#settings-message">
-        <label for="inflationRate">Indeksregulering (%)</label>
+        <label for="inflationRate">Årlig indeksregulering (%)</label>
         <input
                 type="number"
-                step="0.001"
+                step="0.1"
+                min="0"
+                max="<%= maxInflationPercent %>"
                 name="inflationRate"
                 id="inflationRate"
-                value="<%= settings.inflationRate %>"
+                value="<%= inflationPercent %>"
+                required
         >
+        <small>Hæver timeprisen på alle aktive planer hvert år. Maks. <%= maxInflationPercent %>%.</small>
 
         <button type="submit">Gem</button>
     </form>

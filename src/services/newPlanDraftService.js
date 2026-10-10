@@ -8,6 +8,7 @@ const systemSettingsService = require("../services/systemSettingsService");
 const customerService = require("./customerService");
 
 const { calculateTaskPrice, calculateTotals } = require("./priceService");
+const { assertHourlyRate, assertEnvironmentalFee } = require("../utils/settingsGuard");
 const { groupSdsTasksByRoom } = require("../utils/groupedUtil");
 const { categoryTypes, categoryLabels } = require("../utils/categoryEnum");
 const { days, daysLabels } = require("../utils/dayEnum");
@@ -21,7 +22,7 @@ const { calculateProgramCodeForRoom } = require("../utils/programCodeUtil");
 // CENTRAL PRISBEREGNING — eneste sted i hele systemet
 function priceAllTasks(draft) {
     if (!draft.tasks) draft.tasks = [];
-    const hourlyRate = draft.hourlyRate || 350;
+    const hourlyRate = draft.hourlyRate;
 
     const priced = draft.tasks.map(t =>
         calculateTaskPrice(t, hourlyRate)
@@ -37,8 +38,8 @@ function priceAllTasks(draft) {
 
 // INIT: Start draft
 function initDraft(systemSettings) {
-    const hourlyRate = systemSettings ? systemSettings.hourlyRate : 350;
-    const environmentalFee = systemSettings ? systemSettings.environmentalFee : 4;
+    const hourlyRate = assertHourlyRate(systemSettings?.hourlyRate);
+    const environmentalFee = assertEnvironmentalFee(systemSettings?.environmentalFee);
 
     return {
         customerId: null,
@@ -111,7 +112,7 @@ async function addRoomToDraft(draft, templateId, customName, customSize) {
             const sdsTemplates = await cleaningTaskTemplateService.getByIds(ids);
 
             for (const taskTpl of sdsTemplates) {
-                const cat = taskTpl.category.toLowerCase();
+                const cat = taskTpl.category;
 
                 let autoDays = [];
                 if (cat === categoryTypes.daily) {
@@ -226,7 +227,7 @@ async function addTaskToRoomInDraft(draft, roomName, templateId, slotName) {
     const cleanRoomName = (roomName && typeof roomName === "string" && roomName.trim() !== "") ? roomName.trim() : "";
     const room = cleanRoomName ? (draft.rooms || []).find(r => r.name === cleanRoomName) : null;
     const amount = room ? room.size : (taskTpl.amount || 1);
-    const cat = (taskTpl.category || "other").toLowerCase();
+    const cat = (taskTpl.category || "other");
 
     let autoDays = [];
     if (taskTpl.days && taskTpl.days.length > 0) {
@@ -433,9 +434,9 @@ async function buildEditorViewModel(draft, systemSettings, customer, location) {
     const taskTemplates = await cleaningTaskTemplateService.listTemplates();
 
     const discountPercent = draft.discounts?.discountPercent || 0;
-    const environmentalFeePercent = draft.environment?.environmentalFeePercent != null
-        ? draft.environment.environmentalFeePercent
-        : (systemSettings ? systemSettings.environmentalFee : 4);
+    const environmentalFeePercent = assertEnvironmentalFee(
+        draft.environment?.environmentalFeePercent ?? systemSettings?.environmentalFee
+    );
 
     const totals = calculateTotals({
         tasks: draft.tasks || [],
@@ -580,7 +581,7 @@ async function generateDraftTasks(draft) {
         const sdsTemplates = await cleaningTaskTemplateService.getByIds(ids);
 
         for (const tpl of sdsTemplates) {
-            const cat = tpl.category.toLowerCase();
+            const cat = tpl.category;
 
             let autoDays = [];
             if (cat === categoryTypes.daily) {
@@ -626,7 +627,7 @@ function buildTaskViewModel(draft) {
     const totals = calculateTotals({
         tasks,
         discountPercent: draft.discounts?.discountPercent || 0,
-        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+        environmentalFeePercent: draft.environment?.environmentalFeePercent
     });
 
     return {
@@ -670,9 +671,9 @@ function updateAdjustments(draft, body, systemSettings) {
     draft.operations = draft.operations || {};
 
     draft.discounts.discountPercent = Number(body.discountPercent || 0);
-    draft.environment.environmentalFeePercent = body.environmentalFeePercent != null
-        ? Number(body.environmentalFeePercent)
-        : (systemSettings ? systemSettings.environmentalFee : 4);
+    draft.environment.environmentalFeePercent = assertEnvironmentalFee(
+        body.environmentalFeePercent ?? systemSettings?.environmentalFee
+    );
 
     if (body.paymentTerms) {
         draft.operations.paymentTerms = body.paymentTerms;
@@ -690,7 +691,7 @@ function buildOffer(draft) {
     const totals = calculateTotals({
         tasks: draft.tasks || [],
         discountPercent: draft.discounts?.discountPercent || 0,
-        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+        environmentalFeePercent: draft.environment?.environmentalFeePercent
     });
 
     return {
@@ -714,7 +715,7 @@ async function finalizePlan(draft) {
     const totals = calculateTotals({
         tasks: draft.tasks || [],
         discountPercent: draft.discounts?.discountPercent || 0,
-        environmentalFeePercent: draft.environment?.environmentalFeePercent ?? 0
+        environmentalFeePercent: draft.environment?.environmentalFeePercent
     });
     const customer = await customerService.getCustomerById(draft.customerId);
 

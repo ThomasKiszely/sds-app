@@ -19,11 +19,11 @@ router.get("/:id/pdf",
     offerController.pdfOffer
 );
 
-// SEND OFFER
-router.post("/:id/send",
+// CREATE OFFER FROM EXISTING PLAN
+router.post("/plans/:planId",
     requireLogin,
-    validateObjectId("id"),
-    offerController.sendOffer
+    validateObjectId("planId"),
+    offerController.createOfferForPlan
 );
 
 // ACCEPT VIEW (public link)

@@ -19,7 +19,7 @@ async function generateContract(req, res, next) {
         const contract = await contractService.generateContract({
             planId,
             offerId: null,
-            generatedBy: req.session.user?.username || "admin"
+            generatedBy: req.session.user?.userName || "admin"
         });
 
         return res.render("contracts/generated", {

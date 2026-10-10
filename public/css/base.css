@@ -292,3 +292,15 @@ form button {
     margin: .2rem 0;
     white-space: nowrap;
 }
+/* Fjern browserens røde glød/kant på required/invalid felter */
+input:-moz-ui-invalid,
+select:-moz-ui-invalid,
+textarea:-moz-ui-invalid {
+    box-shadow: none;
+}
+
+input:invalid,
+select:invalid,
+textarea:invalid {
+    outline-color: var(--accent-color);
+}
