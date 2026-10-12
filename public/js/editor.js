@@ -684,13 +684,6 @@
                 }
             }
         });
-
-        // Global HTMX fejlhåndtering uden brug af inline hx-on:error
-        document.addEventListener('htmx:responseError', function (e) {
-            if (e.detail && e.detail.xhr && e.detail.xhr.responseText) {
-                alert(e.detail.xhr.responseText);
-            }
-        });
     }
 
     // Kør modal handlers straks
