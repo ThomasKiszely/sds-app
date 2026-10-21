@@ -6,7 +6,7 @@ Prisberegner og planlægningssystem udviklet som praktikprojekt på Datamatikeru
 
 - Node.js
 - Express
-- MongoDB Atlas
+- MongoDB
 - Mongoose
 - HTMX
 - EJS
