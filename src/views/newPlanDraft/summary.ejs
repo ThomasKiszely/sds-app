@@ -108,14 +108,16 @@
                 <div class="picker-col">
                     <div class="picker-col-top">
                         <label class="picker-col-label">2. Vælg lokation</label>
-                        <% if (customer) { %>
-                            <button type="button"
-                                    class="btn-create-modal"
-                                    hx-get="/customers/<%= customer._id %>/locations/create?flow=newPlanDraft"
-                                    hx-target="#overlay">
-                                + Opret ny lokation
-                            </button>
-                        <% } %>
+                        <div id="createLocationBtn">
+                            <% if (customer) { %>
+                                <button type="button"
+                                        class="btn-create-modal"
+                                        hx-get="/customers/<%= customer._id %>/locations/create?flow=newPlanDraft"
+                                        hx-target="#overlay">
+                                    + Opret ny lokation
+                                </button>
+                            <% } %>
+                        </div>
                     </div>
 
                     <div id="locationContainer" class="location-container-box">

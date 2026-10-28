@@ -2,6 +2,12 @@ function showCenterToast(message) {
     const container = document.getElementById("toast-center");
     if (!container) return;
 
+    // Undgå identiske toasts under hinanden
+    const alreadyShown = Array.from(container.children).some(
+        (el) => el.textContent === message && !el.classList.contains("hide")
+    );
+    if (alreadyShown) return;
+
     const toast = document.createElement("div");
     toast.className = "toast-center";
     toast.textContent = message;
@@ -13,6 +19,10 @@ function showCenterToast(message) {
         setTimeout(() => toast.remove(), 500);
     }, 3000);
 }
+
+// Scriptet kan blive evalueret flere gange (htmx-swaps) – registrer kun listeners én gang
+if (!window.__toastListenersRegistered) {
+window.__toastListenersRegistered = true;
 
 // Success + info toasts via HX-Trigger
 document.body.addEventListener("htmx:afterRequest", (evt) => {
@@ -61,3 +71,5 @@ document.body.addEventListener("htmx:responseError", (event) => {
 
     showCenterToast("Der opstod en fejl");
 });
+
+}

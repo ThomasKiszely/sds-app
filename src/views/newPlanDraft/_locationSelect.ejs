@@ -2,12 +2,6 @@
 
     <div class="location-picker-box empty-locations">
         <p class="empty-location-msg">Ingen lokationer oprettet for denne kunde endnu.</p>
-        <button class="btn-create-modal"
-                type="button"
-                hx-get="/customers/<%= customerId %>/locations/create?flow=newPlanDraft"
-                hx-target="#overlay">
-            + Opret ny lokation
-        </button>
     </div>
 
 <% } else { %>
@@ -37,21 +31,23 @@
             </select>
         </div>
 
-        <div class="location-sub-actions">
-            <button class="btn-create-modal"
-                    type="button"
-                    hx-get="/customers/<%= customerId %>/locations/create?flow=newPlanDraft"
-                    hx-target="#overlay">
-                + Opret ny lokation
-            </button>
-        </div>
-
         <div id="nextStep"></div>
     </div>
 
 <% } %>
 
 <!-- OOB updates -->
+<div hx-swap-oob="true" id="createLocationBtn">
+    <% if (customerId) { %>
+        <button type="button"
+                class="btn-create-modal"
+                hx-get="/customers/<%= customerId %>/locations/create?flow=newPlanDraft"
+                hx-target="#overlay">
+            + Opret ny lokation
+        </button>
+    <% } %>
+</div>
+
 <div hx-swap-oob="true" id="customerResults"></div>
 
 <div hx-swap-oob="true" id="customerId">
