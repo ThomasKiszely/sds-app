@@ -12,21 +12,21 @@
 <body>
 
 <main id="content">
-    <article class="standard">
+    <article class="standard offer-accept-page">
 
         <h1>Acceptér tilbud</h1>
 
         <p>
-            Du er ved at acceptere tilbuddet for:
+            Du er ved at acceptere tilbuddet for:<br>
             <strong><%= snapshot.customer.name %></strong><br>
             <%= snapshot.customer.street %><br>
             <%= snapshot.customer.zip %> <%= snapshot.customer.city %>
         </p>
 
         <p>
-            Den samlede pris for rengøringen er:
-            <strong><%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr. pr. måned</strong>
-            ekskl. moms.
+            Den samlede pris for rengøringen er:<br>
+            <strong><%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr.<br> pr. måned</strong>
+            (ekskl. moms)
         </p>
 
         <form method="POST">

@@ -329,9 +329,11 @@
         if (data.type === 'task' && data.templateId) {
             const roomCard = targetZone.closest('.plan-room-card');
             const isGeneral = targetZone.closest('.general-tasks-card') || targetZone.id === 'generalTasksDropzone';
-            const roomName = targetZone.dataset.roomName !== undefined
-                ? targetZone.dataset.roomName
-                : (roomCard && !isGeneral ? roomCard.dataset.roomName : '');
+            const roomName = isGeneral
+                ? ''
+                : (targetZone.dataset.roomName !== undefined
+                    ? targetZone.dataset.roomName
+                    : (roomCard ? roomCard.dataset.roomName : ''));
 
             window._expandedRooms = window._expandedRooms || new Set();
             if (roomName) {

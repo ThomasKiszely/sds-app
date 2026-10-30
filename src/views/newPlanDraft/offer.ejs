@@ -199,13 +199,15 @@
 
         <button class="button-secondary"
                 hx-post="/newPlanDraft/saveAsDraftOffer"
-                hx-target="#content">
+                hx-target="#content"
+                hx-swap="innerHTML show:window:top">
             Gem som tilbud (kladde)
         </button>
 
         <button class="button-secondary"
                 hx-post="/newPlanDraft/finalize"
-                hx-target="#content">
+                hx-target="#content"
+                hx-swap="innerHTML show:window:top">
             Gem og opret endeligt tilbud
         </button>
     </div>

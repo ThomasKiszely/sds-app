@@ -284,3 +284,7 @@
 
 
 
+/* Acceptér tilbud – center tekst under overskriften */
+.offer-accept-page p {
+    text-align: center;
+}

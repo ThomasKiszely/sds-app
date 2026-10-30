@@ -368,7 +368,7 @@ async function finalizePlan(req, res) {
     res.setHeader("HX-Location", JSON.stringify({
         path: `/offers/${offer._id}/view`,
         target: "#content",
-        swap: "innerHTML"
+        swap: "innerHTML show:window:top"
     }));
 
     return res.status(200).end();
@@ -394,7 +394,7 @@ async function saveAsDraftOffer(req, res) {
     res.setHeader("HX-Location", JSON.stringify({
         path: `/customers/${draft.customerId}/plans`,
         target: "#content",
-        swap: "innerHTML"
+        swap: "innerHTML show:window:top"
     }));
 
     return res.status(200).end();

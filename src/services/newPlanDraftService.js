@@ -224,7 +224,8 @@ async function addTaskToRoomInDraft(draft, roomName, templateId, slotName) {
     const taskTpl = await cleaningTaskTemplateService.findTemplateById(templateId);
     if (!taskTpl) throw new Error("Opgaveskabelon blev ikke fundet");
 
-    const cleanRoomName = (roomName && typeof roomName === "string" && roomName.trim() !== "") ? roomName.trim() : "";
+    // "__general__" er kun en UI-markør for "Øvrige opgaver" og er ikke et rigtigt lokale
+    const cleanRoomName = (roomName && typeof roomName === "string" && roomName.trim() !== "" && roomName.trim() !== "__general__") ? roomName.trim() : "";
     const room = cleanRoomName ? (draft.rooms || []).find(r => r.name === cleanRoomName) : null;
     const amount = room ? room.size : (taskTpl.amount || 1);
     const cat = (taskTpl.category || "other");

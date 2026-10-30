@@ -201,7 +201,8 @@
 
                     <button class="btn btn-primary btn-cta"
                             hx-post="<%= effectiveBaseUrl %>/generateOffer"
-                            hx-target="#content">
+                            hx-target="#content"
+                            hx-swap="innerHTML show:window:top">
                         Videre til tilbud &rarr;
                     </button>
                 <% } else { %>
