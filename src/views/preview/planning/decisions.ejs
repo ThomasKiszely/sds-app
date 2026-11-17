@@ -1,0 +1,62 @@
+<%
+    const dayNames = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    // Farvetrin efter hvor fuld dagen er
+    const level = h => typeof h !== 'number' ? 'off' : h >= 5.5 ? 'l3' : h >= 4.5 ? 'l2' : h > 0 ? 'l1' : '';
+    const fmt = h => h === null ? '–' : typeof h === 'number' ? String(h).replace('.', ',') : h;
+%>
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1><%= planning.title %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= planning.summary %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/planning/week" hx-target="#content">Se hele ugen</button>
+            <button type="button" class="btn-primary"><%- icon('check') %> Godkend alle <%= planning.decisions.length %></button>
+        </div>
+    </header>
+
+    <div class="two-col wide-aside" style="grid-template-columns: minmax(0, 1fr) 440px">
+        <section class="card" style="padding: 0">
+            <% planning.decisions.forEach(d => { %>
+                <div class="decision-row">
+                    <div class="decision-day"><%= d.day %><strong><%= d.date %></strong></div>
+                    <div>
+                        <div class="decision-title"><%= d.title %></div>
+                        <div class="decision-sub <%= d.warn ? 'is-warn' : '' %>"><%= d.sub %></div>
+                        <div class="decision-who">
+                            <span class="person"><span class="avatar"><%= initials(d.who) %></span><strong><%= d.who %></strong></span>
+                            <span class="muted"><%= d.why %></span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button type="button">Godkend</button>
+                        <button type="button" class="btn-ghost">Skift</button>
+                    </div>
+                </div>
+            <% }) %>
+        </section>
+
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px">
+                <h2 style="margin: 0">Timer pr. dag</h2>
+                <span class="muted" style="font-size: 12px">Tryk på en dag for at åbne den</span>
+            </div>
+            <div class="card" style="padding: 12px">
+                <div class="hours-grid">
+                    <div></div>
+                    <% dayNames.forEach(d => { %><div class="hg-head"><%= d %></div><% }) %>
+                    <% planning.hours.forEach(row => { %>
+                        <div class="hg-name"><strong><%= row.name %></strong><span><%= row.load %></span></div>
+                        <% row.days.forEach(h => { %>
+                            <div class="hg-cell <%= level(h) %>"><%= fmt(h) %></div>
+                        <% }) %>
+                    <% }) %>
+                </div>
+            </div>
+            <div class="legend">Ledig <i></i><i class="hg-cell l1"></i><i class="hg-cell l2"></i><i class="hg-cell l3"></i> Fuld dag</div>
+        </section>
+    </div>
+</article>

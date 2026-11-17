@@ -3,36 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – SDS prisberegner</title>
+    <title>Log ind – SDS Drift</title>
 
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/components.css">
-    <script src="/js/htmx.min.js"></script>
 </head>
 
 <body>
-<main>
-    <article class="standard login-page">
-        <img src="/images/SDS-logo2.gif" alt="SDS logo">
+<main class="login-wrap">
+    <article class="login-page">
+        <div class="login-brand">
+            <img src="/images/sds-logo-red.png" alt="">
+            <span>SDS Drift</span>
+        </div>
 
         <h1>Log ind</h1>
+        <p class="page-sub" style="margin-bottom: 16px">Brug dit brugernavn fra kontoret.</p>
 
         <% if (error) { %>
-            <div class="error"><%= error %></div>
+            <div class="error" role="alert"><%= error %></div>
         <% } %>
 
         <form action="/users/login" method="POST">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
             <label for="userName">Brugernavn</label>
-            <input type="text" id="userName" name="userName" required>
+            <input type="text" id="userName" name="userName" autocomplete="username" autocapitalize="none" required autofocus>
 
             <label for="password">Adgangskode</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
 
             <button type="submit">Log ind</button>
         </form>
-
     </article>
 </main>
 </body>

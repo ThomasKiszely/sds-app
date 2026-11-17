@@ -1,57 +1,77 @@
+<%
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const filterTabs = [['active', 'Aktive'], ['inactive', 'Inaktive'], ['all', 'Alle']];
+    // filter kommer fra query-strengen og ender i hx-vals (JSON), så kun kendte værdier
+    filter = filterTabs.some(([value]) => value === filter) ? filter : 'active';
+    const include = "[name='search'], [name='sort']";
+%>
 <article class="standard customers-page">
-    <h1>Kunder</h1>
-
-    <nav>
-        <div class="nav-group">
-        <button hx-get="/customers/create" hx-target="#content">
-            Opret kunde
-        </button>
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Kunder</h1>
+            <span class="page-count"><%= total %> <%= filter === 'inactive' ? 'inaktive' : filter === 'all' ? 'i alt' : 'aktive' %></span>
         </div>
-    </nav>
-
-    <!-- Søgning + Filtre + Sortering -->
-    <div class="customer-controls-wrapper">
-    <div class="customer-controls card">
-
-        <div class="search-box">
-            <input type="text"
-                   name="search"
-                   placeholder="Søg kunder..."
-                   value="<%= search %>"
-                   hx-get="/customers"
-                   hx-target="#content"
-                   hx-trigger="keyup changed delay:300ms"
-                   hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
+        <div class="page-actions">
+            <div class="search-field">
+                <%- icon('search') %>
+                <input type="search"
+                       name="search"
+                       placeholder="Søg navn, kundenr. eller adresse"
+                       aria-label="Søg kunder"
+                       value="<%= search %>"
+                       hx-get="/customers"
+                       hx-target="#content"
+                       hx-trigger="keyup changed delay:300ms, search"
+                       hx-vals='{"filter": "<%= filter %>"}'
+                       hx-include="<%= include %>">
+            </div>
+            <button type="button" class="btn-primary" hx-get="/customers/create" hx-target="#content">
+                <%- icon('plus') %> Opret kunde
+            </button>
         </div>
+    </header>
 
-        <div class="filter-row">
-            <select name="filter"
-                    hx-get="/customers"
-                    hx-target="#content"
-                    hx-trigger="change"
-                    hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
-                <option value="active" <%= filter === "active" ? "selected" : "" %>>Aktive</option>
-                <option value="inactive" <%= filter === "inactive" ? "selected" : "" %>>Inaktive</option>
-                <option value="all" <%= filter === "all" ? "selected" : "" %>>Alle</option>
-            </select>
-
-            <select name="sort"
-                    hx-get="/customers"
-                    hx-target="#content"
-                    hx-trigger="change"
-                    hx-include="[name='search'], [name='filter'], [name='sort'], [name='page']">
-                <option value="name" <%= sort === "name" ? "selected" : "" %>>Navn</option>
-                <option value="number" <%= sort === "number" ? "selected" : "" %>>Kundenummer</option>
-                <option value="address" <%= sort === "address" ? "selected" : "" %>>Adresse</option>
-                <option value="phone" <%= sort === "phone" ? "selected" : "" %>>Telefon</option>
-            </select>
+    <div class="tabs-row">
+        <div class="tabs">
+            <% filterTabs.forEach(([value, label]) => { %>
+                <button type="button"
+                        class="tab <%= filter === value ? 'is-active' : '' %>"
+                        hx-get="/customers"
+                        hx-target="#content"
+                        hx-vals='{"filter": "<%= value %>"}'
+                        hx-include="<%= include %>">
+                    <%= label %>
+                </button>
+            <% }) %>
+            <button type="button" class="tab" hx-get="/preview/customer-group" hx-target="#content">
+                Grupper <span class="preview-badge">Preview</span>
+            </button>
         </div>
 
+        <select name="sort"
+                aria-label="Sortér efter"
+                hx-get="/customers"
+                hx-target="#content"
+                hx-trigger="change"
+                hx-vals='{"filter": "<%= filter %>"}'
+                hx-include="[name='search']">
+            <option value="name" <%= sort === "name" ? "selected" : "" %>>Sortér: Navn</option>
+            <option value="number" <%= sort === "number" ? "selected" : "" %>>Sortér: Kundenummer</option>
+            <option value="address" <%= sort === "address" ? "selected" : "" %>>Sortér: Adresse</option>
+            <option value="phone" <%= sort === "phone" ? "selected" : "" %>>Sortér: Telefon</option>
+        </select>
     </div>
-    </div>
 
-    <section>
-        <table class="customers-table responsive-table">
+    <% if (customers.length === 0) { %>
+        <div class="empty-state">
+            <% if (search) { %>
+                Ingen kunder matcher "<%= search %>".
+            <% } else { %>
+                Der er ingen kunder her endnu.
+            <% } %>
+        </div>
+    <% } else { %>
+        <table class="data-table customers-table responsive-table">
             <thead>
             <tr>
                 <th>Kundenr.</th>
@@ -59,17 +79,19 @@
                 <th>Telefon</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Handlinger</th>
+                <th><span class="visually-hidden">Handlinger</span></th>
             </tr>
             </thead>
 
             <tbody>
             <% customers.forEach(customer => { %>
                 <tr>
-                    <td data-label="Kundenr"><%= customer.customerNumber %></td>
-                    <td data-label="Navn"><%= customer.customerName %></td>
-                    <td data-label="Telefon"><%= customer.phoneNumber %></td>
-                    <td data-label="Email"><%= customer.customerEmail %></td>
+                    <td data-label="Kundenr." class="muted"><%= customer.customerNumber %></td>
+                    <td data-label="Navn">
+                        <a href="#" class="row-link" hx-get="/customers/<%= customer._id %>/details" hx-target="#content"><%= customer.customerName %></a>
+                    </td>
+                    <td data-label="Telefon" class="hide-mobile"><%= customer.phoneNumber %></td>
+                    <td data-label="Email" class="cell-truncate hide-mobile"><%= customer.customerEmail %></td>
                     <td data-label="Status">
                         <% if (!customer.isDeleted) { %>
                             <span class="badge badge-active">Aktiv</span>
@@ -78,65 +100,56 @@
                         <% } %>
                     </td>
 
-                    <td>
-                        <button hx-get="/customers/<%= customer._id %>/plans" hx-target="#content">
-                            Vis planer
-                        </button>
-
-                        <button hx-get="/customers/<%= customer._id %>/details" hx-target="#content">
-                            Detaljer
-                        </button>
+                    <td class="actions">
+                        <button class="btn-small" hx-get="/customers/<%= customer._id %>/plans" hx-target="#content">Planer</button>
 
                         <% if (user.role === 'admin') { %>
-
                             <% if (!customer.isDeleted) { %>
-                                <button hx-get="/customers/<%= customer._id %>/edit" hx-target="#content">
-                                    Rediger
-                                </button>
-
-                                <button
+                                <button class="btn-small" hx-get="/customers/<%= customer._id %>/edit" hx-target="#content">Rediger</button>
+                                <button class="btn-small btn-ghost btn-danger"
                                         hx-delete="/customers/<%= customer._id %>"
                                         hx-target="#content"
                                         hx-confirm="Vil du slette kunden?">
                                     Slet
                                 </button>
                             <% } else { %>
-                                <button
+                                <button class="btn-small"
                                         hx-put="/customers/<%= customer._id %>/reactivate"
                                         hx-target="#content">
                                     Aktivér
                                 </button>
                             <% } %>
-
                         <% } %>
                     </td>
                 </tr>
             <% }) %>
             </tbody>
         </table>
-    </section>
+    <% } %>
 
-    <div class="pagination">
-        <% const totalPages = Math.ceil(total / pageSize); %>
+    <% if (totalPages > 1) { %>
+        <div class="pagination">
+            <% if (page > 1) { %>
+                <button class="btn-small"
+                        hx-get="/customers"
+                        hx-target="#content"
+                        hx-vals='{"filter": "<%= filter %>", "page": "<%= page - 1 %>"}'
+                        hx-include="<%= include %>">
+                    <%- icon('chevron-left') %> Forrige
+                </button>
+            <% } %>
 
-        <% if (page > 1) { %>
-            <button
-                    hx-get="/customers?page=<%= page - 1 %>&filter=<%= filter %>&search=<%= search %>&sort=<%= sort %>"
-                    hx-target="#content">
-                Forrige
-            </button>
-        <% } %>
+            <span>Side <%= page %> af <%= totalPages %></span>
 
-        <span>Side <%= page %> af <%= totalPages %></span>
-
-        <% if (page < totalPages) { %>
-            <button
-                    hx-get="/customers?page=<%= page + 1 %>&filter=<%= filter %>&search=<%= search %>&sort=<%= sort %>"
-                    hx-target="#content">
-                Næste
-            </button>
-        <% } %>
-    </div>
-
-
+            <% if (page < totalPages) { %>
+                <button class="btn-small"
+                        hx-get="/customers"
+                        hx-target="#content"
+                        hx-vals='{"filter": "<%= filter %>", "page": "<%= page + 1 %>"}'
+                        hx-include="<%= include %>">
+                    Næste <%- icon('chevron-right') %>
+                </button>
+            <% } %>
+        </div>
+    <% } %>
 </article>

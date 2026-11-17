@@ -1741,14 +1741,15 @@
 ================================================== */
 
 :root {
-    --ed-ink: #14161a;
-    --ed-ink-soft: #5c6169;
-    --ed-ink-faint: #8b9099;
-    --ed-line: #e7e7ec;
-    --ed-line-strong: #d6d6de;
-    --ed-surface: #ffffff;
-    --ed-surface-soft: #f7f7f9;
-    --ed-surface-softer: #fbfbfc;
+    /* Peger på tokens i base.css, så editoren følger det nye design */
+    --ed-ink: var(--ink);
+    --ed-ink-soft: var(--muted);
+    --ed-ink-faint: #9A958D;
+    --ed-line: var(--line);
+    --ed-line-strong: var(--line-strong);
+    --ed-surface: var(--surface);
+    --ed-surface-soft: var(--bg);
+    --ed-surface-softer: #FAF9F7;
     --ed-brand: var(--primary-color);
     /* Rød (original) */
     /* --ed-brand-dark: #7d1818; */
@@ -1760,13 +1761,13 @@
     --ed-brand-light: color-mix(in srgb, var(--primary-color) 85%, white);
     --ed-brand-soft: color-mix(in srgb, var(--primary-color) 7%, transparent);
     --ed-brand-ring: color-mix(in srgb, var(--primary-color) 18%, transparent);
-    --ed-r-sm: 8px;
-    --ed-r-md: 12px;
-    --ed-r-lg: 16px;
+    --ed-r-sm: 6px;
+    --ed-r-md: 8px;
+    --ed-r-lg: 8px;
     --ed-r-pill: 999px;
-    --ed-sh-xs: 0 1px 2px rgba(16, 16, 20, .05);
-    --ed-sh-sm: 0 2px 8px rgba(16, 16, 20, .07);
-    --ed-sh-md: 0 10px 28px rgba(16, 16, 20, .10);
+    --ed-sh-xs: none;
+    --ed-sh-sm: none;
+    --ed-sh-md: 0 4px 14px rgba(28, 27, 26, .06);
     --ed-sh-lg: 0 22px 55px rgba(16, 16, 20, .20);
 }
 
@@ -2464,13 +2465,14 @@
     color: var(--ed-ink);
 }
 
+/* Siden er lys nu (før blå), så teksten skal være mørk */
 .plan-header-bar h2 {
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    color: var(--ed-ink);
+    text-shadow: none;
 }
 
 .plan-header-hint {
-    color: rgba(255, 255, 255, .85);
+    color: var(--ed-ink-soft);
     font-style: normal;
 }
 

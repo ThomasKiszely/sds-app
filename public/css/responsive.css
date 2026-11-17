@@ -1,29 +1,161 @@
-/* Mobilvenlig tabel */
-.responsive-table {
-    width: 100%;
-    border-collapse: collapse;
+/* ==================================================
+   SDS DRIFT - SMALLE SKÆRME
+   Under 900px: sidebaren bliver en skuffe, og der
+   kommer en fanebjælke i bunden (som i mobil-designet).
+================================================== */
+
+.sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 27, 26, .35);
+    z-index: 40;
 }
 
-/* Standard desktop */
-.responsive-table th,
-.responsive-table td {
-    padding: 10px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: left;
+.sidebar-scrim[hidden] {
+    display: none;
 }
 
-/* Knapper i tabeller — ens bredde på desktop (mobil styres nedenfor) */
-@media (min-width: 701px) {
-    .responsive-table td button {
-        width: 140px;
-        margin: 2px;
-        vertical-align: middle;
-        text-align: center;
+@media (max-width: 1100px) {
+    .two-col,
+    .two-col.wide-aside {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .week-board {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        min-height: 0;
+    }
+
+    .unplanned {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-/* Mobil-stacked rows */
+@media (max-width: 900px) {
+    .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+        background: none;
+    }
+
+    .app-main {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: 260px;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform .22s cubic-bezier(.2, .8, .2, 1);
+        box-shadow: 0 0 40px rgba(28, 27, 26, .18);
+    }
+
+    .sidebar.is-open {
+        transform: none;
+    }
+
+    .tabbar {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 30;
+        display: flex;
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tabbar-item {
+        flex: 1;
+        flex-direction: column;
+        gap: 3px;
+        min-height: 62px;
+        padding: 8px 4px;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .tabbar-item:hover {
+        background: none;
+        border: 0;
+    }
+
+    .tabbar-item .icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .tabbar-item.is-active {
+        color: var(--brand);
+        font-weight: 700;
+    }
+
+    .standard {
+        padding: 20px 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-actions {
+        justify-content: flex-start;
+    }
+
+    .search-field {
+        width: 100%;
+    }
+
+    .today-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .home-hero h1 {
+        font-size: 32px;
+    }
+
+    .doc-addresses {
+        grid-template-columns: 1fr;
+    }
+
+    .document-page {
+        padding: 28px 20px;
+    }
+}
+
 @media (max-width: 700px) {
+    h1 {
+        font-size: 24px;
+    }
+
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .unplanned {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .decision-row {
+        grid-template-columns: 36px minmax(0, 1fr);
+    }
+
+    .decision-row > .page-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+    }
+
+    /* Tabeller bliver til kort, én række ad gangen */
+    .responsive-table {
+        border: 0;
+        background: transparent;
+    }
 
     .responsive-table thead {
         display: none;
@@ -31,75 +163,62 @@
 
     .responsive-table tr {
         display: block;
-        margin-bottom: 15px;
-        background: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
+        padding: 8px 14px;
     }
 
     .responsive-table td {
         display: flex;
         justify-content: space-between;
+        gap: 12px;
         padding: 6px 0;
-        border-bottom: none;
+        border-bottom: 0;
+        text-align: right;
     }
 
     .responsive-table td::before {
         content: attr(data-label);
-        font-weight: bold;
-        color: #555;
+        font-weight: 500;
+        color: var(--muted);
+        text-align: left;
     }
 
-    /* Knapper — kun mobil */
-    .responsive-table td button {
-        display: block;
-        width: 100%;
-        margin-top: 8px;
+    .responsive-table td.actions,
+    .responsive-table td[data-label="Handlinger"] {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 6px;
+        padding-top: 10px;
+        white-space: normal;
     }
 
-    /* --- HANDLINGER FIX --- */
-
-    /* Skjul label "Handlinger" i mobil */
-    .responsive-table td.actions::before {
-        content: "" !important;
+    .responsive-table td.actions::before,
+    .responsive-table td[data-label="Handlinger"]::before {
         display: none;
     }
 
-    /* Handlinger skal være stacked, ikke flex */
-    .responsive-table td.actions {
-        display: block;
-        padding: 10px 0;
+    .responsive-table td.actions button,
+    .responsive-table td[data-label="Handlinger"] button {
+        margin: 0;
     }
 
-    /* Knappen skal stå pænt alene */
-    .responsive-table td.actions button {
-        width: 100%;
-        margin-top: 0;
+    .hours-grid {
+        overflow-x: auto;
     }
+}
 
-    .customer-plans-table td[data-label="Handlinger"]::before {
-        content: "" !important;
+@media (prefers-reduced-motion: reduce) {
+    .sidebar {
+        transition: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .responsive-table td.hide-mobile {
         display: none;
     }
-
-    /* --- ANDRE MOBILREGLER --- */
-
-    .filter-row {
-        grid-template-columns: 1fr;
-    }
-
-    .index-page-nav {
-        padding: var(--space-2);
-    }
-
-    .nav-group {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .nav-group button {
-        width: 100%;
-    }
-
 }

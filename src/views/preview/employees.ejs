@@ -1,0 +1,43 @@
+<% const working = employees.filter(e => e.tone === 'ok').length; %>
+<article class="standard preview-page">
+    <%- include('_banner', { text: 'Medarbejdere med arbejdstid, timer og fravær er ikke bygget endnu. Brugerne selv administreres under Admin → Brugere.' }) %>
+
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Medarbejdere<span class="preview-badge">Preview</span></h1>
+            <span class="page-count"><%= employees.length %> i alt · <%= working %> på arbejde i dag</span>
+        </div>
+        <div class="page-actions">
+            <button type="button">Registrér fravær</button>
+            <button type="button" class="btn-primary" hx-get="/users" hx-target="#content"><%- icon('plus') %> Opret medarbejder</button>
+        </div>
+    </header>
+
+    <table class="data-table responsive-table">
+        <thead>
+        <tr>
+            <th>Medarbejder</th>
+            <th>Område</th>
+            <th>Arbejdstid</th>
+            <th>Uge 45</th>
+            <th>Køretid</th>
+            <th>I dag</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% employees.forEach(e => { const pct = Math.round((e.week[0] / e.week[1]) * 100); %>
+            <tr>
+                <td data-label="Medarbejder"><span class="person"><span class="avatar"><%= initials(e.name) %></span><%= e.name %></span></td>
+                <td data-label="Område"><%= e.area %></td>
+                <td data-label="Arbejdstid"><%= e.hours %></td>
+                <td data-label="Uge 45" style="min-width: 150px">
+                    <div style="font-size: 12px; font-weight: 600"><%= String(e.week[0]).replace('.', ',') %> af <%= e.week[1] %> t</div>
+                    <div class="progress" style="height: 4px; margin-top: 4px"><span style="width: <%= pct %>%"></span></div>
+                </td>
+                <td data-label="Køretid" class="muted"><%= e.drive %></td>
+                <td data-label="I dag"><span class="badge badge-<%= e.tone %>"><%= e.today %></span></td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+</article>

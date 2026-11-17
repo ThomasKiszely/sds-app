@@ -1,0 +1,55 @@
+<article class="standard preview-page" style="max-width: none">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div class="page-title-row" style="align-items: center">
+            <h1>Uge <%= planning.week %><span class="preview-badge">Preview</span></h1>
+            <span class="page-count"><%= planning.range %></span>
+            <button type="button" class="btn-small" aria-label="Forrige uge"><%- icon('chevron-left') %></button>
+            <button type="button" class="btn-small" aria-label="Næste uge"><%- icon('chevron-right') %></button>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/planning" hx-target="#content">Til beslutninger</button>
+            <button type="button">Send plan ud</button>
+            <button type="button" class="btn-primary"><%- icon('wand-sparkles') %> Fordel automatisk</button>
+        </div>
+    </header>
+
+    <p style="margin-bottom: 8px"><strong>Ikke planlagt</strong> <span class="muted" style="font-size: 12px"><%= planning.unplanned.length %> besøg · træk dem ind på tavlen, eller tryk Fordel automatisk</span></p>
+    <div class="unplanned">
+        <% planning.unplanned.forEach(([name, meta], i) => { %>
+            <div class="job <%= i === 0 ? 'is-selected' : '' %>"><strong><%= name %></strong><span><%= meta %></span></div>
+        <% }) %>
+    </div>
+
+    <div class="plan-board">
+        <div class="pb-head"></div>
+        <% planning.boardDays.forEach(([day, hours]) => { %>
+            <div class="pb-head"><%= day %> <span><%= hours %></span></div>
+        <% }) %>
+
+        <% planning.board.forEach(person => { %>
+            <div class="pb-person">
+                <span class="avatar"><%= initials(person.name) %></span>
+                <div><strong><%= person.name %></strong><span><%= person.meta %></span></div>
+            </div>
+            <% if (person.off) { %>
+                <div class="pb-off"><%= person.off %></div>
+            <% } else { %>
+                <% person.days.forEach((jobs, dayIndex) => { %>
+                    <div class="pb-cell <%= person.highlight === dayIndex ? 'is-highlight' : '' %>">
+                        <% jobs.forEach(job => { %>
+                            <% if (job.suggest) { %>
+                                <div class="job is-suggest">+ <%= job.suggest %></div>
+                            <% } else if (job.warn) { %>
+                                <div class="job is-warn"><strong><%= job.warn[0] %></strong><span><%= job.warn[1] %></span></div>
+                            <% } else { %>
+                                <div class="job"><strong><%= job[0] %></strong><span><%= job[1] %></span></div>
+                            <% } %>
+                        <% }) %>
+                    </div>
+                <% }) %>
+            <% } %>
+        <% }) %>
+    </div>
+</article>

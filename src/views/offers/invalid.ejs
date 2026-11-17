@@ -1,41 +1,27 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8">
-    <title>Ugyldigt link – SDS</title>
-
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/responsive.css">
+    <%- include('partials/publicHead') %>
+    <title>Linket virker ikke – SDS</title>
 </head>
 
 <body>
+<%- include('partials/publicHeader') %>
 
-<main id="content">
-    <article class="standard">
-
+<main id="content" class="public-wrap">
+    <article class="public-card">
+        <div class="result-icon is-bad"><%- icon('link-2-off') %></div>
         <h1>Linket virker ikke</h1>
+        <p class="page-sub">Tilbudslinket er ikke længere gyldigt. Det kan skyldes, at:</p>
 
-        <p>
-            Det ser ud til, at dette tilbudslink ikke længere er gyldigt.
-        </p>
-
-        <p>
-            Det kan skyldes at:
-        </p>
-
-        <ul>
-            <li>Linket er udløbet</li>
-            <li>Linket allerede er blevet brugt</li>
-            <li>Linket er forkert eller mangler</li>
+        <ul class="plain-list">
+            <li>linket er udløbet</li>
+            <li>tilbuddet allerede er accepteret</li>
+            <li>linket er forkert eller mangler en del</li>
         </ul>
 
-        <p>
-            Kontakt SDS, hvis du har brug for at få tilsendt et nyt link.
-        </p>
-
+        <p>Kontakt SDS, hvis du skal have et nyt link.</p>
     </article>
 </main>
-
 </body>
 </html>

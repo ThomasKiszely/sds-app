@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="Thomas BKJ">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="<%= csrfToken %>">
+    <meta name="theme-color" content="#F6F5F3">
 
-    <title>SDS prisberegner</title>
+    <title>SDS Drift</title>
 
+    <link rel="preload" href="/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/responsive.css">
@@ -21,21 +23,23 @@
 
 <body>
 
-<%- include('partials/topbar', { user }) %>
+<div class="app-shell">
+    <%- include('partials/sidebar', { user }) %>
 
-<main id="content">
-    <%- include('partials/indexContent', { user }) %>
+    <main id="content" class="app-main">
+        <%- include('partials/indexContent', { user }) %>
 
-    <% if (loadMe) { %>
-        <button id="__loadMeBtn"
-                style="display:none"
-                hx-get="/me"
-                hx-target="#content"
-                hx-swap="innerHTML"
-                hx-trigger="load">
-        </button>
-    <% } %>
-</main>
+        <% if (loadMe) { %>
+            <button id="__loadMeBtn"
+                    style="display:none"
+                    hx-get="/me"
+                    hx-target="#content"
+                    hx-swap="innerHTML"
+                    hx-trigger="load">
+            </button>
+        <% } %>
+    </main>
+</div>
 
 <!-- Toast containers -->
 <div id="toast-center"></div>
@@ -46,13 +50,14 @@
 
 <script src="/js/toast.js"></script>
 <script src="/js/history.js"></script>
-<script src="/js/topbar.js"></script>
+<script src="/js/shell.js"></script>
 <script src="/js/days.js"></script>
 <script src="/js/csrf.js"></script>
 <script src="/js/offer.js"></script>
 <script src="/js/rooms.js"></script>
 <script src="/js/scrollToLetter.js"></script>
 <script src="/js/editor.js"></script>
+<script src="/js/preview.js"></script>
 
 
 </body>

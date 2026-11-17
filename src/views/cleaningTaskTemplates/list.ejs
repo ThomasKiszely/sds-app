@@ -1,14 +1,20 @@
 <article class="standard tasks-page">
-    <h1>Opgave-skabeloner</h1>
-
-    <nav>
-        <div class="nav-group">
-        <button hx-get="/cleaningTaskTemplates/create" hx-target="#content">Opret skabelon</button>
-        <button hx-get="/cleaningTaskTemplates/archived" hx-target="#content">Arkiverede</button>
+    <header class="page-header">
+        <div>
+            <h1>Opgaver</h1>
+            <p class="page-sub">Skabeloner til opgaver og forbrugsvarer i prisberegningen.</p>
         </div>
-    </nav>
+        <div class="page-actions">
+            <button type="button" class="btn-primary" hx-get="/cleaningTaskTemplates/create" hx-target="#content"><%- icon('plus') %> Opret opgave</button>
+        </div>
+    </header>
+
+    <div class="tabs" data-toggle-group>
+        <button type="button" class="tab is-active" hx-get="/cleaningTaskTemplates" hx-target="#template-list">Aktive</button>
+        <button type="button" class="tab" hx-get="/cleaningTaskTemplates/archived" hx-target="#template-list">Arkiv</button>
+    </div>
 
     <section hx-get="/cleaningTaskTemplates" hx-trigger="load" hx-target="#template-list">
-        <div id="template-list">Indlæser...</div>
+        <div id="template-list"><div class="empty-state">Indlæser opgaver …</div></div>
     </section>
 </article>

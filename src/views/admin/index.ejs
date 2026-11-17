@@ -1,19 +1,28 @@
 <article class="standard admin-home-page">
-    <h1>Administration</h1>
-
-    <section class="card">
-        <h2>Brugere</h2>
-        <div class="me-page-text">
-            <p>Opret, nulstil kodeord og administrer roller.</p>
+    <header class="page-header">
+        <div>
+            <h1>Admin</h1>
+            <p class="page-sub">Priser gælder nye beregninger. Aktive aftaler ændres kun af indeksreguleringen 1. januar.</p>
         </div>
-        <button hx-get="/users" hx-target="#content">Administrer brugere</button>
-    </section>
+    </header>
 
-    <section class="card">
-        <h2>Systemindstillinger</h2>
-        <div class="me-page-text">
-            <p>Indeksregulering og globale parametre.</p>
-        </div>
-        <button hx-get="/admin/settings" hx-target="#content">Systemindstillinger</button>
-    </section>
+    <div class="home-grid">
+        <button type="button" class="home-card" hx-get="/admin/settings" hx-target="#content">
+            <%- icon('settings') %>
+            <span class="home-card-title">Priser</span>
+            <span class="home-card-text">Timepris, drift- og miljøtillæg og den årlige indeksregulering.</span>
+        </button>
+
+        <button type="button" class="home-card" hx-get="/users" hx-target="#content">
+            <%- icon('users') %>
+            <span class="home-card-title">Brugere</span>
+            <span class="home-card-text">Opret brugere, nulstil kodeord og styr roller.</span>
+        </button>
+
+        <button type="button" class="home-card is-preview" hx-get="/preview/customer-group/discount" hx-target="#content">
+            <%- icon('building-2') %>
+            <span class="home-card-title">Gruppe-rabat <span class="preview-badge">Preview</span></span>
+            <span class="home-card-text">Se hvad en rabat koster for hver bygning i en kundegruppe, før den gemmes.</span>
+        </button>
+    </div>
 </article>

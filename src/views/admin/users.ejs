@@ -1,125 +1,90 @@
-<article class="standard admin-user-create-page">
-    <h1>Brugere</h1>
+<article class="standard admin-users-page">
+    <button type="button" class="back-link" hx-get="/admin" hx-target="#content"><%- icon('arrow-left') %> Admin</button>
 
-    <button hx-get="/users/create" hx-target="#content">
-        Opret ny bruger
-    </button>
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Brugere</h1>
+            <span class="page-count"><%= users.filter(u => u.active).length %> aktive</span>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-primary" hx-get="/users/create" hx-target="#content"><%- icon('plus') %> Opret bruger</button>
+        </div>
+    </header>
 
-<table class="standard responsive-table">
-    <thead>
-    <tr>
-        <th scope="col">Brugernavn</th>
-        <th scope="col">Fulde navn</th>
-        <th scope="col">Stilling</th>
-        <th scope="col">Telefon</th>
-        <th scope="col">Email</th>
-        <th scope="col">Adresse</th>
-        <th scope="col">Rolle</th>
-        <th scope="col">Status</th>
-        <th scope="col">Handlinger</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    <% users.forEach(user => { %>
-
-        <% const isSelf = (sessionUserId && user._id.toString() === sessionUserId.toString()); %>
-
+    <table class="data-table responsive-table">
+        <thead>
         <tr>
-            <td data-label="Brugernavn"><%= user.userName %></td>
-            <td data-label="Fulde navn"><%= user.fullName %></td>
-            <td data-label="Stilling"><%= user.position || "-" %></td>
-            <td data-label="Telefon"><%= user.phoneNumber || "-" %></td>
-            <td data-label="Email"><%= user.email || "-" %></td>
-            <td data-label="Adresse"><%= user.address || "-" %></td>
+            <th scope="col">Navn</th>
+            <th scope="col">Brugernavn</th>
+            <th scope="col">Kontakt</th>
+            <th scope="col">Rolle</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="visually-hidden">Handlinger</span></th>
+        </tr>
+        </thead>
 
-            <td data-label="Rolle">
-                <% if (user.role === "admin") { %>
-                    <span class="badge badge-admin">Admin</span>
-                <% } else { %>
-                    <span class="badge badge-user">Bruger</span>
-                <% } %>
-            </td>
+        <tbody>
+        <% users.forEach(u => { %>
+            <% const isSelf = (sessionUserId && u._id.toString() === sessionUserId.toString()); %>
 
-            <td data-label="Status">
-                <% if (user.active) { %>
-                    <span class="badge badge-active">Aktiv</span>
-                <% } else { %>
-                    <span class="badge badge-inactive">Deaktiveret</span>
-                <% } %>
-            </td>
+            <tr>
+                <td data-label="Navn">
+                    <span class="person">
+                        <span class="avatar"><%= initials(u.fullName || u.userName) %></span>
+                        <span>
+                            <strong><%= u.fullName %></strong><% if (isSelf) { %> <span class="tag">Dig</span><% } %>
+                            <% if (u.position) { %><div class="list-row-sub"><%= u.position %></div><% } %>
+                        </span>
+                    </span>
+                </td>
+                <td data-label="Brugernavn" class="muted"><%= u.userName %></td>
+                <td data-label="Kontakt">
+                    <%= u.phoneNumber || "–" %>
+                    <% if (u.email) { %><div class="list-row-sub"><%= u.email %></div><% } %>
+                </td>
+                <td data-label="Rolle"><%= u.role === "admin" ? "Admin" : "Bruger" %></td>
+                <td data-label="Status">
+                    <% if (!u.active) { %>
+                        <span class="badge badge-inactive">Deaktiveret</span>
+                    <% } else if (u.mustChangePassword) { %>
+                        <span class="badge badge-warn">Skal skifte kodeord</span>
+                    <% } else { %>
+                        <span class="badge badge-active">Aktiv</span>
+                    <% } %>
+                </td>
 
-            <td class="actions" data-label="Handlinger">
-                <!-- Rediger bruger -->
-                <button hx-get="/users/<%= user._id %>/edit"
-                        hx-target="#content">
-                    Rediger
-                </button>
-
-                <!-- Nulstil kodeord — skjul for brugeren selv -->
-                <% if (!isSelf) { %>
-                    <button hx-patch="/users/<%= user._id %>/reset-password"
-                            hx-target="#content">
-                        Nulstil kodeord
-                    </button>
-                <% } %>
-
-                <!-- Deaktivér / Aktivér -->
-                <% if (user.active) { %>
+                <td class="actions" data-label="Handlinger">
+                    <button class="btn-small" hx-get="/users/<%= u._id %>/edit" hx-target="#content">Rediger</button>
 
                     <% if (!isSelf) { %>
-                        <button hx-delete="/users/<%= user._id %>"
-                                hx-target="#content"
-                                hx-confirm="Deaktivér bruger?">
-                            Deaktivér
-                        </button>
+                        <button class="btn-small" hx-patch="/users/<%= u._id %>/reset-password" hx-target="#content">Nulstil kodeord</button>
+
+                        <% if (u.role !== "admin") { %>
+                            <button class="btn-small" hx-patch="/users/<%= u._id %>/role" hx-target="#content" hx-vals='{"role": "admin"}'>Gør til admin</button>
+                        <% } else { %>
+                            <button class="btn-small" hx-patch="/users/<%= u._id %>/role" hx-target="#content" hx-vals='{"role": "user"}'>Gør til bruger</button>
+                        <% } %>
+                    <% } %>
+
+                    <% if (u.active) { %>
+                        <% if (!isSelf) { %>
+                            <button class="btn-small btn-ghost" hx-delete="/users/<%= u._id %>" hx-target="#content" hx-confirm="Deaktivér bruger?">Deaktivér</button>
+                        <% } %>
                     <% } else { %>
-                        <span class="badge badge-warning"></span>
+                        <button class="btn-small" hx-patch="/users/<%= u._id %>/reactivate" hx-target="#content">Aktivér</button>
                     <% } %>
 
-                <% } else { %>
-                    <button hx-patch="/users/<%= user._id %>/reactivate"
-                            hx-target="#content">
-                        Aktivér
-                    </button>
-                <% } %>
-
-                <!-- Rolleændring -->
-                <% if (!isSelf) { %>
-
-                    <% if (user.role !== "admin") { %>
-                        <button hx-patch="/users/<%= user._id %>/role"
+                    <% if (!isSelf) { %>
+                        <button class="btn-small btn-ghost btn-danger"
+                                hx-delete="/users/<%= u._id %>/permanent"
                                 hx-target="#content"
-                                hx-vals='{"role": "admin"}'>
-                            Gør til admin
+                                hx-confirm="Slet bruger permanent? Dette kan ikke fortrydes.">
+                            Slet helt
                         </button>
                     <% } %>
-
-                    <% if (user.role !== "user") { %>
-                        <button hx-patch="/users/<%= user._id %>/role"
-                                hx-target="#content"
-                                hx-vals='{"role": "user"}'>
-                            Gør til bruger
-                        </button>
-                    <% } %>
-
-                <% } else { %>
-                    <span class="badge badge-info"></span>
-                <% } %>
-
-                <!-- Slet permanent — skjul for brugeren selv -->
-                <% if (!isSelf) { %>
-                    <button hx-delete="/users/<%= user._id %>/permanent"
-                            hx-target="#content"
-                            hx-confirm="Slet bruger permanent? Dette kan ikke fortrydes.">
-                        Slet helt
-                    </button>
-                <% } %>
-
-            </td>
-        </tr>
-
-    <% }) %>
-    </tbody>
-</table>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
 </article>
