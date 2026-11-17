@@ -4,7 +4,7 @@ const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../
 function validateUserUpdate(req, res, next) {
     const { fullName, role, position, phoneNumber, email, address } = req.body;
 
-    const forbidden = /[<>\/\\{}$]/;
+    const forbidden = /[<>/\\{}$]/;
 
     // --- fullName ---
     if (fullName !== undefined) {

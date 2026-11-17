@@ -1,5 +1,4 @@
 const cleaningPlanService = require('../services/cleaningPlanService');
-const cleaningTaskService = require('../services/cleaningTaskService');
 const locationService = require('../services/locationService');
 const customerService = require('../services/customerService');
 const pdfService = require('../services/pdfService');

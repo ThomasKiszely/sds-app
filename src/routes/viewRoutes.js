@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { requireLogin } = require('../middlewares/requireLogin');
 const { requireAdmin } = require('../middlewares/requireAdmin');
-const { categoryTypes, categoryLabels } = require('../utils/categoryEnum');
-const { units, unitsLabels } = require('../utils/unitEnum');
 
 
 // LOGIN (public)

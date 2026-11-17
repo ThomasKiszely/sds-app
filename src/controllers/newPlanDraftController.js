@@ -1,19 +1,13 @@
 // controllers/newPlanDraftController.js
 
 const newPlanDraftService = require("../services/newPlanDraftService");
-const roomTemplateService = require("../services/roomTemplateService");
 const customerService = require("../services/customerService");
 const locationService = require("../services/locationService");
-const cleaningTaskTemplateService = require("../services/cleaningTaskTemplateService");
 const offerService = require("../services/offerService");
 
 
-const { daysLabels } = require("../utils/dayEnum");
-const { frequencyLabels } = require("../utils/frequencyEnum");
-const { categoryLabels, categoryTypes } = require("../utils/categoryEnum");
-const { units, unitsLabels } = require("../utils/unitEnum");
-const { paymentTerms, paymentTermLabels } = require("../utils/paymentTerms");
-const { terminationNotice, terminationNoticeLabels } = require("../utils/terminationNotice");
+const { paymentTerms } = require("../utils/paymentTerms");
+const { terminationNotice } = require("../utils/terminationNotice");
 const systemSettingsService = require("../services/systemSettingsService");
 const { assertEnvironmentalFee } = require("../utils/settingsGuard");
 
@@ -383,11 +377,11 @@ async function saveAsDraftOffer(req, res) {
 
     newPlanDraftService.priceAllTasks(draft);
 
-    const { plan } = await newPlanDraftService.finalizePlan(draft);
+    await newPlanDraftService.finalizePlan(draft);
 
     req.session.planDraft = draft;
 
-    const vm = newPlanDraftService.buildOffer(draft);
+    newPlanDraftService.buildOffer(draft);
 
     res.setHeader("HX-Trigger", JSON.stringify({ toast: "Tilbud gemt som kladde" }));
 
