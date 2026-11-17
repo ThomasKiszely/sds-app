@@ -33,14 +33,17 @@ Når CI er grøn og en anden har kigget på PR'en, merges den til `develop`.
 
 Workflowet ligger i `.github/workflows/ci.yml` og kører på alle PR'er og pushes til `develop` og `master`.
 
-- **Unit tests.** `npm ci` (fejler hvis `package-lock.json` ikke passer til `package.json`), syntakstjek af alle `.js`-filer og `vitest run`.
+- **Lint + templates.** ESLint (`eslint.config.js`) fanger syntaksfejl, variabler der bruges uden at være importeret, og ubrugt kode. Derefter kompileres alle `.ejs`-filer, så en fejl i en template stopper PR'en i stedet for at give en 500 i produktion. `npm ci` fejler også her, hvis `package-lock.json` ikke passer til `package.json`.
+- **Unit tests.** `vitest run`.
 - **Smoke test.** Starter serveren mod en tom MongoDB og tjekker at `/login` svarer 200, og at `/` og `/admin` sender ikke-loggede brugere til login. Fanger fejl som manglende moduler, forkerte requires og crash ved opstart.
 - **Sikkerhedsaudit.** `npm audit` på produktionsafhængigheder. Fejler ved sårbarheder med niveau high eller critical.
 
 Kør det samme lokalt før du pusher:
 
 ```bash
-npx vitest run
+npm run lint
+npm run check:templates
+npm run test:run
 npm audit --omit=dev --audit-level=high
 ```
 

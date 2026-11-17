@@ -4,7 +4,7 @@ const { normalizeAddress, hasZipAndCity, ADDRESS_FORMAT_MESSAGE } = require("../
 function validateLocation(req, res, next) {
     const { name, address, contactPerson } = req.body;
 
-    const forbidden = /[<>\/\\{}$]/;
+    const forbidden = /[<>/\\{}$]/;
 
     // --- name ---
     if (name !== undefined) {

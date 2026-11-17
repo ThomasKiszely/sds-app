@@ -4,7 +4,7 @@ const { bundleTypes } = require("../utils/bundleType");
 function validateRoomTemplate(req, res, next) {
     const { name, defaultSize, bundleType, daily, floor, inventory } = req.body;
 
-    const forbidden = /[<>\/\\{}$]/;
+    const forbidden = /[<>/\\{}$]/;
 
     // --- name ---
     if (name !== undefined) {

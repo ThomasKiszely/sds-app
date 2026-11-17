@@ -6,7 +6,10 @@
   "scripts": {
     "test": "vitest",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "lint": "eslint .",
+    "check:templates": "node scripts/check-templates.js",
+    "test:run": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +30,9 @@
     "puppeteer": "^25.8.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.14.0",
     "nodemon": "^3.1.14",
     "vitest": "^4.1.11"
   },

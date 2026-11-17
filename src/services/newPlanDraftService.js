@@ -4,7 +4,6 @@ const cleaningTaskTemplateService = require("./cleaningTaskTemplateService");
 const cleaningPlanService = require("./cleaningPlanService");
 const cleaningTaskService = require("./cleaningTaskService");
 const roomTemplateService = require("../services/roomTemplateService");
-const systemSettingsService = require("../services/systemSettingsService");
 const customerService = require("./customerService");
 
 const { calculateTaskPrice, calculateTotals } = require("./priceService");

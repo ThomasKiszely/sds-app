@@ -14,7 +14,7 @@ function validateCreateUser(req, res, next) {
     if (userName.length > 50) {
         return next(new Error("Brugernavn er for langt"));
     }
-    const forbidden = /[<>\/\\{}$]/;
+    const forbidden = /[<>/\\{}$]/;
     if (forbidden.test(userName)) {
         return next(new Error("Brugernavn indeholder ugyldige tegn"));
     }
@@ -29,7 +29,7 @@ function validateCreateUser(req, res, next) {
     if (fullName.length > 100) {
         return next(new Error("Fuldt navn er for langt"));
     }
-    const forbiddenName = /[<>\/\\{}$]/;
+    const forbiddenName = /[<>/\\{}$]/;
     if (forbiddenName.test(fullName)) {
         return next(new Error("Fuldt navn indeholder ugyldige tegn"));
     }

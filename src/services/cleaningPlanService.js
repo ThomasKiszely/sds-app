@@ -1,7 +1,7 @@
 const cleaningPlanRepo = require('../data/cleaningPlanRepo');
 const cleaningTaskRepo = require('../data/cleaningTaskRepo');
 const systemSettingsRepo = require('../data/systemSettingsRepo');
-const { ensureExists, userError } = require("../utils/userError");
+const { ensureExists } = require("../utils/userError");
 const { calculateTaskPrice, calculateTotals } = require("../services/priceService");
 const { assertHourlyRate, assertEnvironmentalFee, assertInflationRate } = require("../utils/settingsGuard");
 const { categoryTypes } = require("../utils/categoryEnum");
