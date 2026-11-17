@@ -1,216 +1,135 @@
-<article class="standard wizard-step">
+<%
+    const fmt = (n, d = 0) => Number(n || 0).toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayShort = { monday: 'man', tuesday: 'tir', wednesday: 'ons', thursday: 'tor', friday: 'fre', saturday: 'lør', sunday: 'søn' };
+    const describeDays = (days) => {
+        const sorted = dayOrder.filter(d => days.includes(d));
+        if (sorted.join() === 'monday,tuesday,wednesday,thursday,friday') return 'Man–fre';
+        const text = sorted.map(d => dayShort[d]).join(', ');
+        return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+    };
+    const countLabel = (n, one, many) => n + ' ' + (n === 1 ? one : many);
 
-    <h2>Tilbud (kladde)</h2>
-    <p class="wizard-subtitle"><em>Dette er en kladde. Intet er gemt endnu.</em></p>
+    const monthlyTasks = tasks.filter(t => t.monthlyPrice > 0);
+    const perTimeTasks = tasks.filter(t => t.monthlyPrice === 0 && t.category !== categoryTypes.consumables);
+    const consumables = tasks.filter(t => t.category === categoryTypes.consumables);
 
-    <section class="offer-summary">
+    // Faste månedlige opgaver samlet pr. lokale; opgaver uden lokale står hver for sig
+    const roomRows = new Map();
+    const noRoomRows = [];
+    monthlyTasks.forEach(t => {
+        const room = t.roomName && t.roomName.trim();
+        if (!room) {
+            noRoomRows.push({ name: t.name, sub: frequencyLabels[t.frequency] || '', price: t.monthlyPrice });
+            return;
+        }
+        if (!roomRows.has(room)) roomRows.set(room, { name: room, days: new Set(), count: 0, price: 0 });
+        const row = roomRows.get(room);
+        row.count += 1;
+        row.price += t.monthlyPrice;
+        (t.days || []).forEach(d => row.days.add(d));
+    });
+    roomRows.forEach(r => {
+        r.sub = [describeDays([...r.days]), countLabel(r.count, 'opgave', 'opgaver')].filter(Boolean).join(' · ');
+    });
+    const monthlyRows = [...roomRows.values(), ...noRoomRows];
 
-        <h3>Samlet månedlig pris</h3>
-        <p class="plan-total">
-            <strong><%= monthlyTotal.toFixed(2) %> kr./måned</strong>
-        </p>
+    const contact = customer && customer.contactPerson ? customer.contactPerson : null;
+    const canSave = Boolean(customer);
+    const title = location ? 'Tilbud på ' + location.name : 'Tilbud';
+%>
+<article class="standard pb-offer">
+    <header class="page-header">
+        <div>
+            <h1><%= title %></h1>
+            <p class="page-sub"><%= customer ? customer.customerName + ' · ' : '' %>Kladde, kunden kan ikke se det endnu</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/newPlanDraft/summary" hx-target="#content">Tilbage til justeringer</button>
+            <button type="button"
+                    hx-post="/newPlanDraft/saveAsDraftOffer"
+                    hx-target="#content"
+                    hx-swap="innerHTML show:window:top"
+                    <%= canSave ? '' : 'disabled' %>>
+                Gem som kladde
+            </button>
+            <button type="button"
+                    class="btn-primary"
+                    hx-post="/newPlanDraft/finalize"
+                    hx-target="#content"
+                    hx-swap="innerHTML show:window:top"
+                    <%= canSave ? '' : 'disabled' %>>
+                <%- icon('file-check') %> Opret endeligt tilbud
+            </button>
+        </div>
+    </header>
 
-        <hr>
+    <% if (!canSave) { %>
+        <div class="notice" style="margin-bottom: 14px"><%- icon('info') %> Vælg en kunde i Hurtig beregning, før tilbuddet kan gemmes.</div>
+    <% } %>
 
-        <%
-        // FAST MÅNEDLIG PRIS
-        const monthlyTasks = tasks.filter(t => t.monthlyPrice > 0);
-
-        // PRIS PR GANG
-        const perTimeTasks = tasks.filter(t =>
-                t.monthlyPrice === 0 &&
-                t.category !== categoryTypes.consumables
-        );
-
-        // FORBRUGSVARER
-        const consumables = tasks.filter(t => t.category === categoryTypes.consumables);
-
-        // SDS grupperet pr rum
-        const rooms = {};
-        monthlyTasks.forEach(t => {
-            if (t.roomName && t.roomName.trim() !== "") {
-                if (!rooms[t.roomName]) rooms[t.roomName] = [];
-                rooms[t.roomName].push(t);
-            }
-        });
-        %>
-
-        <!-- FAST MÅNEDLIG PRIS – SDS pr rum -->
-        <% if (Object.keys(rooms).length > 0) { %>
-            <section>
-                <h3>Fast månedlig pris – SDS</h3>
-
-                <% Object.keys(rooms).forEach(room => { %>
-                    <h4><%= room %></h4>
-
-                    <ul>
-                        <% rooms[room].forEach(t => { %>
-                            <li>
-                                <strong><%= t.name %></strong>
-
-                                <div>
-                                    <% (t.days || []).forEach(d => { %>
-                                        <%= daysLabels[d] %>
-                                    <% }) %>
-                                    – <%= frequencyLabels[t.frequency] %>
-                                </div>
-
-                                <div>
-                                    <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
-                                </div>
-
-                                <% if (t.description && t.description.trim().length > 0) { %>
-                                    <div><em><%= t.description %></em></div>
-                                <% } %>
-                            </li>
-                        <% }) %>
-                    </ul>
-
-                    <hr>
+    <div class="two-col">
+        <section class="card pb-offer-lines">
+            <% if (monthlyRows.length > 0) { %>
+                <h2 class="pb-offer-group">Fast månedlig pris</h2>
+                <% monthlyRows.forEach(r => { %>
+                    <div class="pb-offer-line">
+                        <div><strong><%= r.name %></strong><% if (r.sub) { %><span><%= r.sub %></span><% } %></div>
+                        <span class="pb-offer-amount"><%= fmt(r.price) %> kr./md.</span>
+                    </div>
                 <% }) %>
-            </section>
-        <% } %>
-
-        <!-- FAST MÅNEDLIG PRIS – opgaver uden rum -->
-        <%
-        const monthlyNoRoom = monthlyTasks.filter(t =>
-                !t.roomName || t.roomName.trim() === ""
-        );
-        %>
-
-        <% if (monthlyNoRoom.length > 0) { %>
-            <section>
-                <h3>Fast månedlig pris – øvrige opgaver</h3>
-
-                <ul>
-                    <% monthlyNoRoom.forEach(t => { %>
-                        <li>
-                            <strong><%= t.name %></strong>
-                            – <%= frequencyLabels[t.frequency] %>
-                            – <strong><%= t.monthlyPrice.toFixed(2) %> kr./måned</strong>
-
-                            <% if (t.description && t.description.trim().length > 0) { %>
-                                <div><em><%= t.description %></em></div>
-                            <% } %>
-                        </li>
-                    <% }) %>
-                </ul>
-
-                <hr>
-            </section>
-        <% } %>
-
-        <!-- PRIS PR GANG -->
-        <% if (perTimeTasks.length > 0) { %>
-            <section>
-                <h3>Pris pr gang – Vinduer / Efter aftale / Ad hoc / Ekstra</h3>
-
-                <ul>
-                    <% perTimeTasks.forEach(t => { %>
-
-                        <%
-                            // pricePerOccurrence = pris pr. gang (customPrice eller beregnet).
-                            // totalPrice er kun månedlig pris og er altid 0 for opgaver uden fast månedspris.
-                            const price = Number(t.pricePerOccurrence || t.pricePerTime || t.customPrice || 0);
-                        %>
-
-                        <li>
-                            <strong><%= t.name %></strong>
-                            – <%= frequencyLabels[t.frequency] %>
-                            – <strong><%= price.toFixed(2) %> kr pr gang</strong>
-
-                            <% if (t.description && t.description.trim().length > 0) { %>
-                                <div><em><%= t.description %></em></div>
-                            <% } %>
-                        </li>
-
-                    <% }) %>
-                </ul>
-
-                <hr>
-            </section>
-        <% } %>
-
-        <!-- FORBRUGSVARER -->
-        <% if (consumables.length > 0) { %>
-            <section>
-                <h3>Tilkøb – Forbrugsvarer</h3>
-
-                <ul>
-                    <% consumables.forEach(c => { %>
-                        <li>
-                            <strong><%= c.name %></strong>
-                             <%= (c.customPrice ?? 0).toFixed(2) %> kr pr stk
-
-                            <% if (c.description && c.description.trim().length > 0) { %>
-                                <div><em><%= c.description %></em></div>
-                            <% } %>
-                        </li>
-                    <% }) %>
-                </ul>
-
-                <p><em>Faktureres efter forbrug</em></p>
-
-                <hr>
-            </section>
-        <% } %>
-
-        <!-- Totalpris -->
-        <div class="price-box">
-            <h3>Prisberegning</h3>
-
-            <div class="price-line">
-                <span>Grundpris</span>
-                <strong><%= monthlyTotal.toFixed(2) %> kr.</strong>
-            </div>
-
-            <% if (discounts.discountPercent > 0) { %>
-                <div class="price-line">
-                    <span>Rabat (<%= discounts.discountPercent %>%)</span>
-                    <strong>- <%= discountAmount.toFixed(2) %> kr.</strong>
-                </div>
             <% } %>
 
-            <div class="price-line">
-                <span>Drift- og miljøtillæg (<%= environment.environmentalFeePercent || 0 %>%)</span>
-                <strong>+ <%= environmentalFeeAmount.toFixed(2) %> kr.</strong>
-            </div>
+            <% if (perTimeTasks.length > 0) { %>
+                <h2 class="pb-offer-group">Pris pr. gang, vinduer og ekstra</h2>
+                <% perTimeTasks.forEach(t => {
+                    // pricePerOccurrence er prisen pr. gang (customPrice eller beregnet)
+                    const price = Number(t.pricePerOccurrence || t.pricePerTime || t.customPrice || 0);
+                %>
+                    <div class="pb-offer-line">
+                        <div><strong><%= t.name %></strong><span><%= frequencyLabels[t.frequency] || '' %><%= t.roomName ? ' · ' + t.roomName : '' %></span></div>
+                        <span class="pb-offer-amount"><%= fmt(price, price % 1 ? 2 : 0) %> kr. pr. gang</span>
+                    </div>
+                <% }) %>
+            <% } %>
 
-            <hr>
+            <% if (consumables.length > 0) { %>
+                <h2 class="pb-offer-group">Forbrugsvarer, faktureres efter forbrug</h2>
+                <% consumables.forEach(c => { const price = Number(c.customPrice ?? 0); %>
+                    <div class="pb-offer-line">
+                        <div><strong><%= c.name %></strong></div>
+                        <span class="pb-offer-amount"><%= fmt(price, price % 1 ? 2 : 0) %> kr. pr. stk.</span>
+                    </div>
+                <% }) %>
+            <% } %>
 
-            <div class="price-total">
-                <span>Total</span>
-                <strong><%= finalTotal.toFixed(2) %> kr./måned</strong>
-            </div>
-        </div>
+            <% if (tasks.length === 0) { %>
+                <div class="empty-state">Planen har ingen opgaver endnu. Gå tilbage og tilføj lokaler.</div>
+            <% } %>
+        </section>
 
+        <aside class="stack">
+            <section class="card">
+                <div class="stat-label">Total pr. måned, ekskl. moms</div>
+                <div class="big-number" style="margin-bottom: 10px"><%= fmt(finalTotal, 2) %> kr.</div>
+                <div class="kv"><span class="k">Grundpris</span><span class="v"><%= fmt(monthlyTotal, 2) %> kr.</span></div>
+                <% if (discounts && discounts.discountPercent > 0) { %>
+                    <div class="kv neg"><span class="k">Rabat <%= discounts.discountPercent %> %</span><span class="v">−<%= fmt(discountAmount, 2) %> kr.</span></div>
+                <% } %>
+                <div class="kv"><span class="k">Drift- og miljøtillæg <%= (environment && environment.environmentalFeePercent) || 0 %> %</span><span class="v"><%= fmt(environmentalFeeAmount, 2) %> kr.</span></div>
+                <div class="divider"></div>
+                <div class="kv"><span class="k">Betaling</span><span class="v"><%= (operations && paymentTermLabels[operations.paymentTerms]) || '–' %></span></div>
+                <div class="kv"><span class="k">Opsigelse</span><span class="v"><%= (operations && terminationNoticeLabels[operations.terminationNotice]) || '–' %></span></div>
+            </section>
 
-    </section>
-
-    <hr>
-
-    <!-- KNAPPER -->
-    <div class="wizard-actions">
-        <button class="button-secondary"
-                hx-get="/newPlanDraft/summary"
-                hx-target="#content">
-            Tilbage til justeringer
-        </button>
-
-        <button class="button-secondary"
-                hx-post="/newPlanDraft/saveAsDraftOffer"
-                hx-target="#content"
-                hx-swap="innerHTML show:window:top">
-            Gem som tilbud (kladde)
-        </button>
-
-        <button class="button-secondary"
-                hx-post="/newPlanDraft/finalize"
-                hx-target="#content"
-                hx-swap="innerHTML show:window:top">
-            Gem og opret endeligt tilbud
-        </button>
+            <% if (contact) { %>
+                <section class="card">
+                    <div class="stat-label">Sendes til</div>
+                    <div style="font-weight: 600; margin: 4px 0 2px"><%= contact.name %></div>
+                    <div class="muted" style="font-size: 13px"><%= contact.email %></div>
+                    <p class="muted" style="font-size: 12px; margin: 10px 0 0">Kunden får tilbuddet som PDF på mail med et acceptlink. Status skifter her, når kunden har accepteret.</p>
+                </section>
+            <% } %>
+        </aside>
     </div>
-
-
 </article>

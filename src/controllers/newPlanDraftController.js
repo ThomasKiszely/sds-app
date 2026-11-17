@@ -210,10 +210,11 @@ function removeRoom(req, res) {
 }
 
 function updateRoom(req, res) {
-    const { oldRoomName, roomName, size } = req.body;
+    // Editoren sender newRoomName (samme felt som ved eksisterende planer)
+    const { oldRoomName, newRoomName, roomName, size } = req.body;
     const draft = req.session.planDraft;
 
-    newPlanDraftService.updateRoomInDraft(draft, oldRoomName, roomName, size);
+    newPlanDraftService.updateRoomInDraft(draft, oldRoomName, newRoomName ?? roomName, size);
     return step4_summary(req, res);
 }
 
@@ -328,10 +329,25 @@ function updateRoomNotes(req, res) {
 
 
 // STEP 6: Tilbud — ingen prislogik
-function step6_offer(req, res) {
-    newPlanDraftService.priceAllTasks(req.session.planDraft);
+async function step6_offer(req, res) {
+    return renderOffer(req, res);
+}
 
-    const vm = newPlanDraftService.buildOffer(req.session.planDraft);
+// Tilbudskladden: priser fra draft'en plus kunde og bygning til overskriften
+async function renderOffer(req, res) {
+    const draft = req.session.planDraft;
+    newPlanDraftService.priceAllTasks(draft);
+
+    const vm = newPlanDraftService.buildOffer(draft);
+
+    vm.customer = null;
+    vm.location = null;
+    try {
+        if (draft.customerId) vm.customer = await customerService.getCustomerById(draft.customerId);
+        if (draft.locationId) vm.location = await locationService.getLocationById(draft.locationId);
+    } catch (e) {
+        console.error("Kunne ikke hente kunde eller bygning til tilbud:", e.message);
+    }
 
     return res.render("newPlanDraft/offer", vm);
 }
@@ -404,13 +420,7 @@ async function saveAsDraftOffer(req, res) {
 
 // Offer snapshot — ingen prislogik
 function generateOffer(req, res) {
-    const draft = req.session.planDraft;
-
-    newPlanDraftService.priceAllTasks(draft);
-
-    const vm = newPlanDraftService.buildOffer(draft);
-
-    return res.render("newPlanDraft/offer", vm);
+    return renderOffer(req, res);
 }
 
 
