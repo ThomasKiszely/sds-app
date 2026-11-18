@@ -1,0 +1,30 @@
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <section class="card centered-card">
+        <h1>God bedring, <%= cleaner.name.split(' ')[0] %><span class="preview-badge">Preview</span></h1>
+        <p class="page-sub">Vi giver kontoret besked med det samme.</p>
+
+        <h3 style="margin-top: 18px">Hvor længe regner du med at være væk?</h3>
+        <div class="choice-row" data-toggle-group>
+            <button type="button" class="is-active">I dag</button>
+            <button type="button">I morgen</button>
+            <button type="button">Ved ikke</button>
+        </div>
+
+        <h3 style="margin-top: 18px">Dine besøg i dag</h3>
+        <div class="list">
+            <% sick.visits.forEach(visit => { %>
+                <div class="list-row" style="min-height: 42px">
+                    <div class="list-row-main"><%= visit.time %> · <%= visit.name %></div>
+                    <span class="badge badge-<%= visit.tone %>"><%= visit.status %></span>
+                </div>
+            <% }) %>
+        </div>
+
+        <div class="choice-row" style="margin-top: 14px">
+            <button type="button" hx-get="/preview/cleaning/today" hx-target="#content">Fortryd</button>
+            <button type="button" class="btn-primary"><%- icon('send') %> Meld syg</button>
+        </div>
+    </section>
+</article>

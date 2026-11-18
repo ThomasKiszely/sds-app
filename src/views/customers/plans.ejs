@@ -1,51 +1,59 @@
-<article class="standard">
+<article class="standard customer-plans-page">
+    <button type="button" class="back-link" hx-get="/customers/<%= customerId %>/details" hx-target="#content"><%- icon('arrow-left') %> Kunde</button>
 
-    <h1>Rengøringsplaner for kunde</h1>
-
-    <nav class="nav-group">
-        <button
-                hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
-                hx-target="#content">
-            Opret ny rengøringsplan
-        </button>
-    </nav>
+    <header class="page-header">
+        <div>
+            <h1>Planer og tilbud</h1>
+            <p class="page-sub">Rengøringsplaner for kundens bygninger, med tilbud og kontrakt.</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-primary"
+                    hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
+                    hx-target="#content">
+                <%- icon('plus') %> Ny rengøringsplan
+            </button>
+        </div>
+    </header>
 
     <% if (plans.length === 0) { %>
 
-        <p>Der er endnu ingen rengøringsplaner for denne kunde.</p>
-
-        <button
-                hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
-                hx-target="#content">
-            Opret ny rengøringsplan
-        </button>
+        <div class="empty-state">
+            Der er endnu ingen rengøringsplaner for denne kunde.
+            <div style="margin-top: 10px">
+                <button type="button" class="btn-small"
+                        hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
+                        hx-target="#content">
+                    <%- icon('plus') %> Opret rengøringsplan
+                </button>
+            </div>
+        </div>
 
     <% } else { %>
 
-        <table class="responsive-table customer-plans-table">
+        <table class="data-table responsive-table customer-plans-table">
             <thead>
             <tr>
-                <th>Navn</th>
-                <th>Pris</th>
+                <th>Bygning og plan</th>
+                <th class="num">Pr. måned</th>
                 <th>Status</th>
-                <th>Handlinger</th>
+                <th>Tilbud og kontrakt</th>
+                <th><span class="visually-hidden">Handlinger</span></th>
             </tr>
             </thead>
 
             <tbody>
             <% plans.forEach(plan => { %>
                 <tr>
-                    <td data-label="Navn">
-                        <strong><%= plan.location.name %></strong><br>
-                        <%= plan.name %><br>
-                        <small><%= plan.location.address %></small>
+                    <td data-label="Bygning">
+                        <a href="#" class="row-link" hx-get="/cleaningPlans/<%= plan._id %>/view" hx-target="#content"><%= plan.location.name %></a>
+                        <div class="list-row-sub"><%= plan.name %> · <%= plan.location.address %></div>
                     </td>
 
-                    <td data-label="Pris">
-                        <%= plan.totalMonthlyPrice.toLocaleString("da-DK", {
+                    <td data-label="Pr. måned" class="num">
+                        <strong><%= plan.totalMonthlyPrice.toLocaleString("da-DK", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                        }) %> kr
+                        }) %> kr.</strong>
                     </td>
 
                     <td data-label="Status">
@@ -56,82 +64,62 @@
                         <% } %>
                     </td>
 
-                    <td data-label="Handlinger">
-
-                        <!-- SE PLAN -->
-                        <button class="btn btn-fixed"
-                                hx-get="/cleaningPlans/<%= plan._id %>/view"
-                                hx-target="#content">
-                            Se plan
-                        </button>
-
-                        <button class="btn btn-fixed"
-                                hx-get="/newPlan/<%= plan._id %>/editor"
-                                hx-target="#content">
-                            Rediger plan
-                        </button>
-
-
-
-                        <!-- TILBUD -->
+                    <td data-label="Tilbud">
                         <% if (plan.offerId) { %>
-                            <button class="btn btn-fixed"
+                            <button class="btn-small"
                                     hx-get="/offers/<%= plan.offerId %>/view"
                                     hx-target="#content">
                                 Se tilbud
                             </button>
+                            <% if (plan.contract) { %>
+                                <button class="btn-small"
+                                        hx-get="/contracts/<%= plan.contract._id %>/view"
+                                        hx-target="#content">
+                                    <%- icon('file-check') %> Se kontrakt
+                                </button>
+                            <% } else { %>
+                                <span class="badge badge-warn">Ikke accepteret</span>
+                            <% } %>
+                        <% } else if (plan.contract) { %>
+                            <button class="btn-small"
+                                    hx-get="/contracts/<%= plan.contract._id %>/view"
+                                    hx-target="#content">
+                                <%- icon('file-check') %> Se kontrakt
+                            </button>
                         <% } else { %>
-                            <button class="btn btn-fixed"
+                            <button class="btn-small"
                                     hx-post="/offers/plans/<%= plan._id %>"
                                     hx-target="#content">
                                 Opret tilbud
                             </button>
                         <% } %>
+                    </td>
 
+                    <td data-label="Handlinger">
+                        <button class="btn-small"
+                                hx-get="/newPlan/<%= plan._id %>/editor"
+                                hx-target="#content">
+                            Rediger plan
+                        </button>
 
-                        <!-- KONTRAKT -->
-                        <% if (plan.contract) { %>
-                            <button class="btn btn-fixed"
-                                    hx-get="/contracts/<%= plan.contract._id %>/view"
-                                    hx-target="#content">
-                                Se kontrakt
-                            </button>
-                        <% } else { %>
-                            <button class="btn btn-fixed btn-warning" disabled>
-                                Tilbud ikke accepteret
-                            </button>
-
-                        <% } %>
-
-                        <!-- DEAKTIVER / AKTIVÉR -->
                         <% if (plan.isActive) { %>
-                            <button class="btn btn-fixed"
+                            <button class="btn-small btn-ghost"
                                     hx-delete="/cleaningPlans/<%= plan._id %>?context=customerPlans"
                                     hx-target="#content">
                                 Deaktiver
                             </button>
                         <% } else { %>
-                            <button class="btn btn-fixed"
+                            <button class="btn-small btn-ghost"
                                     hx-patch="/cleaningPlans/<%= plan._id %>/reactivate?context=customerPlans&customerId=<%= customerId %>"
                                     hx-target="#content">
                                 Aktivér
                             </button>
                         <% } %>
-
                     </td>
                 </tr>
             <% }) %>
             </tbody>
         </table>
 
-        <hr>
-
     <% } %>
-
-    <nav class="nav-group">
-        <button class="button-secondary" hx-get="/customers" hx-target="#content">
-            Tilbage til kunder
-        </button>
-    </nav>
-
 </article>

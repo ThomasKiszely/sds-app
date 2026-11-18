@@ -1,54 +1,113 @@
+<%
+    const locs = typeof locations !== 'undefined' && locations ? locations : [];
+    const contact = customer.contactPerson || {};
+    const metaParts = [
+        'Kundenr. ' + customer.customerNumber,
+        customer.cvr ? 'CVR ' + customer.cvr : null,
+        contact.name ? contact.name + (contact.phone ? ', ' + contact.phone : '') : null,
+    ].filter(Boolean);
+%>
 <article class="standard customer-details-page">
-    <h1>Kundedetaljer</h1>
+    <button type="button" class="back-link" hx-get="/customers" hx-target="#content"><%- icon('arrow-left') %> Kunder</button>
 
-    <p><strong>Kundenummer:</strong> <%= customer.customerNumber %></p>
-    <p><strong>Navn:</strong> <%= customer.customerName %></p>
-    <p><strong>Telefon:</strong> <%= customer.phoneNumber %></p>
-    <p><strong>Email:</strong> <%= customer.customerEmail %></p>
-    <p><strong>CVR:</strong> <%= customer.cvr %></p>
+    <header class="page-header">
+        <div>
+            <h1><%= customer.customerName %></h1>
+            <p class="page-sub"><%= metaParts.join(' · ') %></p>
+        </div>
+        <div class="page-actions">
+            <% if (user && user.role === 'admin') { %>
+                <button type="button" hx-get="/customers/<%= customer._id %>/edit" hx-target="#content">Rediger kunde</button>
+            <% } %>
+            <button type="button" hx-get="/customers/<%= customer._id %>/plans" hx-target="#content">Planer og tilbud</button>
+            <button type="button" class="btn-primary" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
+                <%- icon('plus') %> Ny bygning
+            </button>
+        </div>
+    </header>
 
-    <h2>Kontaktperson</h2>
-    <p><strong>Navn:</strong> <%= customer.contactPerson.name %></p>
-    <p><strong>Telefon:</strong> <%= customer.contactPerson.phone %></p>
-    <p><strong>Email:</strong> <%= customer.contactPerson.email %></p>
+    <div class="stat-row">
+        <div><div class="stat-label">Telefon</div><div class="stat-value" style="font-size: 16px"><%= customer.phoneNumber || '–' %></div></div>
+        <div><div class="stat-label">Email</div><div class="stat-value" style="font-size: 16px"><%= customer.customerEmail || '–' %></div></div>
+        <div><div class="stat-label">Bygninger</div><div class="stat-value" style="font-size: 16px"><%= locs.length %></div></div>
+    </div>
 
-    <h2>Adresser</h2>
-    <p><strong>Kundeadresse:</strong> <%= customer.customerAddress %></p>
-    <p><strong>Faktureringsadresse:</strong> <%= customer.billingAddress %></p>
+    <div class="two-col">
+        <section>
+            <h2 style="margin-top: 0">Bygninger</h2>
 
-    <!-- NY SEKTION: Lokationer -->
-    <h2>Lokationer</h2>
+            <% if (locs.length === 0) { %>
+                <div class="empty-state">
+                    Kunden har ingen bygninger endnu.
+                    <div style="margin-top: 10px">
+                        <button type="button" class="btn-small" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
+                            <%- icon('plus') %> Tilføj bygning
+                        </button>
+                    </div>
+                </div>
+            <% } else { %>
+                <table class="data-table responsive-table location-list" style="margin-top: 0">
+                    <thead>
+                    <tr>
+                        <th>Bygning</th>
+                        <th>Kontakt</th>
+                        <th><span class="visually-hidden">Handlinger</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% locs.forEach(loc => { %>
+                        <tr>
+                            <td data-label="Bygning">
+                                <a href="#" class="row-link" hx-get="/locations/<%= loc._id %>" hx-target="#content"><%= loc.name %></a>
+                                <div class="list-row-sub"><%= loc.address %></div>
+                            </td>
+                            <td data-label="Kontakt" class="muted">
+                                <%= (loc.contactPerson && loc.contactPerson.name) || '–' %>
+                            </td>
+                            <td class="actions">
+                                <button class="btn-small" hx-get="/locations/<%= loc._id %>/edit" hx-target="#content">Rediger</button>
+                                <button class="btn-small btn-ghost btn-danger"
+                                        hx-delete="/locations/<%= loc._id %>"
+                                        hx-target="#content"
+                                        hx-confirm="Vil du slette bygningen?">
+                                    Slet
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+            <% } %>
 
-    <button hx-get="/customers/<%= customer._id %>/locations/create"
-            hx-target="#content">
-        Tilføj lokation
-    </button>
+            <h2>Adresser</h2>
+            <div class="card">
+                <div class="kv"><span class="k">Kundeadresse</span><span class="v"><%= customer.customerAddress %></span></div>
+                <div class="kv"><span class="k">Faktureringsadresse</span><span class="v"><%= customer.billingAddress %></span></div>
+                <% if (contact.email) { %>
+                    <div class="kv"><span class="k">Kontaktperson, email</span><span class="v"><%= contact.email %></span></div>
+                <% } %>
+            </div>
+        </section>
 
-    <% const locs = locations || []; %>
+        <aside class="stack" style="padding-top: 34px">
+            <section class="card is-preview">
+                <h2 class="panel-title" style="font-size: 15px">Gruppe-rabat<span class="preview-badge">Preview</span></h2>
+                <p class="muted" style="font-size: 12px">8 % på alle bygninger. Rabatten sættes af admin og kommer selv med i dine tilbud.</p>
+                <div class="kv"><span class="k">Kunden sparer pr. måned</span><span class="v">1.491 kr.</span></div>
+                <button type="button" class="btn-small" style="margin-top: 8px" hx-get="/preview/customer-group" hx-target="#content">Se kundegruppe</button>
+            </section>
 
-    <ul class="location-list">
-        <% locs.forEach(loc => { %>
-            <li class="card">
-                <strong><%= loc.name %></strong><br>
-                <%= loc.address %><br>
-
-                <button hx-get="/locations/<%= loc._id %>" hx-target="#content">
-                    Detaljer
-                </button>
-
-                <button hx-get="/locations/<%= loc._id %>/edit" hx-target="#content">
-                    Rediger
-                </button>
-
-                <button hx-delete="/locations/<%= loc._id %>"
-                        hx-target="#content"
-                        hx-confirm="Vil du slette lokationen?">
-                    Slet
-                </button>
-            </li>
-        <% }) %>
-    </ul>
-
-
-    <button hx-get="/customers" hx-target="#content">Tilbage</button>
+            <section class="card is-preview">
+                <h2 class="panel-title" style="font-size: 15px">Faktura<span class="preview-badge">Preview</span></h2>
+                <label class="checklist-row" style="border: 0; padding: 4px 0">
+                    <input type="radio" name="pvInvoice" checked>
+                    <span><strong style="color: var(--ink)">Samlet faktura</strong><br>Alle bygninger på én faktura</span>
+                </label>
+                <label class="checklist-row" style="border: 0; padding: 4px 0">
+                    <input type="radio" name="pvInvoice">
+                    <span><strong style="color: var(--ink)">En faktura pr. bygning</strong><br>Hver afdeling betaler selv</span>
+                </label>
+            </section>
+        </aside>
+    </div>
 </article>

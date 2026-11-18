@@ -1,0 +1,63 @@
+<% const next = today.visits[0]; %>
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1><%= today.title %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= today.summary %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/cleaning/sick" hx-target="#content">Jeg er syg i dag</button>
+        </div>
+    </header>
+
+    <div class="today-layout">
+        <div class="stack" style="gap: 0">
+            <% today.visits.forEach((visit, i) => { %>
+                <button type="button" class="visit-card <%= i === 0 ? 'is-next' : '' %>">
+                    <div class="visit-time"><%= visit.time %> · <%= visit.duration %></div>
+                    <div class="visit-name"><%= visit.name %></div>
+                    <div class="visit-addr"><%= visit.address %></div>
+                </button>
+                <% if (visit.drive) { %>
+                    <div class="drive-note"><%- icon('car') %> <%= visit.drive %></div>
+                <% } %>
+            <% }) %>
+        </div>
+
+        <section class="card visit-detail">
+            <div class="page-header" style="margin-bottom: 10px">
+                <div>
+                    <div class="visit-time" style="color: var(--brand)">Næste besøg kl. <%= next.time %></div>
+                    <h2 style="margin: 2px 0 0; font-size: 24px"><%= next.name %></h2>
+                </div>
+                <div class="page-actions">
+                    <button type="button">Vis rute</button>
+                    <button type="button" class="btn-primary" hx-get="/preview/cleaning/finish" hx-target="#content">
+                        <%- icon('log-in') %> Tjek ind
+                    </button>
+                </div>
+            </div>
+
+            <div class="visit-meta">
+                <span><%- icon('map-pin') %> <%= next.address %></span>
+                <span><%- icon('key-round') %> <%= next.key %></span>
+                <span><%- icon('user') %> Kontakt: <%= next.contact %></span>
+            </div>
+
+            <h3 style="margin-top: 0">Det skal laves</h3>
+            <% next.tasks.forEach(task => { %>
+                <label class="checklist-row">
+                    <input type="checkbox">
+                    <strong><%= task.room %></strong>
+                    <span><%= task.what %></span>
+                </label>
+            <% }) %>
+
+            <% if (next.note) { %>
+                <div class="notice" style="margin-top: 18px"><%- icon('info') %> <%= next.note %></div>
+            <% } %>
+        </section>
+    </div>
+</article>

@@ -1,0 +1,49 @@
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1>Afslut besøg hos <%= finish.customer %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= finish.summary %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-primary" hx-get="/preview/cleaning/today" hx-target="#content">
+                <%- icon('check') %> Afslut besøg
+            </button>
+        </div>
+    </header>
+
+    <div class="two-col" style="grid-template-columns: 1fr 1fr">
+        <div>
+            <h3 style="margin-top: 0">Brugte du varer fra kundens lager?</h3>
+            <div class="list">
+                <% finish.supplies.forEach(item => { %>
+                    <div class="list-row">
+                        <div class="list-row-main"><%= item.name %></div>
+                        <div class="stepper" data-stepper>
+                            <button type="button" class="btn-small" data-step="-1" aria-label="Færre"><%- icon('minus') %></button>
+                            <output><%= item.qty %></output>
+                            <button type="button" class="btn-small" data-step="1" aria-label="Flere"><%- icon('plus') %></button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+            <button type="button" class="add-line"><%- icon('plus') %> Tilføj vare</button>
+        </div>
+
+        <div>
+            <h3 style="margin-top: 0">Lavede du noget ekstra?</h3>
+            <div class="list">
+                <div class="list-row">
+                    <div class="list-row-main">
+                        <div><%= finish.extra.text %></div>
+                        <div class="list-row-sub"><%= finish.extra.sub %></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Besked til kontoret</h3>
+            <textarea rows="4" placeholder="Skriv hvis noget er gået i stykker eller mangler"></textarea>
+        </div>
+    </div>
+</article>

@@ -706,7 +706,9 @@ function buildOffer(draft) {
         discountAmount: totals.discountAmount,
         categoryTypes,
         daysLabels,
-        frequencyLabels
+        frequencyLabels,
+        paymentTermLabels,
+        terminationNoticeLabels
     };
 }
 

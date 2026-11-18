@@ -1,0 +1,33 @@
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1><%= week.title %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= week.summary %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button">Forrige uge</button>
+            <button type="button">Næste uge</button>
+        </div>
+    </header>
+
+    <div class="week-board">
+        <% week.days.forEach(day => { %>
+            <section class="week-day <%= day.today ? 'is-today' : '' %>">
+                <div class="week-day-head">
+                    <div>
+                        <div class="week-day-name"><%= day.name %></div>
+                        <div class="week-day-date"><%= day.date %></div>
+                    </div>
+                    <div class="week-day-hours"><%= day.hours %></div>
+                </div>
+                <% day.jobs.forEach(([name, meta]) => { %>
+                    <div class="job"><strong><%= name %></strong><span><%= meta %></span></div>
+                <% }) %>
+            </section>
+        <% }) %>
+    </div>
+
+    <div class="notice" style="margin-top: 16px"><%- icon('info') %> <%= week.note %></div>
+</article>

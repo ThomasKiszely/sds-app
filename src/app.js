@@ -22,6 +22,11 @@ const locationRouter = require('./routes/locationRoutes');
 const contractRouter = require('./routes/contractRoutes');
 const roomTemplateRouter = require('./routes/roomTemplateRouter');
 const newPlanDraftRouter = require('./routes/newPlanDraftRoutes');
+const previewRouter = require('./routes/previewRoutes');
+
+// View-hjælpere (ikoner, initialer, kronebeløb)
+const viewHelpers = require('./utils/viewHelpers');
+const { navigationFor, tabItemsFor } = require('./utils/navigation');
 
 // Middlewares
 const { requireAdmin } = require('./middlewares/requireAdmin');
@@ -80,6 +85,13 @@ app.use(
 app.use(csrf());
 
 // 8. Global data til views
+app.locals.icon = viewHelpers.icon;
+app.locals.initials = viewHelpers.initials;
+app.locals.kr = viewHelpers.kr;
+app.locals.roleLabel = viewHelpers.roleLabel;
+app.locals.navigationFor = navigationFor;
+app.locals.tabItemsFor = tabItemsFor;
+
 app.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
     res.locals.user = req.session ? req.session.user : null;
@@ -137,6 +149,7 @@ app.use('/locations', requireLogin, locationRouter);
 app.use('/contracts', requireLogin, contractRouter);
 app.use('/roomTemplates', requireLogin, roomTemplateRouter);
 app.use('/newPlanDraft', requireLogin, newPlanDraftRouter);
+app.use('/preview', requireLogin, previewRouter);
 
 app.use('/users', userRouter);
 
