@@ -66,8 +66,8 @@
 
         const templateId = findTemplateId(input);
         if (!templateId) {
-            if (typeof showCenterToast === 'function') {
-                showCenterToast(`Ingen opgave hedder "${input.value.trim()}"`);
+            if (typeof window.showCenterToast === 'function') {
+                window.showCenterToast(`Ingen opgave hedder "${input.value.trim()}"`);
             }
             return;
         }
