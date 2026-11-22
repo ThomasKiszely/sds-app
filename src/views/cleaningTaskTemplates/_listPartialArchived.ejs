@@ -1,37 +1,42 @@
-<table class="responsive-table">
+<% if (templates.length === 0) { %>
+    <div class="empty-state">Arkivet er tomt.</div>
+<% } else { %>
+<table class="data-table responsive-table" style="margin-top: 0">
     <thead>
     <tr>
         <th>Navn</th>
         <th>Kategori</th>
-        <th>Beskrivelse</th>
         <th>Tid pr. enhed</th>
         <th>Frekvens</th>
         <th>Enhed</th>
-        <th>Pris</th>
-        <th>Handlinger</th>
+        <th class="num">Pris</th>
+        <th><span class="visually-hidden">Handlinger</span></th>
     </tr>
     </thead>
 
     <tbody>
     <% templates.forEach(t => { %>
         <tr>
-            <td data-label="Navn"><%= t.name %></td>
-            <td data-label="Kategori"><%= categoryLabels[t.category] %></td>
-            <td data-label="Beskrivelse"><%= t.description %></td>
-            <td data-label="Tid pr. enhed"><%= t.isConsumable ? "–" : t.durationPerUnit + " min" %></td>
+            <td data-label="Navn">
+                <strong><%= t.name %></strong>
+                <% if (t.description) { %><div class="list-row-sub"><%= t.description %></div><% } %>
+            </td>
+            <td data-label="Kategori"><span class="tag"><%= categoryLabels[t.category] %></span></td>
+            <td data-label="Tid pr. enhed" class="<%= t.isConsumable ? 'muted' : '' %>"><%= t.isConsumable ? "Fast pris" : String(t.durationPerUnit).replace('.', ',') + " min" %></td>
             <td data-label="Frekvens"><%= t.isConsumable ? "–" : frequencyLabels[t.frequency] %></td>
             <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
-            <td data-label="Pris"><%= t.customPrice != null ? Number(t.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr" : "–" %></td>
+            <td data-label="Pris" class="num"><%= t.customPrice != null ? Number(t.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr." : "–" %></td>
 
-            <td>
-                <button
+            <td class="actions">
+                <button class="btn-small"
                         hx-patch="/cleaningTaskTemplates/<%= t._id %>/reactivate"
                         hx-target="#content"
                         hx-confirm="Vil du genaktivere denne skabelon?">
-                    Genaktiver
+                    Genaktivér
                 </button>
             </td>
         </tr>
     <% }) %>
     </tbody>
 </table>
+<% } %>

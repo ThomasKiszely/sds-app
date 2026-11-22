@@ -1,0 +1,68 @@
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1>Gruppe-rabat for <%= group.name %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub">Vælg en sats, og se prisen for hver bygning, før noget bliver ændret.</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/customer-group" hx-target="#content">Annullér</button>
+            <button type="button" class="btn-primary"><%- icon('check') %> Gem rabat</button>
+        </div>
+    </header>
+
+    <div class="rate-cards" data-toggle-group>
+        <% group.rates.forEach(r => { %>
+            <button type="button" class="rate-card <%= r.current ? 'is-active' : '' %>">
+                <span class="rate-card-rate"><%= r.rate %> %</span>
+                <% if (r.current) { %><span class="badge badge-brand rate-card-now">Nu</span><% } %>
+                <strong><%= r.monthly %></strong>
+                <span class="muted"><%= r.diff %></span>
+            </button>
+        <% }) %>
+    </div>
+
+    <div class="toolbar">
+        <label for="pvRate" style="font-size: 13px">Anden sats:</label>
+        <input id="pvRate" type="number" value="<%= group.discount.rate %>" style="width: 90px">
+        <span class="muted">%</span>
+    </div>
+
+    <table class="data-table responsive-table">
+        <thead>
+        <tr>
+            <th>Bygning</th>
+            <th>Status</th>
+            <th class="num">Uden gruppe-rabat</th>
+            <th class="num">Med <%= group.discount.rate %> %</th>
+            <th class="num">Forskel</th>
+            <th>Hvis du ændrer satsen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% group.buildings.forEach(b => { %>
+            <tr>
+                <td data-label="Bygning"><strong><%= b.name %></strong></td>
+                <td data-label="Status"><span class="badge badge-<%= b.tone %>"><%= b.status %></span></td>
+                <td data-label="Uden rabat" class="num"><%= b.without %></td>
+                <td data-label="Med rabat" class="num"><strong><%= b.withDiscount %></strong></td>
+                <td data-label="Forskel" class="num"><%= b.diff %></td>
+                <td data-label="Ændring" class="muted"><%= b.effect %></td>
+            </tr>
+        <% }) %>
+        <tr class="total-row">
+            <td data-label=""><strong>Hele gruppen</strong></td>
+            <td></td>
+            <td data-label="Uden rabat" class="num"><strong><%= group.totals.without %></strong></td>
+            <td data-label="Med rabat" class="num"><strong><%= group.totals.withDiscount %></strong></td>
+            <td data-label="Forskel" class="num"><strong><%= group.totals.diff %></strong></td>
+            <td data-label="Om året" style="color: var(--brand); font-weight: 600"><%= group.totals.yearly %></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p class="muted" style="display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 13px">
+        <%- icon('info') %> Hovedkontor har allerede 5 % på sin plan. Gruppens <%= group.discount.rate %> % erstatter den, så de ikke bliver lagt sammen.
+    </p>
+</article>

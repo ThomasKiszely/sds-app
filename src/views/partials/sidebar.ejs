@@ -1,0 +1,74 @@
+<%
+    const sections = navigationFor(user);
+    const tabs = tabItemsFor(user);
+    const isAdmin = user.role === 'admin';
+%>
+<aside class="sidebar" id="sidebar" aria-label="Hovedmenu">
+    <button type="button" class="sidebar-brand" hx-get="/indexContent" hx-target="#content" data-nav-match="/indexContent">
+        <img src="/images/sds-logo-red.png" alt="">
+        <span>SDS Drift</span>
+    </button>
+
+    <nav>
+        <% sections.forEach((section, i) => { %>
+            <% if (section.title) { %>
+                <div class="nav-group-label">
+                    <%= section.title %>
+                    <% if (section.preview) { %><span class="preview-badge">Preview</span><% } %>
+                </div>
+            <% } else if (i > 0) { %>
+                <div class="nav-sep" role="separator"></div>
+            <% } %>
+
+            <% section.items.forEach(item => { %>
+                <button type="button"
+                        class="nav-item"
+                        hx-get="<%= item.href %>"
+                        hx-target="#content"
+                        data-nav-match="<%= item.match.join(' ') %>">
+                    <%- icon(item.icon) %>
+                    <span><%= item.label %></span>
+                    <% if (item.preview) { %><span class="preview-badge">Preview</span><% } %>
+                </button>
+            <% }) %>
+        <% }) %>
+    </nav>
+
+    <div class="sidebar-foot">
+        <button type="button" class="nav-item" hx-get="/me" hx-target="#content" data-nav-match="/me /change-password">
+            <span class="avatar"><%= initials(user.fullName || user.userName) %></span>
+            <span>
+                <span class="sidebar-user-name"><%= user.fullName || user.userName %></span><br>
+                <span class="sidebar-user-role"><%= roleLabel(user.role) %></span>
+            </span>
+        </button>
+        <button type="button" class="nav-item" hx-post="/users/logout">
+            <%- icon('log-out') %>
+            <span>Log ud</span>
+        </button>
+    </div>
+</aside>
+
+<nav class="tabbar" aria-label="Faneblade">
+    <% tabs.forEach(item => { %>
+        <button type="button"
+                class="tabbar-item"
+                hx-get="<%= item.href %>"
+                hx-target="#content"
+                data-nav-match="<%= item.match.join(' ') %>">
+            <%- icon(item.icon) %>
+            <span><%= item.tabLabel || item.label %></span>
+        </button>
+    <% }) %>
+    <button type="button" class="tabbar-item" hx-get="/me" hx-target="#content" data-nav-match="/me /change-password">
+        <%- icon('user') %>
+        <span>Mig</span>
+    </button>
+    <% if (isAdmin) { %>
+        <button type="button" class="tabbar-item" id="menuToggle" aria-controls="sidebar" aria-expanded="false">
+            <%- icon('menu') %>
+            <span>Menu</span>
+        </button>
+    <% } %>
+</nav>
+<div class="sidebar-scrim" id="sidebarScrim" hidden></div>

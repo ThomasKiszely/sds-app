@@ -7,7 +7,7 @@ const { frequencies, frequencyLabels } = require('../utils/frequencyEnum');
 // Opret template (master-opgave)
 async function createCleaningTaskTemplate(req, res, next) {
     try {
-        const template = await cleaningTaskTemplateService.createTemplate(req.body);
+        await cleaningTaskTemplateService.createTemplate(req.body);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
         return res.render('cleaningTaskTemplates/list', {
@@ -59,7 +59,7 @@ async function findCleaningTaskTemplateById(req, res, next) {
 async function updateCleaningTaskTemplate(req, res, next) {
     try {
         const { id } = req.params;
-        const updated = await cleaningTaskTemplateService.updateTemplate(id, req.body);
+        await cleaningTaskTemplateService.updateTemplate(id, req.body);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
         return res.render('cleaningTaskTemplates/list', {
@@ -114,7 +114,7 @@ async function deleteCleaningTaskTemplate(req, res, next) {
 async function reactivateCleaningTaskTemplate(req, res, next) {
     try {
         const { id } = req.params;
-        const reactivated = await cleaningTaskTemplateService.reactivateTemplate(id);
+        await cleaningTaskTemplateService.reactivateTemplate(id);
 
         const templates = await cleaningTaskTemplateService.listTemplates();
         return res.render('cleaningTaskTemplates/_listPartial', {

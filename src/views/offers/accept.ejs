@@ -1,48 +1,60 @@
+<%
+    const plan = snapshot.plan || {};
+    const customer = snapshot.customer || {};
+    const sender = snapshot.sender || {};
+    const price = Number(plan.totalMonthlyPrice || 0).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const terms = [plan.paymentTermsLabel, plan.terminationNoticeLabel ? plan.terminationNoticeLabel + 's opsigelse' : null].filter(Boolean);
+    const validTo = offer.signatureTokenExpiresAt
+        ? new Date(offer.signatureTokenExpiresAt).toLocaleDateString("da-DK", { day: "numeric", month: "long" })
+        : null;
+%>
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8">
+    <%- include('partials/publicHead') %>
     <title>Acceptér tilbud – SDS</title>
-
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
+<%- include('partials/publicHeader') %>
 
-<main id="content">
-    <article class="standard offer-accept-page">
-
+<main id="content" class="public-wrap">
+    <article class="public-card offer-accept-page">
         <h1>Acceptér tilbud</h1>
-
-        <p>
-            Du er ved at acceptere tilbuddet for:<br>
-            <strong><%= snapshot.customer.name %></strong><br>
-            <%= snapshot.customer.street %><br>
-            <%= snapshot.customer.zip %> <%= snapshot.customer.city %>
+        <p class="page-sub" style="margin-bottom: 16px">
+            Tilbud<%= sender.fullName ? ' fra ' + sender.fullName : '' %> til <%= customer.name %>. Det er også vedhæftet mailen som PDF.
         </p>
 
-        <p>
-            Den samlede pris for rengøringen er:<br>
-            <strong><%= offer.snapshot.plan.totalMonthlyPrice.toFixed(2) %> kr.<br> pr. måned</strong>
-            (ekskl. moms)
-        </p>
+        <div class="list" style="margin-bottom: 16px">
+            <div class="list-row">
+                <div class="list-row-main">
+                    <div class="list-row-title"><%= plan.name || customer.name %></div>
+                    <div class="list-row-sub"><%= customer.street %>, <%= customer.zip %> <%= customer.city %></div>
+                </div>
+            </div>
+            <div class="list-row" style="display: block; padding: 14px">
+                <div class="stat-label">Samlet pris pr. måned, ekskl. moms</div>
+                <div class="big-number"><%= price %> kr.</div>
+                <% if (terms.length) { %><div class="list-row-sub"><%= terms.join(' · ') %></div><% } %>
+            </div>
+        </div>
 
         <form method="POST">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
             <label for="name">Dit navn</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" autocomplete="name" required>
 
-            <label for="email">Din email</label>
-            <input type="email" id="email" name="email" required>
+            <label for="email">Din e-mail</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
 
-            <button type="submit">Accepter tilbud</button>
+            <button type="submit" class="btn-large"><%- icon('check') %> Acceptér tilbud</button>
         </form>
 
+        <p class="muted" style="font-size: 12px; text-align: center; margin-top: 14px">
+            Når du accepterer, bliver rengøringsplanen aktiv, og SDS kontakter dig om opstart.<% if (validTo) { %> Linket virker til <%= validTo %>.<% } %>
+        </p>
     </article>
 </main>
-
 </body>
 </html>

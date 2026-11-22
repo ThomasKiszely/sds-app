@@ -1,0 +1,68 @@
+<% const used = Math.round((timeOff.daysLeft / timeOff.daysTotal) * 100); %>
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1>Fri og ferie<span class="preview-badge">Preview</span></h1>
+            <p class="page-sub">Du kan se dine anmodninger og søge om fri samme sted.</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/cleaning/sick" hx-target="#content">Jeg er syg i dag</button>
+        </div>
+    </header>
+
+    <div class="two-col wide-aside">
+        <div>
+            <section class="card">
+                <div style="display: flex; align-items: baseline; gap: 8px">
+                    <span class="big-number"><%= timeOff.daysLeft %></span>
+                    <span class="muted">ud af <%= timeOff.daysTotal %> feriedage tilbage</span>
+                </div>
+                <div class="progress" style="margin: 12px 0 10px"><span style="width: <%= used %>%"></span></div>
+                <div class="muted" style="font-size: 12px"><%= timeOff.yearEnds %></div>
+            </section>
+
+            <h2 class="section-title">Mine anmodninger</h2>
+            <div class="list">
+                <% timeOff.requests.forEach(req => { %>
+                    <div class="list-row">
+                        <div class="list-row-main">
+                            <div class="list-row-title"><%= req.dates %></div>
+                            <div class="list-row-sub"><%= req.what %></div>
+                        </div>
+                        <span class="badge badge-<%= req.tone %>"><%= req.status %></span>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <section class="card">
+            <h2 class="panel-title">Anmod om fri</h2>
+            <div class="segmented" data-toggle-group style="margin-bottom: 14px">
+                <button type="button" class="is-active">Ferie</button>
+                <button type="button">Fridag</button>
+                <button type="button">Andet</button>
+            </div>
+            <div class="form-grid-2" style="gap: 10px">
+                <div class="form-group">
+                    <label for="pvFrom">Fra</label>
+                    <input id="pvFrom" type="text" value="<%= timeOff.draft.from %>">
+                </div>
+                <div class="form-group">
+                    <label for="pvTo">Til</label>
+                    <input id="pvTo" type="text" value="<%= timeOff.draft.to %>">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 10px">
+                <label for="pvMsg">Besked til planlæggeren (valgfri)</label>
+                <input id="pvMsg" type="text" value="<%= timeOff.draft.message %>">
+            </div>
+            <div class="note-box" style="margin: 14px 0">
+                <strong><%= timeOff.draft.impact %></strong>
+                <%= timeOff.draft.impactText %>
+            </div>
+            <button type="button" class="btn-primary btn-large"><%- icon('send') %> Send anmodning</button>
+        </section>
+    </div>
+</article>

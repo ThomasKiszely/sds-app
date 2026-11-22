@@ -1,6 +1,6 @@
 const locationRepo = require("../data/locationRepo");
 const customerRepo = require("../data/customerRepo");
-const { ensureExists, userError } = require("../utils/userError");
+const { ensureExists } = require("../utils/userError");
 
 async function createLocation(customerId, data) {
     // Tjek at kunden findes

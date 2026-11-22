@@ -4,7 +4,6 @@ const newPlanDraftService = require('../src/services/newPlanDraftService');
 const { categoryTypes } = require('../src/utils/categoryEnum');
 const { frequencies } = require('../src/utils/frequencyEnum');
 const { days } = require('../src/utils/dayEnum');
-const { units } = require('../src/utils/unitEnum');
 
 describe('priceService - calculateTaskPrice', () => {
     it('beregner pris korrekt for ugentlig rengøring baseret på amount og dage', () => {

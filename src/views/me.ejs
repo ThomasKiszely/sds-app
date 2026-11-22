@@ -1,39 +1,88 @@
-<div class="standard me-page">
-    <h1>Min profil</h1>
+<article class="standard me-page" data-nav-path="/me">
+    <header class="page-header">
+        <div>
+            <h1>Mig</h1>
+            <p class="page-sub">Dine oplysninger og timer.</p>
+        </div>
+    </header>
 
-    <div class="me-page-text">
-        <p><strong>Brugernavn:</strong> <%= user.userName %></p>
-        <p><strong>Fulde navn:</strong> <%= user.fullName %></p>
-        <p><strong>Rolle:</strong> <%= user.role %></p>
-    </div>
+    <div class="two-col" style="grid-template-columns: 380px minmax(0, 1fr)">
+        <div class="stack">
+            <section class="card" style="display: flex; align-items: center; gap: 12px">
+                <span class="avatar avatar-lg"><%= initials(user.fullName || user.userName) %></span>
+                <div>
+                    <div style="font-size: 20px; font-weight: 700"><%= user.fullName || user.userName %></div>
+                    <div class="muted" style="font-size: 13px">
+                        <%= user.position || roleLabel(user.role) %> · Brugernavn <%= user.userName %>
+                    </div>
+                </div>
+            </section>
 
-    <h2>Skift adgangskode</h2>
-
-    <% if (error) { %>
-        <div class="error"><%= error %></div>
-    <% } %>
-
-    <form action="/users/me/password" method="POST">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-        <label for="password">Nyt kodeord</label>
-        <input type="password" id="password" name="password" required minlength="8">
-
-        <label for="repeated">Gentag kodeord</label>
-        <input type="password" id="repeated" name="repeated" required minlength="8">
-
-        <div class="password-rules">
-            <p><strong>Krav til adgangskode:</strong></p>
-            <ul>
-                <li>Mindst 8 tegn</li>
-                <li>Mindst ét stort bogstav (A‑Z)</li>
-                <li>Mindst ét lille bogstav (a‑z)</li>
-                <li>Mindst ét tal (0‑9)</li>
-                <li>Mindst ét specialtegn (!@#$%^&* osv.)</li>
-                <li>Må ikke indeholde brugernavnet</li>
-            </ul>
+            <section class="card is-preview">
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <span class="stat-label">Oktober</span>
+                    <span class="preview-badge">Preview</span>
+                </div>
+                <div class="stat-row" style="margin: 10px 0 0; justify-content: space-between">
+                    <div><div class="stat-value" style="font-size: 22px">98,5</div><div class="stat-label">timer</div></div>
+                    <div><div class="stat-value" style="font-size: 22px">112</div><div class="stat-label">km kørsel</div></div>
+                    <div><div class="stat-value" style="font-size: 22px">44</div><div class="stat-label">besøg</div></div>
+                </div>
+            </section>
         </div>
 
-        <button type="submit">Gem nyt kodeord</button>
-    </form>
-</div>
+        <div class="stack">
+            <div class="list">
+                <div class="list-row">
+                    <%- icon('phone') %>
+                    <span class="list-row-main">Telefon</span>
+                    <span class="muted" style="font-size: 13px"><%= user.phoneNumber || 'Ikke angivet' %></span>
+                </div>
+                <div class="list-row">
+                    <%- icon('heart-pulse') %>
+                    <span class="list-row-main">Nødkontakt <span class="preview-badge">Preview</span></span>
+                    <span class="muted" style="font-size: 13px">Jonas Holm</span>
+                </div>
+                <div class="list-row">
+                    <%- icon('clock-3') %>
+                    <span class="list-row-main">Arbejdstider <span class="preview-badge">Preview</span></span>
+                    <span class="muted" style="font-size: 13px">Man–fre, 06:00–15:00</span>
+                </div>
+                <button type="button" class="list-row" hx-post="/users/logout">
+                    <%- icon('log-out') %>
+                    <span class="list-row-main">Log ud</span>
+                    <%- icon('chevron-right') %>
+                </button>
+            </div>
+
+            <section class="card" id="change-password">
+                <h2 class="panel-title" style="display: flex; align-items: center; gap: 8px"><%- icon('lock') %> Skift adgangskode</h2>
+
+                <% if (error) { %>
+                    <div class="error" role="alert"><%= error %></div>
+                <% } %>
+
+                <form action="/users/me/password" method="POST" style="max-width: none">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="password">Nyt kodeord</label>
+                            <input type="password" id="password" name="password" autocomplete="new-password" required minlength="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="repeated">Gentag kodeord</label>
+                            <input type="password" id="repeated" name="repeated" autocomplete="new-password" required minlength="8">
+                        </div>
+                    </div>
+
+                    <div class="password-rules">
+                        Mindst 8 tegn med stort og lille bogstav, et tal og et specialtegn. Må ikke indeholde brugernavnet.
+                    </div>
+
+                    <button type="submit">Gem nyt kodeord</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</article>

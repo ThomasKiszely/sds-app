@@ -1,21 +1,45 @@
-<article class="standard index-page-nav">
-    <img class="index-page-nav-logo" src="/images/SDS-logo2.gif" alt="SDS logo">
-    <h1>SDS prisberegner</h1>
+<% const isAdmin = user.role === 'admin'; %>
+<article class="standard home-page" data-nav-path="/indexContent">
+    <header class="home-hero">
+        <h1>SDS Drift</h1>
+        <p class="page-sub">Ét program til tilbud, planlægning og fakturaer. Kunden får kun dokumenterne.</p>
+    </header>
 
-    <nav class="index-nav" aria-label="Hovednavigation">
-        <div class="nav-group">
-            <button type="button" hx-get="/newPlanDraft/summary" hx-target="#content">
-                Hurtig beregning
+    <div class="home-grid">
+        <button type="button" class="home-card" hx-get="/newPlanDraft/summary" hx-target="#content">
+            <span class="home-card-num">1</span>
+            <span class="home-card-title">Salg</span>
+            <span class="home-card-text">Find kunden, gå lokalerne igennem og lav tilbud. Pris og plan regnes med det samme.</span>
+            <span class="home-card-links"><span class="tag">Hurtig beregning</span><span class="tag">Kunder</span></span>
+        </button>
+
+        <% if (isAdmin) { %>
+            <button type="button" class="home-card" hx-get="/cleaningTaskTemplates/page" hx-target="#content">
+                <span class="home-card-num">2</span>
+                <span class="home-card-title">Admin</span>
+                <span class="home-card-text">Opgaver, lokaler, priser og brugere.</span>
+                <span class="home-card-links"><span class="tag">Opgaver</span><span class="tag">Lokaler</span><span class="tag">Admin</span></span>
             </button>
-        </div>
 
-        <div class="nav-group">
-            <button type="button" hx-get="/customers" hx-target="#content">Kunder/planer</button>
-            <% if (user.role === 'admin') { %>
-                <button type="button" hx-get="/cleaningTaskTemplates/page" hx-target="#content">Opgaver</button>
-                <button type="button" hx-get="/roomTemplates/page" hx-target="#content">Lokaler</button>
-                <button type="button" hx-get="/admin" hx-target="#content">Admin panel</button>
-            <% } %>
-        </div>
-    </nav>
+            <button type="button" class="home-card is-preview" hx-get="/preview/planning" hx-target="#content">
+                <span class="home-card-num">3</span>
+                <span class="home-card-title">Planlægning og fakturaer <span class="preview-badge">Preview</span></span>
+                <span class="home-card-text">Fordel besøg på medarbejderne, godkend forslag og send månedens fakturaer.</span>
+                <span class="home-card-links"><span class="tag">Planlægning</span><span class="tag">Fakturaer</span><span class="tag">Medarbejdere</span></span>
+            </button>
+
+            <button type="button" class="home-card is-preview" hx-get="/preview/cleaning/today" hx-target="#content">
+                <span class="home-card-num">4</span>
+                <span class="home-card-title">Rengøring <span class="preview-badge">Preview</span></span>
+                <span class="home-card-text">Medarbejderen ser dagens besøg, ugen og tjeklisten, søger fri og melder sig syg.</span>
+                <span class="home-card-links"><span class="tag">I dag</span><span class="tag">Min uge</span><span class="tag">Fri</span></span>
+            </button>
+        <% } else { %>
+            <button type="button" class="home-card" hx-get="/customers" hx-target="#content">
+                <span class="home-card-num">2</span>
+                <span class="home-card-title">Kunder</span>
+                <span class="home-card-text">Se kunder, bygninger, planer, tilbud og kontrakter.</span>
+            </button>
+        <% } %>
+    </div>
 </article>

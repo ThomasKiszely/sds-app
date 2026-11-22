@@ -1,0 +1,56 @@
+<% const ready = invoices.rows.filter(r => r.tone === 'ok').length; %>
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <header class="page-header">
+        <div>
+            <h1>Fakturaer for <%= invoices.month %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= invoices.summary %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/invoices/document" hx-target="#content">Hent PDF'er</button>
+            <button type="button" class="btn-primary"><%- icon('send') %> Send <%= ready %> fakturaer</button>
+        </div>
+    </header>
+
+    <div class="tabs" data-toggle-group>
+        <% invoices.tabs.forEach(([label, count], i) => { %>
+            <button type="button" class="tab <%= i === 0 ? 'is-active' : '' %>"><%= label %> <span class="tab-count"><%= count %></span></button>
+        <% }) %>
+    </div>
+
+    <table class="data-table responsive-table">
+        <thead>
+        <tr>
+            <th>Kunde</th>
+            <th>Indhold</th>
+            <th>Sendes som</th>
+            <th class="num">Beløb ekskl. moms</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% invoices.rows.forEach((row, i) => { %>
+            <tr>
+                <td data-label="Kunde">
+                    <% if (i === 0) { %>
+                        <a href="#" hx-get="/preview/invoices/review" hx-target="#content"><strong style="color: var(--ink)"><%= row.customer %></strong></a>
+                    <% } else { %>
+                        <strong><%= row.customer %></strong>
+                    <% } %>
+                    <div class="list-row-sub"><%= row.sub %></div>
+                </td>
+                <td data-label="Indhold"><%= row.content %></td>
+                <td data-label="Sendes som"><%= row.via %></td>
+                <td data-label="Beløb" class="num"><strong><%= row.amount %></strong></td>
+                <td data-label="Status"><span class="badge badge-<%= row.tone %>"><%= row.status %></span></td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+    <div class="table-foot">
+        <span>Ekstra arbejde og forbrugsvarer kommer fra medarbejdernes afsluttede besøg.</span>
+        <strong>I alt <%= invoices.total %> ekskl. moms</strong>
+    </div>
+</article>

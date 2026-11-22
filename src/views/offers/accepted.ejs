@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8">
+    <%- include('partials/publicHead') %>
     <title>Tak for din accept – SDS</title>
-
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
+<%- include('partials/publicHeader') %>
 
-<main id="content">
-    <article class="standard offer-accept-page">
+<main id="content" class="public-wrap">
+    <article class="public-card offer-accept-page">
+        <div class="result-icon"><%- icon('check') %></div>
+        <h1>Tak, <%= offer.acceptedByName %></h1>
+        <p class="page-sub">Vi har modtaget din accept af tilbuddet.</p>
 
-        <h1>Tak for din accept</h1>
-
-        <p>
-            Tak, <strong><%= offer.acceptedByName %></strong>.<br>
-            Vi har modtaget din accept af tilbuddet.
-        </p>
-
-        <p>
-            Rengøringsplanen er nu aktiveret, og SDS vil kontakte dig snarest
-            for at aftale opstart.
-        </p>
-
-        <p>
-            En kontrakt er nu genereret og sendt til SDS.
-        </p>
-
+        <div class="list" style="margin-top: 16px">
+            <div class="list-row"><%- icon('file-check') %><span class="list-row-main">Rengøringsplanen er nu aktiveret.</span></div>
+            <div class="list-row"><%- icon('phone') %><span class="list-row-main">SDS kontakter dig snarest for at aftale opstart.</span></div>
+            <div class="list-row"><%- icon('file-text') %><span class="list-row-main">Kontrakten er lavet og sendt til SDS.</span></div>
+        </div>
     </article>
 </main>
-
 </body>
 </html>

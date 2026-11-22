@@ -1,0 +1,68 @@
+<% const inOffer = group.buildings.filter(b => b.schedule); %>
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <button type="button" class="back-link" hx-get="/preview/customer-group" hx-target="#content"><%- icon('arrow-left') %> <%= group.name %></button>
+
+    <header class="page-header">
+        <div>
+            <h1>Samlet tilbud til <%= group.name %><span class="preview-badge">Preview</span></h1>
+            <p class="page-sub"><%= inOffer.length %> bygninger · Sendt <%= group.offer.sent %> · Linket virker til <%= group.offer.validTo %></p>
+        </div>
+        <div class="page-actions">
+            <button type="button">Hent PDF</button>
+            <button type="button">Send igen</button>
+        </div>
+    </header>
+
+    <div class="two-col wide-aside" style="grid-template-columns: minmax(0, 1fr) 320px">
+        <section>
+            <h2 style="margin-top: 0">Bygninger i tilbuddet</h2>
+            <div class="stack" style="gap: 10px">
+                <% inOffer.forEach(b => { %>
+                    <label class="card offer-building">
+                        <input type="checkbox" checked>
+                        <span class="list-row-main">
+                            <span class="visit-name" style="font-size: 16px"><%= b.name %></span><br>
+                            <span class="muted" style="font-size: 13px"><%= b.address %><br><%= b.schedule %></span>
+                        </span>
+                        <span style="text-align: right">
+                            <strong style="font-size: 16px"><%= b.offerPrice %></strong><br>
+                            <span class="muted" style="font-size: 12px"><%= b.offerWithout %> uden rabat</span>
+                        </span>
+                        <a href="#">Åbn plan</a>
+                    </label>
+                <% }) %>
+            </div>
+            <p class="muted" style="display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 13px">
+                <%- icon('info') %> Vil kunden kun have én bygning, så fjern fluebenet og send igen. Det gamle link holder op med at virke.
+            </p>
+        </section>
+
+        <aside class="stack">
+            <section class="card">
+                <div class="stat-label">Samlet pris pr. måned, ekskl. moms</div>
+                <div class="big-number" style="margin-bottom: 8px"><%= group.offer.total %></div>
+                <div class="kv"><span class="k">Gruppe-rabat</span><span class="v"><%= group.discount.rate %> %</span></div>
+                <div class="kv"><span class="k">Betaling</span><span class="v"><%= group.offer.payment %></span></div>
+                <div class="kv"><span class="k">Opsigelse</span><span class="v"><%= group.offer.notice %></span></div>
+                <div class="kv"><span class="k">Sendt til</span><span class="v"><%= group.offer.sentTo %></span></div>
+            </section>
+
+            <section class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+                    <h2 class="panel-title" style="margin: 0; font-size: 15px">Kundens svar</h2>
+                    <span class="badge badge-warn">Venter på kunden</span>
+                </div>
+                <div class="kv"><span class="k">Sendt</span><span class="v"><%= group.offer.sentAt %></span></div>
+                <div class="kv"><span class="k">Linket virker til</span><span class="v"><%= group.offer.validTo %></span></div>
+                <label style="display: block; margin-top: 10px">Acceptlink</label>
+                <div class="copy-field">
+                    <span><%= group.offer.link %></span>
+                    <button type="button" class="btn-small"><%- icon('copy') %> Kopiér</button>
+                </div>
+                <p class="muted" style="font-size: 12px; margin-top: 10px">Kunden accepterer selv via linket i mailen med navn og e-mail. Så bliver planerne aktive, kontrakten laves som PDF, og status skifter her.</p>
+            </section>
+        </aside>
+    </div>
+</article>

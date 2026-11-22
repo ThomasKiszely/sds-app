@@ -117,7 +117,7 @@ async function changePassword(req, res, next) {
         const userId = req.session.user.id;
         const { password, repeated } = req.body;
 
-        const updated = await userService.updatePassword(userId, password, repeated);
+        await userService.updatePassword(userId, password, repeated);
 
         req.session.user.mustChangePassword = false;
 

@@ -1,0 +1,61 @@
+<%
+    // Én opgave i et lokale (eller uden lokale, når roomName er tom)
+    const taskDays = task.days || [];
+    const isConsumable = task.category === 'consumables';
+%>
+<div class="plan-task-row pb-task" data-template-id="<%= task.templateId %>" data-task-index="<%= task._idx %>">
+    <div class="pb-task-name">
+        <strong><%= task.name %></strong>
+        <span><%= categoryLabels[task.category] || task.category %></span>
+    </div>
+
+    <label class="pb-field pb-amount">
+        <input type="number"
+               name="amount"
+               value="<%= task.amount %>"
+               min="0"
+               step="0.5"
+               aria-label="Mængde for <%= task.name %>"
+               hx-post="<%= effectiveBaseUrl %>/updateTask"
+               hx-vals='{"taskIndex": "<%= task._idx %>"}'
+               hx-target="#content"
+               hx-trigger="change">
+        <span><%= unitsLabels[task.unit] || task.unit %></span>
+    </label>
+
+    <select class="pb-freq"
+            name="frequency"
+            aria-label="Frekvens for <%= task.name %>"
+            hx-post="<%= effectiveBaseUrl %>/updateTask"
+            hx-vals='{"taskIndex": "<%= task._idx %>"}'
+            hx-target="#content"
+            hx-trigger="change">
+        <% Object.keys(frequencyLabels).forEach(fk => { %>
+            <option value="<%= fk %>" <%= task.frequency === fk ? "selected" : "" %>><%= frequencyLabels[fk] %></option>
+        <% }) %>
+    </select>
+
+    <div class="pb-days task-days-mini-zone" data-room-name="<%= roomName %>" data-template-id="<%= task.templateId %>" data-task-index="<%= task._idx %>">
+        <% if (!isConsumable) { %>
+            <% dayKeys.forEach(dayKey => { const on = taskDays.includes(dayKey); %>
+                <button type="button"
+                        class="pb-day mini-day-pill <%= on ? 'active' : '' %>"
+                        title="<%= daysLabels[dayKey] %>"
+                        aria-pressed="<%= on %>"
+                        hx-post="<%= on ? effectiveBaseUrl + '/removeDay' : effectiveBaseUrl + '/addDay' %>"
+                        hx-vals='{"roomName": "<%= roomName %>", "templateId": "<%= task.templateId %>", "taskIndex": "<%= task._idx %>", "day": "<%= dayKey %>"}'
+                        hx-target="#content"><%= dayLetter[dayKey] %></button>
+            <% }) %>
+        <% } %>
+    </div>
+
+    <span class="pb-task-price"><%= taskPrice(task) %></span>
+
+    <button type="button"
+            class="btn-icon-delete-small pb-icon-btn"
+            title="Fjern opgaven"
+            aria-label="Fjern <%= task.name %>"
+            hx-post="<%= effectiveBaseUrl %>/removeTask"
+            hx-vals='{"taskIndex": "<%= task._idx %>"}'
+            hx-target="#content"><%- icon('x') %></button>
+</div>

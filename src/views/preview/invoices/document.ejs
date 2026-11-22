@@ -1,0 +1,75 @@
+<article class="standard preview-page">
+    <%- include('../_banner', { text: 'Sådan skal faktura-PDF\'en se ud. Den bliver ikke lavet endnu, og tallene er eksempeldata.' }) %>
+
+    <button type="button" class="back-link" hx-get="/preview/invoices/review" hx-target="#content"><%- icon('arrow-left') %> Tilbage til fakturaen</button>
+
+    <div class="document-page">
+        <div class="doc-head">
+            <div style="display: flex; gap: 12px; align-items: center">
+                <img src="/images/sds-logo-red.png" alt="SDS logo">
+                <div>
+                    <strong><%= company.name %></strong>
+                    <div class="muted" style="font-size: 12px"><%= company.address %> · <%= company.phone %></div>
+                </div>
+            </div>
+            <div style="font-size: 28px; font-weight: 700; color: var(--brand)">Faktura</div>
+        </div>
+
+        <div class="two-col" style="grid-template-columns: 1fr 260px; margin-bottom: 18px; font-size: 13px">
+            <div>
+                <strong><%= invoice.customer %></strong><br>
+                <%= invoice.address[0] %><br>
+                <%= invoice.address[1] %><br>
+                <span class="muted">CVR <%= invoice.cvr %><br>Att. <%= invoice.att %></span>
+            </div>
+            <div>
+                <div class="kv"><span class="k">Fakturanr.</span><span class="v"><%= invoice.number %></span></div>
+                <div class="kv"><span class="k">Dato</span><span class="v"><%= invoice.date %></span></div>
+                <div class="kv"><span class="k">Kundenr.</span><span class="v"><%= invoice.customerNumber %></span></div>
+                <div class="kv"><span class="k">Periode</span><span class="v"><%= invoice.period %></span></div>
+            </div>
+        </div>
+
+        <table class="data-table" style="border: 0; border-radius: 0">
+            <thead>
+            <tr>
+                <th style="padding-left: 0">Beskrivelse</th>
+                <th class="num">Antal</th>
+                <th class="num">Pris</th>
+                <th class="num" style="padding-right: 0">Beløb</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% invoice.buildings.forEach(b => { %>
+                <tr>
+                    <td colspan="4" style="padding-left: 0"><strong><%= b.name %></strong> <span class="muted" style="font-size: 12px"><%= b.address %></span></td>
+                </tr>
+                <% b.lines.forEach(line => { %>
+                    <tr>
+                        <td style="padding-left: 0"><%= line.text %></td>
+                        <td class="num"><%= line.qty || '' %></td>
+                        <td class="num"><%= line.price || '' %></td>
+                        <td class="num" style="padding-right: 0"><%= line.amount %></td>
+                    </tr>
+                <% }) %>
+            <% }) %>
+            </tbody>
+        </table>
+
+        <div class="two-col" style="grid-template-columns: 1fr 280px; margin-top: 18px; font-size: 13px">
+            <div>
+                <strong>Betaling</strong><br>
+                <%= invoice.payment %>, senest <%= invoice.due %><br>
+                Mærk betalingen med faktura <%= invoice.number %>
+            </div>
+            <div>
+                <div class="kv"><span class="k">I alt ekskl. moms</span><span class="v"><%= invoice.exVat %></span></div>
+                <div class="kv"><span class="k">Moms 25 %</span><span class="v"><%= invoice.vat %></span></div>
+                <div class="divider"></div>
+                <div class="kv"><strong>At betale, DKK</strong><span class="v" style="font-size: 20px"><%= invoice.total %></span></div>
+            </div>
+        </div>
+
+        <div class="doc-foot"><%= company.name %> · Side 1 af 1</div>
+    </div>
+</article>

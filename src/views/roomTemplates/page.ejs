@@ -1,39 +1,48 @@
 <article class="standard roomTemplates-page">
-    <h1>Lokaleskabelon</h1>
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Lokaler</h1>
+            <span class="page-count"><%= roomTemplates.length %> skabeloner</span>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-primary" hx-get="/roomTemplates/new" hx-target="#content"><%- icon('plus') %> Opret lokale</button>
+        </div>
+    </header>
 
     <% if (toast) { %>
-        <div class="toast"><%= toast %></div>
+        <div class="notice notice-ok" role="status" style="margin-bottom: 14px"><%- icon('check') %> <%= toast %></div>
     <% } %>
 
-    <button hx-get="/roomTemplates/new" hx-target="#content">Opret ny lokaleskabelon</button>
-
-    <table class="standard responsive-table">
-        <thead>
-        <tr>
-            <th>Navn</th>
-            <th>Størrelse</th>
-            <th>Handlinger</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <% roomTemplates.forEach(t => { %>
+    <% if (roomTemplates.length === 0) { %>
+        <div class="empty-state">Der er ingen lokaleskabeloner endnu.</div>
+    <% } else { %>
+        <table class="data-table responsive-table">
+            <thead>
             <tr>
-                <td data-label="Navn"><%= t.name %></td>
-                <td data-label="Størrelse"><%= t.defaultSize %> m²</td>
-
-                <td class="actions" data-label="Handlinger">
-                    <button class="btn btn-fixed"
-                            hx-get="/roomTemplates/edit/<%= t._id %>"
-                            hx-target="#content"
-                            hx-swap="innerHTML">
-                        Rediger
-                    </button>
-                </td>
+                <th>Navn</th>
+                <th class="num">Standardstørrelse</th>
+                <th><span class="visually-hidden">Handlinger</span></th>
             </tr>
-        <% }) %>
-        </tbody>
-    </table>
+            </thead>
 
-    <button hx-get="/indexContent" hx-target="#content">Tilbage</button>
+            <tbody>
+            <% roomTemplates.forEach(t => { %>
+                <tr>
+                    <td data-label="Navn">
+                        <a href="#" class="row-link" hx-get="/roomTemplates/edit/<%= t._id %>" hx-target="#content"><%= t.name %></a>
+                    </td>
+                    <td data-label="Størrelse" class="num"><%= t.defaultSize %> m²</td>
+                    <td class="actions" data-label="Handlinger" style="text-align: right">
+                        <button class="btn-small"
+                                hx-get="/roomTemplates/edit/<%= t._id %>"
+                                hx-target="#content"
+                                hx-swap="innerHTML">
+                            Rediger
+                        </button>
+                    </td>
+                </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    <% } %>
 </article>

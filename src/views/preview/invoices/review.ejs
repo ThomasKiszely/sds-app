@@ -1,0 +1,62 @@
+<article class="standard preview-page">
+    <%- include('../_banner') %>
+
+    <button type="button" class="back-link" hx-get="/preview/invoices" hx-target="#content"><%- icon('arrow-left') %> Fakturaer</button>
+
+    <header class="page-header">
+        <div>
+            <h1><%= invoice.customer %>, oktober<span class="preview-badge">Preview</span></h1>
+            <p class="page-sub">Kladde. Fakturanummeret kommer ved afsendelse, og derefter kan fakturaen kun rettes med en kreditnota.</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" hx-get="/preview/invoices/document" hx-target="#content">Hent PDF</button>
+            <button type="button" class="btn-primary"><%- icon('send') %> Send faktura</button>
+        </div>
+    </header>
+
+    <div class="two-col">
+        <section class="card" style="min-height: 420px">
+            <% invoice.buildings.forEach(b => { %>
+                <div class="invoice-group">
+                    <div class="invoice-group-head"><strong><%= b.name %></strong><span><%= b.address %></span></div>
+                    <% b.lines.forEach(line => { %>
+                        <div class="invoice-line">
+                            <span><%= line.text %><% if (line.tag) { %> <span class="tag"><%= line.tag %></span><% } %></span>
+                            <span class="qty"><%= line.kind || (line.qty ? line.qty + ' × ' + line.price : '') %></span>
+                            <span class="amt"><%= line.amount %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            <% }) %>
+            <button type="button" class="add-line"><%- icon('plus') %> Tilføj linje</button>
+        </section>
+
+        <aside class="stack">
+            <section class="card">
+                <div class="stat-label">At betale inkl. moms</div>
+                <div class="big-number" style="margin-bottom: 8px"><%= invoice.total %> kr.</div>
+                <div class="kv"><span class="k">Ekskl. moms</span><span class="v"><%= invoice.exVat %> kr.</span></div>
+                <div class="kv"><span class="k">Moms 25 %</span><span class="v"><%= invoice.vat %> kr.</span></div>
+                <div class="kv"><span class="k">Betaling</span><span class="v"><%= invoice.payment %></span></div>
+                <div class="kv"><span class="k">Forfald</span><span class="v"><%= invoice.due %></span></div>
+            </section>
+
+            <section class="card">
+                <h2 class="panel-title">Afsendelse</h2>
+                <div class="segmented" data-toggle-group style="margin-bottom: 12px">
+                    <button type="button" class="is-active">Samlet</button>
+                    <button type="button">Pr. bygning</button>
+                </div>
+                <div class="form-group">
+                    <label for="pvTo">Til</label>
+                    <input id="pvTo" type="email" value="<%= invoice.email %>">
+                </div>
+                <div class="form-group" style="margin-top: 10px">
+                    <label for="pvSubject">Emne</label>
+                    <input id="pvSubject" type="text" value="Faktura fra Service Division Sjælland">
+                </div>
+                <p class="muted" style="font-size: 12px; margin: 10px 0 0">Kunden får fakturaen som PDF. De skal ikke bruge nogen konto hos os.</p>
+            </section>
+        </aside>
+    </div>
+</article>
