@@ -113,7 +113,7 @@ async function addRoomToDraft(draft, templateId, customName, customSize) {
             for (const taskTpl of sdsTemplates) {
                 const cat = taskTpl.category;
 
-                let autoDays = [];
+                let autoDays;
                 if (cat === categoryTypes.daily) {
                     autoDays = [days.monday, days.tuesday, days.wednesday, days.thursday, days.friday];
                 } else if (cat === categoryTypes.floor) {
@@ -229,7 +229,7 @@ async function addTaskToRoomInDraft(draft, roomName, templateId, slotName) {
     const amount = room ? room.size : (taskTpl.amount || 1);
     const cat = (taskTpl.category || "other");
 
-    let autoDays = [];
+    let autoDays;
     if (taskTpl.days && taskTpl.days.length > 0) {
         autoDays = [...taskTpl.days];
     } else if (cat === categoryTypes.daily) {
@@ -583,7 +583,7 @@ async function generateDraftTasks(draft) {
         for (const tpl of sdsTemplates) {
             const cat = tpl.category;
 
-            let autoDays = [];
+            let autoDays;
             if (cat === categoryTypes.daily) {
                 autoDays = [days.monday, days.tuesday, days.wednesday, days.thursday, days.friday];
             } else if (cat === categoryTypes.floor) {
