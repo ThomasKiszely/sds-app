@@ -264,7 +264,7 @@ async function addRoomToPlan(planId, { templateId, name: customName, size: custo
             const sdsTemplates = await cleaningTaskTemplateService.getByIds(ids);
 
             for (const sdsTpl of sdsTemplates) {
-                let autoDays = [];
+                let autoDays;
                 if (sdsTpl.category === categoryTypes.daily) {
                     autoDays = [days.monday, days.tuesday, days.wednesday, days.thursday, days.friday];
                 } else if (sdsTpl.category === categoryTypes.inventory) {
@@ -396,7 +396,7 @@ async function addTaskToPlan(planId, { templateId, roomName }) {
 
     const targetRoom = roomName || "";
     let roomSize = 1;
-    let autoDays = [];
+    let autoDays;
 
     if (targetRoom) {
         const existingTasks = await cleaningTaskRepo.findByPlanId(planId);
