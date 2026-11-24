@@ -1,0 +1,54 @@
+<article class="standard roomTypes-page">
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Lokaler</h1>
+            <span class="page-count"><%= roomTypes.length %> <%= roomTypes.length === 1 ? 'lokaletype' : 'lokaletyper' %></span>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button type="button" class="tab" hx-get="/roomTemplates/page" hx-target="#content">Lokaler</button>
+        <button type="button" class="tab is-active" aria-current="page">Lokaletyper</button>
+    </div>
+
+    <% if (toast) { %>
+        <div class="notice notice-ok" role="status" style="margin-bottom: 14px"><%- icon('check') %> <%= toast %></div>
+    <% } %>
+
+    <form class="inline-form room-type-add" hx-post="/roomTypes" hx-target="#content">
+        <input type="text"
+               name="name"
+               placeholder="Ny lokaletype, fx Produktion"
+               aria-label="Navn på ny lokaletype"
+               maxlength="50"
+               required>
+        <button type="submit" class="btn-primary"><%- icon('plus') %> Tilføj</button>
+    </form>
+
+    <% if (roomTypes.length === 0) { %>
+        <div class="empty-state">Der er ingen lokaletyper endnu. Tilføj fx Kontor, Produktion eller Butik.</div>
+    <% } else { %>
+        <ul class="card room-type-list">
+            <% roomTypes.forEach(rt => { %>
+                <li class="room-type-row">
+                    <form class="inline-form" hx-put="/roomTypes/<%= rt._id %>" hx-target="#content">
+                        <input type="text"
+                               name="name"
+                               value="<%= rt.name %>"
+                               aria-label="Navn på lokaletypen <%= rt.name %>"
+                               maxlength="50"
+                               required>
+                        <button type="submit" class="btn-small">Gem</button>
+                    </form>
+                    <button type="button"
+                            class="btn-small btn-ghost"
+                            hx-delete="/roomTypes/<%= rt._id %>"
+                            hx-target="#content"
+                            hx-confirm="Slet lokaletypen &quot;<%= rt.name %>&quot;? Den bliver også fjernet fra alle opgaver.">
+                        Slet
+                    </button>
+                </li>
+            <% }) %>
+        </ul>
+    <% } %>
+</article>

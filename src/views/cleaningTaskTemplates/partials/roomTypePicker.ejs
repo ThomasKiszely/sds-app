@@ -1,0 +1,21 @@
+<%
+    // selected: id'er på de typer opgaven allerede har (tom ved opret)
+    const selectedIds = (selected || []).map(r => String(r._id || r));
+%>
+<fieldset class="choice-fieldset">
+    <legend>Lokaletyper</legend>
+    <% if (roomTypes.length === 0) { %>
+        <p class="muted choice-hint">Der er ingen lokaletyper endnu. Opret dem under Lokaler → Lokaletyper.</p>
+    <% } else { %>
+        <%# Sendes altid med, så det at fjerne alle flueben også bliver gemt. Validatoren fjerner den tomme værdi. %>
+        <input type="hidden" name="roomTypes" value="">
+        <div class="chip-row">
+            <% roomTypes.forEach(rt => { %>
+                <label class="choice-chip">
+                    <input type="checkbox" name="roomTypes" value="<%= rt._id %>" <%= selectedIds.includes(String(rt._id)) ? 'checked' : '' %>>
+                    <%= rt.name %>
+                </label>
+            <% }) %>
+        </div>
+    <% } %>
+</fieldset>

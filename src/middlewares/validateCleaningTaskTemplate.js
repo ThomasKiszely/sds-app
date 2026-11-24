@@ -2,7 +2,7 @@ const { userError } = require("../utils/userError");
 const { categoryTypes } = require("../utils/categoryEnum");
 const { units } = require("../utils/unitEnum");
 const { frequencies } = require("../utils/frequencyEnum");
-
+const {isObjectId} = require("../utils/isObjectId");
 module.exports = function validateCleaningTaskTemplate(req, res, next) {
     const errors = [];
     const {
@@ -12,7 +12,8 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         durationPerUnit,
         frequency,
         unit,
-        pricePerUnit
+        pricePerUnit,
+        roomTypes
     } = req.body;
 
     // Required i modellen
@@ -51,6 +52,14 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
         }
     }
 
+    if( roomTypes !== undefined) {
+        const ids = [].concat(roomTypes).filter( id => id !== "");
+        if (ids.some(id => !isObjectId(id))) {
+            errors.push("Ugyldig lokaletype");
+        }
+        req.body.roomTypes = ids;
+    }
+
     if (errors.length > 0) {
         throw userError(errors.join("<br>"), 400);
     }
@@ -61,6 +70,5 @@ module.exports = function validateCleaningTaskTemplate(req, res, next) {
 
     if (durationPerUnit !== undefined) req.body.durationPerUnit = Number(durationPerUnit);
     if (pricePerUnit !== undefined) req.body.pricePerUnit = Number(pricePerUnit);
-
     next();
 };
