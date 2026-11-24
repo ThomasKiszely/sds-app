@@ -1,14 +1,27 @@
 const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
-
+require('../models/RoomType');
+const { escapeRegExp } = require('../utils/escapeRegExp');
 // CREATE
 async function createTemplate(data) {
     return CleaningTaskTemplate.create(data);
 }
 
 // LIST ACTIVE
-async function listTemplates() {
-    return CleaningTaskTemplate.find({ isActive: true })
-        .sort({ name: 1 });
+async function listTemplates(search = "", roomType = null) {
+    const query = { isActive: true };
+
+    if (search) {
+        const regex = new RegExp(escapeRegExp(search), "i");
+        query.$or = [
+            { name: regex },
+            { category: regex },
+            { description: regex }
+        ];
+    }
+    if (roomType) {
+        query.roomTypes = roomType;
+    }
+    return CleaningTaskTemplate.find(query).populate('roomTypes').sort({ name: 1 });
 }
 
 // LIST DELETED
@@ -65,6 +78,13 @@ async function findByCategory(category) {
         .sort({ name: 1 });
 }
 
+async function removeRoomTypeFromAll(roomTypeId) {
+    return CleaningTaskTemplate.updateMany(
+        { roomTypes: roomTypeId },
+        { $pull: { roomTypes: roomTypeId } }
+    );
+}
+
 module.exports = {
     createTemplate,
     listTemplates,
@@ -74,5 +94,6 @@ module.exports = {
     updateTemplate,
     softDeleteTemplate,
     reactivateTemplate,
-    findByCategory
+    findByCategory,
+    removeRoomTypeFromAll
 };

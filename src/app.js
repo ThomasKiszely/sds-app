@@ -23,7 +23,7 @@ const contractRouter = require('./routes/contractRoutes');
 const roomTemplateRouter = require('./routes/roomTemplateRouter');
 const newPlanDraftRouter = require('./routes/newPlanDraftRoutes');
 const previewRouter = require('./routes/previewRoutes');
-
+const roomTypeRouter = require('./routes/roomTypeRoutes');
 // View-hjælpere (ikoner, initialer, kronebeløb)
 const viewHelpers = require('./utils/viewHelpers');
 const { navigationFor, tabItemsFor } = require('./utils/navigation');
@@ -148,6 +148,7 @@ app.use('/customers', requireLogin, customerRouter);
 app.use('/locations', requireLogin, locationRouter);
 app.use('/contracts', requireLogin, contractRouter);
 app.use('/roomTemplates', requireLogin, roomTemplateRouter);
+app.use('/roomTypes', requireLogin, roomTypeRouter);
 app.use('/newPlanDraft', requireLogin, newPlanDraftRouter);
 app.use('/preview', requireLogin, previewRouter);
 

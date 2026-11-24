@@ -23,6 +23,8 @@
             <% }) %>
         </select>
 
+        <%- include("./partials/roomTypePicker", { roomTypes, selected: template.roomTypes }) %>
+
         <!-- Dynamiske felter -->
         <div id="taskFields">
             <%- include("./partials/taskFields", {

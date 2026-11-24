@@ -13,6 +13,9 @@ const cleaningTaskTemplateSchema = new mongoose.Schema({
         required: true
     },
 
+    // Hvilke lokaletyper opgaven hører til (kan være flere)
+    roomTypes: [{ type: mongoose.Schema.Types.ObjectId, ref: "RoomType" }],
+
     // Tid pr. enhed (minutter)
     durationPerUnit: { type: Number, default: 0 },
 

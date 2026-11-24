@@ -231,6 +231,151 @@
     padding-left: 34px;
 }
 
+/* Arkivet kan hverken søges eller filtreres, så begge skjules på den fane */
+.tasks-page:has([data-archive-tab].is-active) .search-field,
+.tasks-page:has([data-archive-tab].is-active) .room-type-filter {
+    display: none;
+}
+
+/* --------------------------------------------------
+   VALGCHIPS
+   Radioknap (ét valg, fx filter) eller checkbox (flere
+   valg, fx lokaletyper på en opgave) pakket i en label.
+   Selve input'et er skjult; chippen viser tilstanden.
+-------------------------------------------------- */
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.room-type-filter {
+    margin-bottom: 14px;
+}
+
+.choice-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    margin: 0;
+    padding: 5px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+
+.choice-chip:hover {
+    border-color: var(--muted);
+}
+
+.choice-chip input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.choice-chip:has(input:checked) {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+}
+
+.choice-chip:has(input:focus-visible) {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+.choice-fieldset {
+    min-width: 0;
+    margin: 4px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.choice-fieldset legend {
+    margin-bottom: 6px;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.choice-hint {
+    margin: 0;
+    font-size: 13px;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* --------------------------------------------------
+   LOKALETYPER
+-------------------------------------------------- */
+.inline-form {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    max-width: none;
+}
+
+.inline-form input {
+    flex: 1;
+    min-width: 0;
+}
+
+.inline-form > button[type="submit"] {
+    align-self: auto;
+    margin-top: 0;
+}
+
+.room-type-add {
+    max-width: 480px;
+    margin-bottom: 14px;
+}
+
+.room-type-list {
+    max-width: 640px;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+}
+
+.room-type-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.room-type-row:last-child {
+    border-bottom: 0;
+}
+
+/* Navnet ligner almindelig tekst, indtil man går ind i feltet */
+.room-type-row input {
+    border-color: transparent;
+    background: transparent;
+    font-weight: 500;
+}
+
+.room-type-row input:hover,
+.room-type-row input:focus {
+    border-color: var(--line);
+    background: var(--surface);
+}
+
 .toolbar {
     display: flex;
     align-items: center;
