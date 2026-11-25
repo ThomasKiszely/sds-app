@@ -1,0 +1,22 @@
+<article class="standard consumables-page">
+    <button type="button" class="back-link" hx-get="/consumables/page" hx-target="#content"><%- icon('arrow-left') %> Tilbage til forbrugsvarer</button>
+    <h1>Rediger forbrugsvare</h1>
+
+    <form hx-patch="/consumables/<%= template._id %>" hx-target="#content">
+        <input type="hidden" name="category" value="<%= categoryTypes.consumables %>">
+        <input type="hidden" name="durationPerUnit" value="0">
+        <input type="hidden" name="unit" value="<%= units.stk %>">
+        <input type="hidden" name="frequency" value="<%= frequencies.none %>">
+
+        <label>Navn</label>
+        <input type="text" name="name" value="<%= template.name %>" required>
+
+        <label>Beskrivelse</label>
+        <textarea name="description"><%= template.description %></textarea>
+
+        <label>Pris pr. stk. (kr.)</label>
+        <input type="number" step="0.01" min="0" name="pricePerUnit" value="<%= template.customPrice ?? '' %>" required>
+
+        <button type="submit">Gem ændringer</button>
+    </form>
+</article>

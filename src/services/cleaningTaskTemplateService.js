@@ -27,8 +27,8 @@ async function createTemplate(data) {
 
 
 
-async function listTemplates(search = "", roomType = null) {
-    return cleaningTaskTemplateRepo.listTemplates(search, roomType);
+async function listTemplates(search = "", roomType = null, filter = "all") {
+    return cleaningTaskTemplateRepo.listTemplates(search, roomType, filter);
 }
 
 async function findTemplateById(id) {
@@ -88,8 +88,8 @@ async function reactivateTemplate(id) {
     return cleaningTaskTemplateRepo.reactivateTemplate(id);
 }
 
-async function getDeletedTemplates() {
-    return cleaningTaskTemplateRepo.listDeletedTemplates();
+async function getDeletedTemplates(filter = "all") {
+    return cleaningTaskTemplateRepo.listDeletedTemplates(filter);
 }
 
 async function getTemplatesByCategory(category) {

@@ -25,6 +25,7 @@ const adminSections = [
     {
         items: [
             { label: 'Opgaver', icon: 'list-checks', href: '/cleaningTaskTemplates/page', match: ['/cleaningTaskTemplates'] },
+            { label: 'Forbrugsvarer', icon: 'package', href: '/consumables/page', match: ['/consumables'] },
             { label: 'Lokaler', icon: 'door-open', href: '/roomTemplates/page', match: ['/roomTemplates', '/roomTypes'] },
             { label: 'Admin', icon: 'settings', href: '/admin', match: ['/admin', '/users'] },
         ],

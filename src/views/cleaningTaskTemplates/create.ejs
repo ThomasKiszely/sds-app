@@ -1,4 +1,5 @@
 <article class="standard tasks-page">
+    <button type="button" class="back-link" hx-get="/cleaningTaskTemplates/page" hx-target="#content"><%- icon('arrow-left') %> Tilbage til opgaver</button>
     <h1>Opret opgave-skabelon</h1>
 
     <form hx-post="/cleaningTaskTemplates" hx-target="#content" hx-swap="innerHTML">
@@ -11,11 +12,10 @@
 
         <!-- Kategori -->
         <label>Kategori</label>
-        <select name="category"
-                hx-get="/cleaningTaskTemplates/create/taskFields"
-                hx-target="#taskFields"
-                hx-include="this">
-            <% Object.keys(categoryTypes).forEach(key => { %>
+        <select name="category">
+            <% Object.keys(categoryTypes)
+                .filter(key => categoryTypes[key] !== categoryTypes.consumables)
+                .forEach(key => { %>
                 <option value="<%= categoryTypes[key] %>"
                         <%= category === categoryTypes[key] ? "selected" : "" %>>
                     <%= categoryLabels[key] %>
