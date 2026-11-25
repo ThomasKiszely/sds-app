@@ -1,0 +1,36 @@
+<% if (consumables.length === 0) { %>
+    <div class="empty-state">Arkivet er tomt.</div>
+<% } else { %>
+<table class="data-table responsive-table" style="margin-top: 0">
+    <thead>
+    <tr>
+        <th>Navn</th>
+        <th>Enhed</th>
+        <th class="num">Pris pr. stk.</th>
+        <th><span class="visually-hidden">Handlinger</span></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% consumables.forEach(c => { %>
+        <tr>
+            <td data-label="Navn">
+                <strong><%= c.name %></strong>
+                <% if (c.description) { %><div class="list-row-sub"><%= c.description %></div><% } %>
+            </td>
+            <td data-label="Enhed"><%= unitsLabels[c.unit] %></td>
+            <td data-label="Pris pr. stk." class="num"><%= c.customPrice != null ? Number(c.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr." : "–" %></td>
+
+            <td class="actions">
+                <button class="btn-small"
+                        hx-patch="/consumables/<%= c._id %>/reactivate"
+                        hx-target="#content"
+                        hx-confirm="Vil du genaktivere denne forbrugsvare?">
+                    Genaktivér
+                </button>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<% } %>
