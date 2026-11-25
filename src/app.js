@@ -14,6 +14,7 @@ const userRouter = require('./routes/userRoutes');
 const customerRouter = require('./routes/customerRoutes');
 const cleaningPlanRouter = require('./routes/cleaningPlanRoutes');
 const cleaningTaskTemplateRouter = require('./routes/cleaningTaskTemplateRoutes');
+const consumableRouter = require('./routes/consumableRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const adminRouter = require('./routes/adminRoutes');
 const newPlanRouter = require('./routes/newPlanRoutes');
@@ -151,7 +152,7 @@ app.use('/roomTemplates', requireLogin, roomTemplateRouter);
 app.use('/roomTypes', requireLogin, roomTypeRouter);
 app.use('/newPlanDraft', requireLogin, newPlanDraftRouter);
 app.use('/preview', requireLogin, previewRouter);
-
+app.use('/consumables', requireLogin, consumableRouter);
 app.use('/users', userRouter);
 
 // 13. Error Handling
