@@ -1,14 +1,21 @@
 const CleaningTaskTemplate = require('../models/CleaningTaskTemplate');
 require('../models/RoomType');
 const { escapeRegExp } = require('../utils/escapeRegExp');
+const { categoryTypes } = require('../utils/categoryEnum');
 // CREATE
 async function createTemplate(data) {
     return CleaningTaskTemplate.create(data);
 }
 
 // LIST ACTIVE
-async function listTemplates(search = "", roomType = null) {
+async function listTemplates(search = "", roomType = null, filter = "all") {
     const query = { isActive: true };
+
+    if(filter === "consumables") {
+        query.category = categoryTypes.consumables;
+    } else if (filter === "tasks") {
+        query.category = { $ne: categoryTypes.consumables };
+    }
 
     if (search) {
         const regex = new RegExp(escapeRegExp(search), "i");
@@ -25,9 +32,15 @@ async function listTemplates(search = "", roomType = null) {
 }
 
 // LIST DELETED
-async function listDeletedTemplates() {
-    return CleaningTaskTemplate.find({ isActive: false })
-        .sort({ name: 1 });
+async function listDeletedTemplates(filter = "all") {
+    const query = { isActive: false };
+
+    if(filter === "consumables") {
+        query.category = categoryTypes.consumables;
+    } else if (filter === "tasks") {
+        query.category = { $ne: categoryTypes.consumables };
+    }
+    return CleaningTaskTemplate.find(query).sort({ name: 1 });
 }
 
 // FIND BY ID

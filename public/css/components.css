@@ -233,7 +233,8 @@
 
 /* Arkivet kan hverken søges eller filtreres, så begge skjules på den fane */
 .tasks-page:has([data-archive-tab].is-active) .search-field,
-.tasks-page:has([data-archive-tab].is-active) .room-type-filter {
+.tasks-page:has([data-archive-tab].is-active) .room-type-filter,
+.consumables-page:has([data-archive-tab].is-active) .search-field {
     display: none;
 }
 

@@ -19,6 +19,7 @@ const customerAddresses = { label: 'Kunder (kun adresser)', tabLabel: 'Kunder', 
 const employees = { label: 'Medarbejdere', icon: 'users', href: '/employees', match: ['/employees'], tab: true };
 const invoices = { label: 'Fakturaer', icon: 'file-text', href: '/preview/invoices', match: ['/preview/invoices'], preview: true };
 const tasks = { label: 'Opgaver', icon: 'list-checks', href: '/cleaningTaskTemplates/page', match: ['/cleaningTaskTemplates'] };
+const consumables = { label: 'Forbrugsvarer', icon: 'package', href: '/consumables/page', match: ['/consumables'] };
 const rooms = { label: 'Lokaler', icon: 'door-open', href: '/roomTemplates/page', match: ['/roomTemplates', '/roomTypes'] };
 const admin = { label: 'Admin', icon: 'settings', href: '/admin', match: ['/admin', '/users'] };
 
@@ -37,7 +38,7 @@ const sectionsByRole = {
     [userRoles.admin]: [
         // Admin har allerede fire faner på mobil, så Medarbejdere ligger under "Menu"
         { items: [planning, quickCalc, customers, invoices, { ...employees, tab: false }] },
-        { items: [tasks, rooms, admin] },
+        { items: [tasks, consumables, rooms, admin] },
         cleaningPreview,
     ],
     [userRoles.planner]: [

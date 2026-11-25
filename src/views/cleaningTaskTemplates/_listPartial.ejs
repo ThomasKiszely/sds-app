@@ -25,7 +25,6 @@
         <th>Tid pr. enhed</th>
         <th>Frekvens</th>
         <th>Enhed</th>
-        <th class="num">Pris</th>
         <th><span class="visually-hidden">Handlinger</span></th>
     </tr>
     </thead>
@@ -45,10 +44,9 @@
                     <span class="muted">–</span>
                 <% } %>
             </td>
-            <td data-label="Tid pr. enhed" class="<%= t.isConsumable ? 'muted' : '' %>"><%= t.isConsumable ? "Fast pris" : String(t.durationPerUnit).replace('.', ',') + " min" %></td>
-            <td data-label="Frekvens"><%= t.isConsumable ? "–" : frequencyLabels[t.frequency] %></td>
+            <td data-label="Tid pr. enhed"><%= String(t.durationPerUnit).replace('.', ',') + " min" %></td>
+            <td data-label="Frekvens"><%= frequencyLabels[t.frequency] || "–" %></td>
             <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
-            <td data-label="Pris" class="num"><strong><%= t.customPrice != null ? Number(t.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr." : "–" %></strong></td>
 
             <td class="actions">
                 <% if (user && user.role === 'admin') { %>

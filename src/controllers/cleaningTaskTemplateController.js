@@ -10,7 +10,7 @@ async function createCleaningTaskTemplate(req, res, next) {
     try {
         await cleaningTaskTemplateService.createTemplate(req.body);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
         const roomTypes = await roomTypeService.listRoomTypes();
         return res.render('cleaningTaskTemplates/list', {
             templates,
@@ -29,7 +29,7 @@ async function listCleaningTaskTemplates(req, res, next) {
     try {
         const search = req.query.search || "";
         const roomType = isObjectId(req.query.roomType) ? req.query.roomType : null;
-        const templates = await cleaningTaskTemplateService.listTemplates(search, roomType);
+        const templates = await cleaningTaskTemplateService.listTemplates(search, roomType, "tasks");
         return res.render('cleaningTaskTemplates/_listPartial', {
             templates,
             search,
@@ -56,6 +56,7 @@ async function findCleaningTaskTemplateById(req, res, next) {
             categoryLabels,
             units,
             unitsLabels,
+            frequencies,
             frequencyLabels
         });
     } catch (error) {
@@ -69,7 +70,7 @@ async function updateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.updateTemplate(id, req.body);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
         const roomTypes = await roomTypeService.listRoomTypes();
         return res.render('cleaningTaskTemplates/list', {
             templates,
@@ -110,7 +111,7 @@ async function deleteCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.deleteTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
         return res.render('cleaningTaskTemplates/_listPartial', {
             templates,
             categoryLabels,
@@ -128,9 +129,9 @@ async function reactivateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.reactivateTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('cleaningTaskTemplates/_listPartial', {
-            templates,
+        const roomTypes = await roomTypeService.listRoomTypes();
+        return res.render('cleaningTaskTemplates/list', {
+            roomTypes,
             categoryLabels,
             unitsLabels,
             frequencyLabels
@@ -143,7 +144,7 @@ async function reactivateCleaningTaskTemplate(req, res, next) {
 // List arkiverede templates
 async function getDeletedCleaningTaskTemplates(req, res, next) {
     try {
-        const deletedTemplates = await cleaningTaskTemplateService.getDeletedTemplates();
+        const deletedTemplates = await cleaningTaskTemplateService.getDeletedTemplates("tasks");
 
         return res.render('cleaningTaskTemplates/_listPartialArchived', {
             templates: deletedTemplates,
