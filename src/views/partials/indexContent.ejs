@@ -1,4 +1,8 @@
-<% const isAdmin = user.role === 'admin'; %>
+<%
+    const isAdmin = user.role === 'admin';
+    const isSeller = user.role === 'seller';
+    const isPlanner = user.role === 'planner';
+%>
 <article class="standard home-page" data-nav-path="/indexContent">
     <header class="home-hero">
         <h1>SDS Drift</h1>
@@ -6,12 +10,14 @@
     </header>
 
     <div class="home-grid">
-        <button type="button" class="home-card" hx-get="/newPlanDraft/summary" hx-target="#content">
-            <span class="home-card-num">1</span>
-            <span class="home-card-title">Salg</span>
-            <span class="home-card-text">Find kunden, gå lokalerne igennem og lav tilbud. Pris og plan regnes med det samme.</span>
-            <span class="home-card-links"><span class="tag">Hurtig beregning</span><span class="tag">Kunder</span></span>
-        </button>
+        <% if (isAdmin || isSeller) { %>
+            <button type="button" class="home-card" hx-get="/newPlanDraft/summary" hx-target="#content">
+                <span class="home-card-num">1</span>
+                <span class="home-card-title">Salg</span>
+                <span class="home-card-text">Find kunden, gå lokalerne igennem og lav tilbud. Pris og plan regnes med det samme.</span>
+                <span class="home-card-links"><span class="tag">Hurtig beregning</span><span class="tag">Kunder</span></span>
+            </button>
+        <% } %>
 
         <% if (isAdmin) { %>
             <button type="button" class="home-card" hx-get="/cleaningTaskTemplates/page" hx-target="#content">
@@ -34,12 +40,32 @@
                 <span class="home-card-text">Medarbejderen ser dagens besøg, ugen og tjeklisten, søger fri og melder sig syg.</span>
                 <span class="home-card-links"><span class="tag">I dag</span><span class="tag">Min uge</span><span class="tag">Fri</span></span>
             </button>
-        <% } else { %>
+        <% } else if (isSeller) { %>
             <button type="button" class="home-card" hx-get="/customers" hx-target="#content">
                 <span class="home-card-num">2</span>
                 <span class="home-card-title">Kunder</span>
                 <span class="home-card-text">Se kunder, bygninger, planer, tilbud og kontrakter.</span>
             </button>
+        <% } else if (isPlanner) { %>
+            <button type="button" class="home-card is-preview" hx-get="/preview/planning" hx-target="#content">
+                <span class="home-card-num">1</span>
+                <span class="home-card-title">Planlægning <span class="preview-badge">Preview</span></span>
+                <span class="home-card-text">Fordel besøg på medarbejderne og godkend forslag.</span>
+            </button>
+
+            <button type="button" class="home-card" hx-get="/employees" hx-target="#content">
+                <span class="home-card-num">2</span>
+                <span class="home-card-title">Medarbejdere</span>
+                <span class="home-card-text">Se og opret medarbejdere.</span>
+            </button>
+
+            <button type="button" class="home-card" hx-get="/customers" hx-target="#content">
+                <span class="home-card-num">3</span>
+                <span class="home-card-title">Kunder</span>
+                <span class="home-card-text">Kundernes adresser.</span>
+            </button>
+        <% } else { %>
+            <p class="muted">Din side er ikke bygget endnu.</p>
         <% } %>
     </div>
 </article>

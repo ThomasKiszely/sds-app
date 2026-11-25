@@ -6,6 +6,11 @@ const express = require('express');
 const router = express.Router();
 const { requireAdmin } = require('../middlewares/requireAdmin');
 const data = require('../preview/placeholderData');
+const { requireRole } = require('../middlewares/requireRole');
+const { roleGroups } = require('../utils/userRoles');
+
+const requirePlanning = requireRole(...roleGroups.planning);
+const requireSales = requireRole(...roleGroups.sales);
 
 function page(view, pick) {
     return (req, res) => res.render(`preview/${view}`, { ...pick(data), user: req.session.user });
@@ -19,8 +24,8 @@ router.get('/cleaning/sick', requireAdmin, page('cleaning/sick', d => ({ sick: d
 router.get('/cleaning/finish', requireAdmin, page('cleaning/finish', d => ({ finish: d.finishVisit })));
 
 // Admin
-router.get('/planning', requireAdmin, page('planning/decisions', d => ({ planning: d.planning })));
-router.get('/planning/week', requireAdmin, page('planning/week', d => ({ planning: d.planning })));
+router.get('/planning', requirePlanning, page('planning/decisions', d => ({ planning: d.planning })));
+router.get('/planning/week', requirePlanning, page('planning/week', d => ({ planning: d.planning })));
 router.get('/employees', requireAdmin, page('employees', d => ({ employees: d.employees })));
 router.get('/invoices', requireAdmin, page('invoices/list', d => ({ invoices: d.invoices })));
 router.get('/invoices/review', requireAdmin, page('invoices/review', d => ({ invoice: d.invoice })));
@@ -28,7 +33,7 @@ router.get('/invoices/document', requireAdmin, page('invoices/document', d => ({
 router.get('/customer-group/discount', requireAdmin, page('customerGroup/discount', d => ({ group: d.customerGroup })));
 
 // Salg og admin
-router.get('/customer-group', page('customerGroup/overview', d => ({ group: d.customerGroup })));
-router.get('/customer-group/offer', page('customerGroup/offer', d => ({ group: d.customerGroup })));
+router.get('/customer-group', requireSales, page('customerGroup/overview', d => ({ group: d.customerGroup })));
+router.get('/customer-group/offer', requireSales, page('customerGroup/offer', d => ({ group: d.customerGroup })));
 
 module.exports = router;

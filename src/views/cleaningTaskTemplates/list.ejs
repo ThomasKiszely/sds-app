@@ -1,3 +1,4 @@
+<% const canEdit = user && user.role === 'admin'; %>
 <article class="standard tasks-page">
     <header class="page-header">
         <div>
@@ -16,13 +17,17 @@
                        hx-trigger="keyup changed delay:300ms, search"
                        hx-include="[name='roomType']">
             </div>
-            <button type="button" class="btn-primary" hx-get="/cleaningTaskTemplates/create" hx-target="#content"><%- icon('plus') %> Opret opgave</button>
+            <% if (canEdit) { %>
+                <button type="button" class="btn-primary" hx-get="/cleaningTaskTemplates/create" hx-target="#content"><%- icon('plus') %> Opret opgave</button>
+            <% } %>
         </div>
     </header>
 
     <div class="tabs" data-toggle-group>
         <button type="button" class="tab is-active" hx-get="/cleaningTaskTemplates" hx-target="#template-list" hx-include="[name='search'], [name='roomType']">Aktive</button>
-        <button type="button" class="tab" data-archive-tab hx-get="/cleaningTaskTemplates/archived" hx-target="#template-list">Arkiv</button>
+        <% if (canEdit) { %>
+            <button type="button" class="tab" data-archive-tab hx-get="/cleaningTaskTemplates/archived" hx-target="#template-list">Arkiv</button>
+        <% } %>
     </div>
 
     <% if (roomTypes.length > 0) { %>

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { requireLogin } = require('../middlewares/requireLogin');
 const { requireAdmin } = require('../middlewares/requireAdmin');
+const { requireRole } = require('../middlewares/requireRole');
+const { roleGroups } = require('../utils/userRoles');
 
 
 // LOGIN (public)
@@ -48,7 +50,7 @@ router.get('/indexContent', requireLogin, (req, res) => {
     res.render('partials/indexContent', { user: req.session.user });
 });
 
-router.get('/customers/create', requireLogin, (req, res) => {
+router.get('/customers/create', requireRole(...roleGroups.sales), (req, res) => {
     res.render('customers/create', {
         user: req.session.user,
         flow: req.query.flow || null

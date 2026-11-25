@@ -1,12 +1,15 @@
+<% const canEdit = user && user.role === 'admin'; %>
 <article class="standard roomTemplates-page">
     <header class="page-header">
         <div class="page-title-row">
             <h1>Lokaler</h1>
             <span class="page-count"><%= roomTemplates.length %> skabeloner</span>
         </div>
-        <div class="page-actions">
-            <button type="button" class="btn-primary" hx-get="/roomTemplates/new" hx-target="#content"><%- icon('plus') %> Opret lokale</button>
-        </div>
+        <% if (canEdit) { %>
+            <div class="page-actions">
+                <button type="button" class="btn-primary" hx-get="/roomTemplates/new" hx-target="#content"><%- icon('plus') %> Opret lokale</button>
+            </div>
+        <% } %>
     </header>
 
     <div class="tabs">
@@ -34,16 +37,22 @@
             <% roomTemplates.forEach(t => { %>
                 <tr>
                     <td data-label="Navn">
-                        <a href="#" class="row-link" hx-get="/roomTemplates/edit/<%= t._id %>" hx-target="#content"><%= t.name %></a>
+                        <% if (canEdit) { %>
+                            <a href="#" class="row-link" hx-get="/roomTemplates/edit/<%= t._id %>" hx-target="#content"><%= t.name %></a>
+                        <% } else { %>
+                            <%= t.name %>
+                        <% } %>
                     </td>
                     <td data-label="Størrelse" class="num"><%= t.defaultSize %> m²</td>
                     <td class="actions" data-label="Handlinger" style="text-align: right">
-                        <button class="btn-small"
-                                hx-get="/roomTemplates/edit/<%= t._id %>"
-                                hx-target="#content"
-                                hx-swap="innerHTML">
-                            Rediger
-                        </button>
+                        <% if (canEdit) { %>
+                            <button class="btn-small"
+                                    hx-get="/roomTemplates/edit/<%= t._id %>"
+                                    hx-target="#content"
+                                    hx-swap="innerHTML">
+                                Rediger
+                            </button>
+                        <% } %>
                     </td>
                 </tr>
             <% }) %>

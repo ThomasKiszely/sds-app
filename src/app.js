@@ -24,6 +24,7 @@ const roomTemplateRouter = require('./routes/roomTemplateRouter');
 const newPlanDraftRouter = require('./routes/newPlanDraftRoutes');
 const previewRouter = require('./routes/previewRoutes');
 const roomTypeRouter = require('./routes/roomTypeRoutes');
+const employeeRouter = require('./routes/employeeRoutes');
 // View-hjælpere (ikoner, initialer, kronebeløb)
 const viewHelpers = require('./utils/viewHelpers');
 const { navigationFor, tabItemsFor } = require('./utils/navigation');
@@ -31,6 +32,8 @@ const { navigationFor, tabItemsFor } = require('./utils/navigation');
 // Middlewares
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
+const { requireRole } = require('./middlewares/requireRole');
+const { roleGroups } = require('./utils/userRoles');
 const { mustChangePassword } = require('./middlewares/mustChangePassword');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
@@ -142,14 +145,22 @@ app.use('/offers', offerRouter);
 
 app.use('/admin', requireAdmin, adminRouter);
 
-app.use('/cleaningTaskTemplates', requireLogin, cleaningTaskTemplateRouter);
-app.use('/cleaningPlans', requireLogin, cleaningPlanRouter);
-app.use('/customers', requireLogin, customerRouter);
-app.use('/locations', requireLogin, locationRouter);
-app.use('/contracts', requireLogin, contractRouter);
-app.use('/roomTemplates', requireLogin, roomTemplateRouter);
-app.use('/roomTypes', requireLogin, roomTypeRouter);
-app.use('/newPlanDraft', requireLogin, newPlanDraftRouter);
+// Salg: tilbud, beregning, planer og kontrakter (indeholder priser).
+// /offers og /newPlan styrer selv adgang pr. rute, da accept-linket er offentligt.
+app.use('/cleaningPlans', requireRole(...roleGroups.sales), cleaningPlanRouter);
+app.use('/contracts', requireRole(...roleGroups.sales), contractRouter);
+app.use('/newPlanDraft', requireRole(...roleGroups.sales), newPlanDraftRouter);
+
+// Kunder og lokationer: planner må læse; skrivning er låst til salg i routerne
+app.use('/customers', requireRole(...roleGroups.customers), customerRouter);
+app.use('/locations', requireRole(...roleGroups.customers), locationRouter);
+
+// Opgaver og lokaler: læse for planner, skrivning kun admin (i routerne)
+app.use('/cleaningTaskTemplates', requireRole(...roleGroups.planning), cleaningTaskTemplateRouter);
+app.use('/roomTemplates', requireRole(...roleGroups.planning), roomTemplateRouter);
+app.use('/roomTypes', requireRole(...roleGroups.planning), roomTypeRouter);
+
+app.use('/employees', requireRole(...roleGroups.planning), employeeRouter);
 app.use('/preview', requireLogin, previewRouter);
 
 app.use('/users', userRouter);

@@ -18,7 +18,7 @@ router.get("/:id/edit/taskFields", requireAdmin, validateTemplateId, cleaningTas
 router.get('/:id/edit', requireAdmin, validateTemplateId, cleaningTaskTemplateController.editCleaningTaskTemplate);
 
 // 2) WRAPPER-SIDEN (hele layoutet)
-router.get('/page', requireAdmin, cleaningTaskTemplateController.showTemplatePage);
+router.get('/page', cleaningTaskTemplateController.showTemplatePage);
 
 // 3) CREATE (POST)
 router.post('/', requireAdmin, validateCleaningTaskTemplate, cleaningTaskTemplateController.createCleaningTaskTemplate);
