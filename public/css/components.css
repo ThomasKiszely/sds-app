@@ -1841,6 +1841,7 @@ td.actions button,
     max-width: 100%;
     height: 100%;
     max-height: none;
+    overflow: hidden;
     border-radius: 0;
 }
 
@@ -1860,8 +1861,10 @@ td.actions button,
     min-height: 0;
 }
 
-.drawer-body {
+/* .drawer-panel-præfiks, så 62vh-loftet fra .modal-body-scroll ikke vinder */
+.drawer-panel .drawer-body {
     flex: 1;
+    min-height: 0;
     max-height: none;
     display: flex;
     flex-direction: column;
