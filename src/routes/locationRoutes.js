@@ -4,6 +4,11 @@ const locationController = require("../controllers/locationController");
 const { validateLocation } = require("../middlewares/validateLocation");
 const { lookupLimiter } = require('../middlewares/lookupLimiter');
 const { validateObjectId } = require("../middlewares/validateObjectId");
+const { requireRole } = require("../middlewares/requireRole");
+const { roleGroups } = require("../utils/userRoles");
+
+// Planner må kun læse lokationer. Ændringer kræver salg.
+const requireSales = requireRole(...roleGroups.sales);
 
 // Liste over lokationer for en kunde
 router.get(
@@ -15,6 +20,7 @@ router.get(
 // Formular til at redigere lokation
 router.get(
     "/:id/edit",
+    requireSales,
     validateObjectId("id"),
     locationController.editLocationForm
 );
@@ -30,6 +36,7 @@ router.get(
 // Opdater lokation
 router.patch(
     "/:id",
+    requireSales,
     validateObjectId("id"),
     validateLocation,
     locationController.updateLocation
@@ -38,6 +45,7 @@ router.patch(
 // Slet lokation
 router.delete(
     "/:id",
+    requireSales,
     validateObjectId("id"),
     locationController.deleteLocation
 );

@@ -14,7 +14,7 @@ async function createUser(req, res, next) {
             phoneNumber,
             email,
             address
-        });
+        }, req.session.user.role);
 
         return res.render('admin/users/created', {
             tempPassword: result.tempPassword,

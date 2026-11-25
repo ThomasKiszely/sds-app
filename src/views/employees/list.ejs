@@ -1,0 +1,71 @@
+<%
+    const active = employees.filter(e => e.active);
+    const formatDays = (days) => (days || []).map(d => weekDayLabels[d]).join(', ');
+%>
+<article class="standard employees-page" data-nav-path="/employees">
+    <header class="page-header">
+        <div class="page-title-row">
+            <h1>Medarbejdere</h1>
+            <span class="page-count"><%= active.length %> aktive</span>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-primary" hx-get="/employees/create" hx-target="#overlay"><%- icon('plus') %> Opret medarbejder</button>
+        </div>
+    </header>
+
+    <% if (employees.length === 0) { %>
+        <div class="empty-state">Der er ingen medarbejdere endnu.</div>
+    <% } else { %>
+        <table class="data-table responsive-table">
+            <thead>
+            <tr>
+                <th scope="col">Medarbejder</th>
+                <th scope="col">Rolle</th>
+                <th scope="col">Område</th>
+                <th scope="col">Arbejdstid</th>
+                <th scope="col" class="num">Timer pr. uge</th>
+                <th scope="col">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% employees.forEach(e => { const job = e.employment || {}; %>
+                <tr>
+                    <td data-label="Medarbejder">
+                        <span class="person">
+                            <span class="avatar"><%= initials(e.fullName || e.userName) %></span>
+                            <span>
+                                <strong><%= e.fullName %></strong>
+                                <div class="list-row-sub"><%= e.userName %><% if (e.phoneNumber) { %> · <%= e.phoneNumber %><% } %></div>
+                            </span>
+                        </span>
+                    </td>
+                    <td data-label="Rolle"><span class="tag"><%= roleLabel(e.role) %></span></td>
+                    <td data-label="Område">
+                        <% if (job.areas && job.areas.length > 0) { %>
+                            <%= job.areas.map(a => areaLabels[a]).join(', ') %>
+                        <% } else { %>
+                            <span class="muted">–</span>
+                        <% } %>
+                    </td>
+                    <td data-label="Arbejdstid">
+                        <% if (job.workFrom) { %>
+                            <%= job.workFrom %>–<%= job.workTo %>
+                            <% if (job.workDays && job.workDays.length > 0) { %><div class="list-row-sub"><%= formatDays(job.workDays) %></div><% } %>
+                        <% } else { %>
+                            <span class="muted">–</span>
+                        <% } %>
+                    </td>
+                    <td data-label="Timer pr. uge" class="num"><%= job.hoursPerWeek != null ? String(job.hoursPerWeek).replace('.', ',') : '–' %></td>
+                    <td data-label="Status">
+                        <% if (e.active) { %>
+                            <span class="badge badge-ok">Aktiv</span>
+                        <% } else { %>
+                            <span class="badge badge-off">Deaktiveret</span>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    <% } %>
+</article>

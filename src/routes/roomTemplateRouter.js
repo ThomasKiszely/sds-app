@@ -5,7 +5,7 @@ const { requireAdmin } = require("../middlewares/requireAdmin");
 const { validateRoomTemplate } = require("../middlewares/validateRoomTemplate");
 const { validateObjectId } = require("../middlewares/validateObjectId");
 
-router.get("/page", requireAdmin, roomTemplateController.showRoomTemplatePage);
+router.get("/page", roomTemplateController.showRoomTemplatePage);
 router.get("/new", requireAdmin, roomTemplateController.showCreateForm);
 router.post("/", requireAdmin, validateRoomTemplate, roomTemplateController.createRoomTemplate);
 router.get("/edit/:id", requireAdmin, validateObjectId('id'), roomTemplateController.showEditForm);

@@ -49,13 +49,15 @@
             <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
 
             <td class="actions">
-                <button class="btn-small" hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
-                <button class="btn-small btn-ghost"
-                        hx-delete="/cleaningTaskTemplates/<%= t._id %>"
-                        hx-target="#template-list"
-                        hx-confirm="Vil du arkivere denne skabelon?">
-                    Arkivér
-                </button>
+                <% if (user && user.role === 'admin') { %>
+                    <button class="btn-small" hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
+                    <button class="btn-small btn-ghost"
+                            hx-delete="/cleaningTaskTemplates/<%= t._id %>"
+                            hx-target="#template-list"
+                            hx-confirm="Vil du arkivere denne skabelon?">
+                        Arkivér
+                    </button>
+                <% } %>
             </td>
         </tr>
     <% }) %>

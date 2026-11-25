@@ -24,5 +24,6 @@ router.get('/:id', requireAdmin, validateUserId, lookupLimiter, userController.g
 
 router.get('/', requireAdmin, userController.listUsers);
 
+// Admins egen brugeroprettelse. Planner opretter via /employees.
 router.post('/', requireAdmin, validateCreateUser, userController.createUser);
 module.exports = router;

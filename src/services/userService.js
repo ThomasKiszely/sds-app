@@ -4,7 +4,23 @@ const crypto = require('crypto');
 const { userRoles } = require('../utils/userRoles');
 const { userError } = require('../utils/userError');
 
-async function createUser({ userName, fullName, role, position, phoneNumber, email, address }) {
+// Hvem må oprette/ændre hvem?
+// Admin må alt. Planner må alt undtagen admins. Andre må intet.
+function canManage(actorRole, targetRole) {
+    if (actorRole === userRoles.admin) {
+        return Object.values(userRoles).includes(targetRole);
+    }
+    if (actorRole === userRoles.planner) {
+        return [userRoles.planner, userRoles.seller, userRoles.cleaner].includes(targetRole);
+    }
+    return false;
+}
+
+async function createUser({ userName, fullName, role, position, phoneNumber, email, address, employment }, actorRole) {
+    if (!canManage(actorRole, role)) {
+        throw userError("Du har ikke rettigheder til at oprette denne rolle", 403);
+    }
+
     userName = userName.trim();
     fullName = fullName.trim();
 
@@ -30,6 +46,7 @@ async function createUser({ userName, fullName, role, position, phoneNumber, ema
         address,
         password: hashedPassword,
         role,
+        employment,
         mustChangePassword: true,
         active: true
     });
@@ -44,7 +61,8 @@ async function createUser({ userName, fullName, role, position, phoneNumber, ema
             phoneNumber: user.phoneNumber,
             email: user.email,
             address: user.address,
-            role: user.role
+            role: user.role,
+            employment: user.employment
         }
     };
 }
@@ -264,6 +282,7 @@ async function deleteUser(id) {
 
 
 module.exports = {
+    canManage,
     createUser,
     deactivateUser,
     reactivateUser,
