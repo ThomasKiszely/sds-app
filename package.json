@@ -18,8 +18,8 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "csurf": "^1.2.2",
-    "dotenv": "^17.4.2",
-    "ejs": "^6.0.1",
+    "dotenv": "^18.0.10",
+    "ejs": "^7.0.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "express-session": "^1.19.0",
@@ -30,11 +30,11 @@
     "puppeteer": "^25.8.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "eslint": "^9.39.5",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
     "globals": "^17.14.0",
     "nodemon": "^3.1.14",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "cookie": "^0.7.2"

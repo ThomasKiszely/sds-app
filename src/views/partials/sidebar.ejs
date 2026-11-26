@@ -1,7 +1,8 @@
 <%
     const sections = navigationFor(user);
     const tabs = tabItemsFor(user);
-    const isAdmin = user.role === 'admin';
+    // "Menu"-knap på mobil, når der er menupunkter, som ikke er i fanebjælken
+    const hasMoreItems = sections.flatMap(s => s.items).some(item => !item.tab);
 %>
 <aside class="sidebar" id="sidebar" aria-label="Hovedmenu">
     <button type="button" class="sidebar-brand" hx-get="/indexContent" hx-target="#content" data-nav-match="/indexContent">
@@ -64,7 +65,7 @@
         <%- icon('user') %>
         <span>Mig</span>
     </button>
-    <% if (isAdmin) { %>
+    <% if (hasMoreItems) { %>
         <button type="button" class="tabbar-item" id="menuToggle" aria-controls="sidebar" aria-expanded="false">
             <%- icon('menu') %>
             <span>Menu</span>

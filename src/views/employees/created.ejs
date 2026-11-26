@@ -1,0 +1,15 @@
+<article class="standard employee-created-page" data-nav-path="/employees">
+    <button type="button" class="back-link" hx-get="/employees" hx-target="#content"><%- icon('arrow-left') %> Medarbejdere</button>
+
+    <h1><%= employee.fullName %> er oprettet</h1>
+    <p class="page-sub"><%= roleLabel(employee.role) %>. Giv medarbejderen brugernavn og midlertidigt kodeord. Kodeordet skal skiftes ved første login.</p>
+
+    <dl class="credentials">
+        <dt>Brugernavn</dt>
+        <dd><pre class="temp-password"><%= employee.userName %></pre></dd>
+        <dt>Midlertidigt kodeord</dt>
+        <dd><pre class="temp-password"><%= tempPassword %></pre></dd>
+    </dl>
+
+    <button type="button" class="btn-primary" hx-get="/employees" hx-target="#content">Tilbage til medarbejdere</button>
+</article>

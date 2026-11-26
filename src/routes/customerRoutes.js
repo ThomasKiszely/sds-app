@@ -5,6 +5,11 @@ const locationController = require("../controllers/locationController");
 const { validateLocation } = require("../middlewares/validateLocation");
 const { lookupLimiter } = require('../middlewares/lookupLimiter');
 const { validateObjectId } = require("../middlewares/validateObjectId");
+const { requireRole } = require("../middlewares/requireRole");
+const { roleGroups } = require("../utils/userRoles");
+
+// Planner må kun læse kunder. Ændringer og planer (priser) kræver salg.
+const requireSales = requireRole(...roleGroups.sales);
 
 // CUSTOMER DETAILS
 router.get('/:id/details',
@@ -14,24 +19,28 @@ router.get('/:id/details',
 
 // EDIT CUSTOMER FORM
 router.get('/:id/edit',
+    requireSales,
     validateObjectId("id"),
     customerController.editCustomerForm
 );
 
 // CUSTOMER PLANS
 router.get('/:id/plans',
+    requireSales,
     validateObjectId("id"),
     customerController.customerPlans
 );
 
 // CREATE LOCATION FORM
 router.get("/:customerId/locations/create",
+    requireSales,
     validateObjectId("customerId"),
     locationController.createLocationForm
 );
 
 // CREATE LOCATION (POST)
 router.post("/:customerId/locations",
+    requireSales,
     validateObjectId("customerId"),
     validateLocation,
     locationController.createLocation
@@ -39,12 +48,14 @@ router.post("/:customerId/locations",
 
 // REACTIVATE CUSTOMER
 router.put("/:id/reactivate",
+    requireSales,
     validateObjectId("id"),
     customerController.reactivateCustomer
 );
 
 // DELETE CUSTOMER
 router.delete('/:id',
+    requireSales,
     validateObjectId("id"),
     customerController.deleteCustomer
 );
@@ -58,12 +69,14 @@ router.get('/:id',
 
 // UPDATE CUSTOMER
 router.patch('/:id',
+    requireSales,
     validateObjectId("id"),
     customerController.updateCustomer
 );
 
 // CREATE CUSTOMER (API)
 router.post('/api',
+    requireSales,
     customerController.createCustomer
 );
 
@@ -74,6 +87,7 @@ router.get('/',
 
 // CREATE CUSTOMER VIEW
 router.post('/',
+    requireSales,
     customerController.createCustomerView
 );
 

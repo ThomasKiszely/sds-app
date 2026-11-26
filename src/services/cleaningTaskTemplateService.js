@@ -10,7 +10,7 @@ async function createTemplate(data) {
         name: data.name.trim(),
         description: data.description?.trim() ?? "",
         category: data.category,
-
+        roomTypes: data.roomTypes ?? [],
         // Kun almindelige opgaver
         durationPerUnit: isConsumable ? 0 : Number(data.durationPerUnit ?? 0),
         frequency: isConsumable ? null : data.frequency,
@@ -27,8 +27,8 @@ async function createTemplate(data) {
 
 
 
-async function listTemplates() {
-    return cleaningTaskTemplateRepo.listTemplates();
+async function listTemplates(search = "", roomType = null, filter = "all") {
+    return cleaningTaskTemplateRepo.listTemplates(search, roomType, filter);
 }
 
 async function findTemplateById(id) {
@@ -47,7 +47,7 @@ async function updateTemplate(id, data) {
         name: data.name?.trim() ?? template.name,
         description: data.description?.trim() ?? template.description,
         category: data.category ?? template.category,
-
+        roomTypes: data.roomTypes ?? template.roomTypes,
         // Kun almindelige opgaver
         durationPerUnit: isConsumable
             ? 0
@@ -88,8 +88,8 @@ async function reactivateTemplate(id) {
     return cleaningTaskTemplateRepo.reactivateTemplate(id);
 }
 
-async function getDeletedTemplates() {
-    return cleaningTaskTemplateRepo.listDeletedTemplates();
+async function getDeletedTemplates(filter = "all") {
+    return cleaningTaskTemplateRepo.listDeletedTemplates(filter);
 }
 
 async function getTemplatesByCategory(category) {

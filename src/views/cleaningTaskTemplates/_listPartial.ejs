@@ -1,15 +1,30 @@
+<%
+    // Slet, genaktivér osv. renderer også denne partial uden søgning eller filter
+    const hasSearch = typeof search !== 'undefined' && search;
+    const hasRoomType = typeof roomType !== 'undefined' && roomType;
+%>
 <% if (templates.length === 0) { %>
-    <div class="empty-state">Der er ingen aktive opgaver. Opret den første med knappen ovenfor.</div>
+    <div class="empty-state">
+        <% if (hasSearch && hasRoomType) { %>
+            Ingen opgaver med den lokaletype matcher "<%= search %>".
+        <% } else if (hasSearch) { %>
+            Ingen opgaver matcher "<%= search %>".
+        <% } else if (hasRoomType) { %>
+            Ingen opgaver har den lokaletype endnu. Tilføj den under Rediger på en opgave.
+        <% } else { %>
+            Der er ingen aktive opgaver. Opret den første med knappen ovenfor.
+        <% } %>
+    </div>
 <% } else { %>
 <table class="data-table responsive-table" style="margin-top: 0">
     <thead>
     <tr>
         <th>Navn</th>
         <th>Kategori</th>
+        <th>Lokaletyper</th>
         <th>Tid pr. enhed</th>
         <th>Frekvens</th>
         <th>Enhed</th>
-        <th class="num">Pris</th>
         <th><span class="visually-hidden">Handlinger</span></th>
     </tr>
     </thead>
@@ -22,19 +37,27 @@
                 <% if (t.description) { %><div class="list-row-sub"><%= t.description %></div><% } %>
             </td>
             <td data-label="Kategori"><span class="tag"><%= categoryLabels[t.category] %></span></td>
-            <td data-label="Tid pr. enhed" class="<%= t.isConsumable ? 'muted' : '' %>"><%= t.isConsumable ? "Fast pris" : String(t.durationPerUnit).replace('.', ',') + " min" %></td>
-            <td data-label="Frekvens"><%= t.isConsumable ? "–" : frequencyLabels[t.frequency] %></td>
+            <td data-label="Lokaletyper">
+                <% if (t.roomTypes && t.roomTypes.length > 0) { %>
+                    <span class="tag-list"><% t.roomTypes.forEach(rt => { %><span class="tag"><%= rt.name %></span><% }) %></span>
+                <% } else { %>
+                    <span class="muted">–</span>
+                <% } %>
+            </td>
+            <td data-label="Tid pr. enhed"><%= String(t.durationPerUnit).replace('.', ',') + " min" %></td>
+            <td data-label="Frekvens"><%= frequencyLabels[t.frequency] || "–" %></td>
             <td data-label="Enhed"><%= unitsLabels[t.unit] %></td>
-            <td data-label="Pris" class="num"><strong><%= t.customPrice != null ? Number(t.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr." : "–" %></strong></td>
 
             <td class="actions">
-                <button class="btn-small" hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
-                <button class="btn-small btn-ghost"
-                        hx-delete="/cleaningTaskTemplates/<%= t._id %>"
-                        hx-target="#template-list"
-                        hx-confirm="Vil du arkivere denne skabelon?">
-                    Arkivér
-                </button>
+                <% if (user && user.role === 'admin') { %>
+                    <button class="btn-small" hx-get="/cleaningTaskTemplates/<%= t._id %>/edit" hx-target="#content">Rediger</button>
+                    <button class="btn-small btn-ghost"
+                            hx-delete="/cleaningTaskTemplates/<%= t._id %>"
+                            hx-target="#template-list"
+                            hx-confirm="Vil du arkivere denne skabelon?">
+                        Arkivér
+                    </button>
+                <% } %>
             </td>
         </tr>
     <% }) %>

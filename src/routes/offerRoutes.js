@@ -1,27 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const offerController = require("../controllers/offerController");
-const { requireLogin } = require('../middlewares/requireLogin');
+const { requireRole } = require("../middlewares/requireRole");
+const { roleGroups } = require("../utils/userRoles");
+
+// Interne ruter kræver salg. Accept-ruterne er offentlige (link til kunden).
+const requireSales = requireRole(...roleGroups.sales);
 const validateAccept = require('../middlewares/validateAccept');
 const { validateObjectId } = require("../middlewares/validateObjectId");
 
 // VIEW OFFER
 router.get("/:id/view",
-    requireLogin,
+    requireSales,
     validateObjectId("id"),
     offerController.viewOffer
 );
 
 // PDF OFFER
 router.get("/:id/pdf",
-    requireLogin,
+    requireSales,
     validateObjectId("id"),
     offerController.pdfOffer
 );
 
 // CREATE OFFER FROM EXISTING PLAN
 router.post("/plans/:planId",
-    requireLogin,
+    requireSales,
     validateObjectId("planId"),
     offerController.createOfferForPlan
 );

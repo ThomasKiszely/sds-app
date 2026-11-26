@@ -49,6 +49,14 @@ async function updateUser(id, changes) {
     );
 }
 
+async function updateEmployment(id, update) {
+    return User.findByIdAndUpdate(
+        id,
+        update,
+        { returnDocument: 'after', runValidators: true }
+    );
+}
+
 async function deleteUser(id) {
     return User.findByIdAndDelete(id);
 }
@@ -63,5 +71,6 @@ module.exports = {
     getAllUsers,
     updatePassword,
     updateUser,
+    updateEmployment,
     deleteUser
 };

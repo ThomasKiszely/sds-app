@@ -20,7 +20,9 @@ function kr(value, decimals = 0) {
 
 const roleLabels = {
     admin: 'Admin',
-    user: 'Salg',
+    planner: 'Planner',
+    seller: 'Salg',
+    cleaner: 'Rengøring',
 };
 
 function roleLabel(role) {

@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { requireLogin } = require("../middlewares/requireLogin");
+const { requireRole } = require("../middlewares/requireRole");
+const { roleGroups } = require("../utils/userRoles");
 const { validateObjectId } = require("../middlewares/validateObjectId");
 const newPlanController = require("../controllers/newPlanController");
 
 // Alle editor-ruter i newPlanRoutes kræver login
-router.use(requireLogin);
+router.use(requireRole(...roleGroups.sales));
 
 // Fallback til oprettelse hvis /newPlan tilgås direkte
 router.get("/", (req, res) => res.redirect("/newPlanDraft/summary"));

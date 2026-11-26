@@ -4,7 +4,23 @@ const crypto = require('crypto');
 const { userRoles } = require('../utils/userRoles');
 const { userError } = require('../utils/userError');
 
-async function createUser({ userName, fullName, role, position, phoneNumber, email, address }) {
+// Hvem må oprette/ændre hvem?
+// Admin må alt. Planner må alt undtagen admins. Andre må intet.
+function canManage(actorRole, targetRole) {
+    if (actorRole === userRoles.admin) {
+        return Object.values(userRoles).includes(targetRole);
+    }
+    if (actorRole === userRoles.planner) {
+        return [userRoles.planner, userRoles.seller, userRoles.cleaner].includes(targetRole);
+    }
+    return false;
+}
+
+async function createUser({ userName, fullName, role, position, phoneNumber, email, address, employment }, actorRole) {
+    if (!canManage(actorRole, role)) {
+        throw userError("Du har ikke rettigheder til at oprette denne rolle", 403);
+    }
+
     userName = userName.trim();
     fullName = fullName.trim();
 
@@ -30,6 +46,7 @@ async function createUser({ userName, fullName, role, position, phoneNumber, ema
         address,
         password: hashedPassword,
         role,
+        employment,
         mustChangePassword: true,
         active: true
     });
@@ -44,7 +61,8 @@ async function createUser({ userName, fullName, role, position, phoneNumber, ema
             phoneNumber: user.phoneNumber,
             email: user.email,
             address: user.address,
-            role: user.role
+            role: user.role,
+            employment: user.employment
         }
     };
 }
@@ -218,6 +236,37 @@ async function updateUser(id, { fullName, role, position, phoneNumber, email, ad
     };
 }
 
+// Medarbejder til Rediger arbejdstid-panelet
+async function getEmployeeForEdit(id, actorRole) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+        throw userError("Bruger findes ikke", 404);
+    }
+    if (!canManage(actorRole, user.role)) {
+        throw userError("Du har ikke rettigheder til at redigere denne medarbejder", 403);
+    }
+    return user;
+}
+// Opdater kun kontrakttimer og arbejdstider, så startdato og områder bevares
+async function updateEmployment(id, { hoursPerWeek, workHours}, actorRole) {
+    await getEmployeeForEdit(id, actorRole);
+
+    const set = {};
+    const unset = {};
+
+    if ( hoursPerWeek !== undefined) set['employment.hoursPerWeek'] = hoursPerWeek;
+    else unset['employment.hoursPerWeek'] = 1;
+
+    if (workHours !== undefined) set['employment.workHours'] = workHours;
+    else unset['employment.workHours'] = 1;
+
+    const update = {};
+    if (Object.keys(set).length > 0) update['$set'] = set;
+    if (Object.keys(unset).length > 0) update['$unset'] = unset;
+
+    return userRepo.updateEmployment(id, update);
+}
+
 async function login(userName, password) {
     // 1. Find bruger
     const user = await userRepo.findByName(userName);
@@ -264,6 +313,7 @@ async function deleteUser(id) {
 
 
 module.exports = {
+    canManage,
     createUser,
     deactivateUser,
     reactivateUser,
@@ -273,5 +323,7 @@ module.exports = {
     getUserById,
     updateUser,
     login,
+    getEmployeeForEdit,
+    updateEmployment,
     deleteUser
 };

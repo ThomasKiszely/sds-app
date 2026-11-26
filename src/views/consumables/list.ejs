@@ -1,0 +1,30 @@
+<article class="standard consumables-page">
+    <header class="page-header">
+        <div>
+            <h1>Forbrugsvarer</h1>
+            <p class="page-sub">Skabeloner til forbrugsvarer i prisberegningen.</p>
+        </div>
+        <div class="page-actions">
+            <div class="search-field">
+                <%- icon('search') %>
+                <input type="search"
+                       name="search"
+                       placeholder="Søg navn eller beskrivelse"
+                       aria-label="Søg forbrugsvarer"
+                       hx-get="/consumables"
+                       hx-target="#consumable-list"
+                       hx-trigger="keyup changed delay:300ms, search">
+            </div>
+            <button type="button" class="btn-primary" hx-get="/consumables/create" hx-target="#content"><%- icon('plus') %> Opret forbrugsvare</button>
+        </div>
+    </header>
+
+    <div class="tabs" data-toggle-group>
+        <button type="button" class="tab is-active" hx-get="/consumables" hx-target="#consumable-list" hx-include="[name='search']">Aktive</button>
+        <button type="button" class="tab" data-archive-tab hx-get="/consumables/archived" hx-target="#consumable-list">Arkiv</button>
+    </div>
+
+    <section hx-get="/consumables" hx-trigger="load" hx-target="#consumable-list">
+        <div id="consumable-list"><div class="empty-state">Indlæser forbrugsvarer …</div></div>
+    </section>
+</article>

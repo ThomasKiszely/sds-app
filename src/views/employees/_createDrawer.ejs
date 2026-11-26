@@ -1,0 +1,76 @@
+<div class="overlay overlay-drawer">
+    <aside class="overlay-content modal-card drawer-panel" role="dialog" aria-modal="true" aria-labelledby="createEmployeeTitle">
+        <div class="modal-header">
+            <div>
+                <h2 id="createEmployeeTitle">Opret medarbejder</h2>
+                <p class="page-sub">Medarbejderen får et midlertidigt kodeord, som skal skiftes ved første login.</p>
+            </div>
+            <button type="button" class="modal-close-btn" data-close-modal title="Luk">&times;</button>
+        </div>
+
+        <form hx-post="/employees" hx-target="#content" class="drawer-form" data-employment-form>
+            <div class="modal-body-scroll drawer-body">
+                <div class="form-group">
+                    <label for="fullName">Fulde navn</label>
+                    <input type="text" id="fullName" name="fullName" maxlength="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="userName">Brugernavn</label>
+                    <input type="text" id="userName" name="userName" maxlength="50" autocomplete="off" required>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="phoneNumber">Mobil</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+45 12 34 56 78">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail (valgfri)</label>
+                        <input type="email" id="email" name="email" placeholder="navn@mail.dk">
+                    </div>
+                </div>
+
+                <fieldset class="choice-fieldset">
+                    <legend>Rolle</legend>
+                    <div class="role-choices">
+                        <% roles.forEach((r, i) => { %>
+                            <label class="role-choice">
+                                <input type="radio" name="role" value="<%= r.value %>" <%= i === 0 ? 'checked' : '' %> required>
+                                <strong><%= r.title %></strong>
+                                <span><%= r.text %></span>
+                            </label>
+                        <% }) %>
+                    </div>
+                    <% if (!isAdmin) { %>
+                        <p class="choice-hint muted">Admin kan kun oprettes af en admin.</p>
+                    <% } %>
+                </fieldset>
+
+                <div class="form-group">
+                    <label for="startDate">Startdato</label>
+                    <input type="date" id="startDate" name="startDate">
+                </div>
+
+                <%- include('_workFields', { employment: undefined }) %>
+
+                <fieldset class="choice-fieldset">
+                    <legend>Område</legend>
+                    <div class="chip-row">
+                        <% areas.forEach(a => { %>
+                            <label class="choice-chip">
+                                <input type="checkbox" name="areas" value="<%= a %>">
+                                <%= areaLabels[a] %>
+                            </label>
+                        <% }) %>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn-primary"><%- icon('plus') %> Opret</button>
+                <button type="button" class="button-secondary" data-close-modal>Annuller</button>
+            </div>
+        </form>
+    </aside>
+</div>

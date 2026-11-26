@@ -2,16 +2,19 @@ const cleaningTaskTemplateService = require('../services/cleaningTaskTemplateSer
 const { categoryTypes, categoryLabels } = require('../utils/categoryEnum');
 const { units, unitsLabels } = require('../utils/unitEnum');
 const { frequencies, frequencyLabels } = require('../utils/frequencyEnum');
-
+const roomTypeService = require('../services/roomTypeService');
+const {isObjectId} = require("../utils/isObjectId");
 
 // Opret template (master-opgave)
 async function createCleaningTaskTemplate(req, res, next) {
     try {
         await cleaningTaskTemplateService.createTemplate(req.body);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
+        const roomTypes = await roomTypeService.listRoomTypes();
         return res.render('cleaningTaskTemplates/list', {
             templates,
+            roomTypes,
             categoryLabels,
             unitsLabels,
             frequencyLabels
@@ -24,10 +27,13 @@ async function createCleaningTaskTemplate(req, res, next) {
 // List alle aktive templates
 async function listCleaningTaskTemplates(req, res, next) {
     try {
-        const templates = await cleaningTaskTemplateService.listTemplates();
-
+        const search = req.query.search || "";
+        const roomType = isObjectId(req.query.roomType) ? req.query.roomType : null;
+        const templates = await cleaningTaskTemplateService.listTemplates(search, roomType, "tasks");
         return res.render('cleaningTaskTemplates/_listPartial', {
             templates,
+            search,
+            roomType,
             categoryLabels,
             unitsLabels,
             frequencyLabels
@@ -42,12 +48,15 @@ async function listCleaningTaskTemplates(req, res, next) {
 async function findCleaningTaskTemplateById(req, res, next) {
     try {
         const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
+        const roomTypes = await roomTypeService.listRoomTypes();
         return res.render('cleaningTaskTemplates/edit', {
             template,
+            roomTypes,
             categoryTypes,
             categoryLabels,
             units,
             unitsLabels,
+            frequencies,
             frequencyLabels
         });
     } catch (error) {
@@ -61,9 +70,11 @@ async function updateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.updateTemplate(id, req.body);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
+        const roomTypes = await roomTypeService.listRoomTypes();
         return res.render('cleaningTaskTemplates/list', {
             templates,
+            roomTypes,
             categoryLabels,
             unitsLabels,
             frequencyLabels
@@ -76,9 +87,11 @@ async function updateCleaningTaskTemplate(req, res, next) {
 async function editCleaningTaskTemplate(req, res, next) {
     try {
         const template = await cleaningTaskTemplateService.findTemplateById(req.params.id);
+        const roomTypes = await roomTypeService.listRoomTypes();
 
         return res.render('cleaningTaskTemplates/edit', {
             template,
+            roomTypes,
             categoryTypes,
             categoryLabels,
             units,
@@ -98,7 +111,7 @@ async function deleteCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.deleteTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
+        const templates = await cleaningTaskTemplateService.listTemplates("", null, "tasks");
         return res.render('cleaningTaskTemplates/_listPartial', {
             templates,
             categoryLabels,
@@ -116,9 +129,9 @@ async function reactivateCleaningTaskTemplate(req, res, next) {
         const { id } = req.params;
         await cleaningTaskTemplateService.reactivateTemplate(id);
 
-        const templates = await cleaningTaskTemplateService.listTemplates();
-        return res.render('cleaningTaskTemplates/_listPartial', {
-            templates,
+        const roomTypes = await roomTypeService.listRoomTypes();
+        return res.render('cleaningTaskTemplates/list', {
+            roomTypes,
             categoryLabels,
             unitsLabels,
             frequencyLabels
@@ -131,7 +144,7 @@ async function reactivateCleaningTaskTemplate(req, res, next) {
 // List arkiverede templates
 async function getDeletedCleaningTaskTemplates(req, res, next) {
     try {
-        const deletedTemplates = await cleaningTaskTemplateService.getDeletedTemplates();
+        const deletedTemplates = await cleaningTaskTemplateService.getDeletedTemplates("tasks");
 
         return res.render('cleaningTaskTemplates/_listPartialArchived', {
             templates: deletedTemplates,
@@ -144,33 +157,44 @@ async function getDeletedCleaningTaskTemplates(req, res, next) {
     }
 }
 
-async function showTemplatePage(req, res) {
-    return res.render("cleaningTaskTemplates/list", {
-        categoryLabels,
-        unitsLabels,
-        frequencyLabels
-    });
+async function showTemplatePage(req, res, next) {
+    try {
+        const roomTypes = await roomTypeService.listRoomTypes();
+        return res.render('cleaningTaskTemplates/list', {
+            roomTypes,
+            categoryLabels,
+            unitsLabels,
+            frequencyLabels
+        });
+    } catch (error) {
+        next(error);
+    }
 }
 
-async function showCreateForm(req, res) {
-    const emptyTemplate = {
-        durationPerUnit: "",
-        pricePerUnit: "",
-        unit: "",
-        frequency: "",
-        category: req.query.category || null
-    };
-
-    return res.render("cleaningTaskTemplates/create", {
-        template: emptyTemplate,
-        category: emptyTemplate.category,
-        categoryTypes,
-        categoryLabels,
-        units,
-        unitsLabels,
-        frequencies,
-        frequencyLabels
-    });
+async function showCreateForm(req, res, next) {
+    try {
+        const emptyTemplate = {
+            durationPerUnit: "",
+            pricePerUnit: "",
+            unit: "",
+            frequency: "",
+            category: req.query.category || null
+        };
+        const roomTypes = await roomTypeService.listRoomTypes();
+        return res.render("cleaningTaskTemplates/create", {
+            template: emptyTemplate,
+            roomTypes,
+            category: emptyTemplate.category,
+            categoryTypes,
+            categoryLabels,
+            units,
+            unitsLabels,
+            frequencies,
+            frequencyLabels
+        });
+    } catch (error) {
+        next(error);
+    }
 }
 
 

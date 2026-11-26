@@ -1,18 +1,50 @@
+<% const canEdit = user && user.role === 'admin'; %>
 <article class="standard tasks-page">
     <header class="page-header">
         <div>
             <h1>Opgaver</h1>
-            <p class="page-sub">Skabeloner til opgaver og forbrugsvarer i prisberegningen.</p>
+            <p class="page-sub">Skabeloner til opgaver i prisberegningen.</p>
         </div>
         <div class="page-actions">
-            <button type="button" class="btn-primary" hx-get="/cleaningTaskTemplates/create" hx-target="#content"><%- icon('plus') %> Opret opgave</button>
+            <div class="search-field">
+                <%- icon('search') %>
+                <input type="search"
+                       name="search"
+                       placeholder="Søg navn eller beskrivelse"
+                       aria-label="Søg opgaver"
+                       hx-get="/cleaningTaskTemplates"
+                       hx-target="#template-list"
+                       hx-trigger="keyup changed delay:300ms, search"
+                       hx-include="[name='roomType']">
+            </div>
+            <% if (canEdit) { %>
+                <button type="button" class="btn-primary" hx-get="/cleaningTaskTemplates/create" hx-target="#content"><%- icon('plus') %> Opret opgave</button>
+            <% } %>
         </div>
     </header>
 
     <div class="tabs" data-toggle-group>
-        <button type="button" class="tab is-active" hx-get="/cleaningTaskTemplates" hx-target="#template-list">Aktive</button>
-        <button type="button" class="tab" hx-get="/cleaningTaskTemplates/archived" hx-target="#template-list">Arkiv</button>
+        <button type="button" class="tab is-active" hx-get="/cleaningTaskTemplates" hx-target="#template-list" hx-include="[name='search'], [name='roomType']">Aktive</button>
+        <% if (canEdit) { %>
+            <button type="button" class="tab" data-archive-tab hx-get="/cleaningTaskTemplates/archived" hx-target="#template-list">Arkiv</button>
+        <% } %>
     </div>
+
+    <% if (roomTypes.length > 0) { %>
+        <%# Radioknapper: kun én type ad gangen. "change" bobler op til div'en, som henter listen. %>
+        <div class="chip-row room-type-filter"
+             role="radiogroup"
+             aria-label="Filtrér på lokaletype"
+             hx-get="/cleaningTaskTemplates"
+             hx-target="#template-list"
+             hx-trigger="change"
+             hx-include="[name='search'], [name='roomType']">
+            <label class="choice-chip"><input type="radio" name="roomType" value="" checked> Alle</label>
+            <% roomTypes.forEach(rt => { %>
+                <label class="choice-chip"><input type="radio" name="roomType" value="<%= rt._id %>"> <%= rt.name %></label>
+            <% }) %>
+        </div>
+    <% } %>
 
     <section hx-get="/cleaningTaskTemplates" hx-trigger="load" hx-target="#template-list">
         <div id="template-list"><div class="empty-state">Indlæser opgaver …</div></div>

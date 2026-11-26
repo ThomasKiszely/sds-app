@@ -1,9 +1,5 @@
 const Customer = require('../models/Customer');
-
-// Undgå at søgeord bliver fortolket som regex-syntaks (ReDoS / uventede matches)
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+const { escapeRegExp } = require('../utils/escapeRegExp');
 
 async function createCustomer(data) {
     const newCustomer = new Customer(data);

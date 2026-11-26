@@ -1,0 +1,46 @@
+<%
+    const hasSearch = typeof search !== 'undefined' && search;
+%>
+<% if (consumables.length === 0) { %>
+    <div class="empty-state">
+        <% if (hasSearch) { %>
+            Ingen forbrugsvarer matcher "<%= search %>".
+        <% } else { %>
+            Der er ingen aktive forbrugsvarer. Opret den første med knappen ovenfor.
+        <% } %>
+    </div>
+<% } else { %>
+<table class="data-table responsive-table" style="margin-top: 0">
+    <thead>
+    <tr>
+        <th>Navn</th>
+        <th>Enhed</th>
+        <th class="num">Pris pr. stk.</th>
+        <th><span class="visually-hidden">Handlinger</span></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% consumables.forEach(c => { %>
+        <tr>
+            <td data-label="Navn">
+                <strong><%= c.name %></strong>
+                <% if (c.description) { %><div class="list-row-sub"><%= c.description %></div><% } %>
+            </td>
+            <td data-label="Enhed"><%= unitsLabels[c.unit] %></td>
+            <td data-label="Pris pr. stk." class="num"><strong><%= c.customPrice != null ? Number(c.customPrice).toLocaleString("da-DK", { minimumFractionDigits: 2 }) + " kr." : "–" %></strong></td>
+
+            <td class="actions">
+                <button class="btn-small" hx-get="/consumables/<%= c._id %>/edit" hx-target="#content">Rediger</button>
+                <button class="btn-small btn-ghost"
+                        hx-delete="/consumables/<%= c._id %>"
+                        hx-target="#consumable-list"
+                        hx-confirm="Vil du arkivere denne forbrugsvare?">
+                    Arkivér
+                </button>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<% } %>
