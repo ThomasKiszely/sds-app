@@ -236,6 +236,37 @@ async function updateUser(id, { fullName, role, position, phoneNumber, email, ad
     };
 }
 
+// Medarbejder til Rediger arbejdstid-panelet
+async function getEmployeeForEdit(id, actorRole) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+        throw userError("Bruger findes ikke", 404);
+    }
+    if (!canManage(actorRole, user.role)) {
+        throw userError("Du har ikke rettigheder til at redigere denne medarbejder", 403);
+    }
+    return user;
+}
+// Opdater kun kontrakttimer og arbejdstider, så startdato og områder bevares
+async function updateEmployment(id, { hoursPerWeek, workHours}, actorRole) {
+    await getEmployeeForEdit(id, actorRole);
+
+    const set = {};
+    const unset = {};
+
+    if ( hoursPerWeek !== undefined) set['employment.hoursPerWeek'] = hoursPerWeek;
+    else unset['employment.hoursPerWeek'] = 1;
+
+    if (workHours !== undefined) set['employment.workHours'] = workHours;
+    else unset['employment.workHours'] = 1;
+
+    const update = {};
+    if (Object.keys(set).length > 0) update['$set'] = set;
+    if (Object.keys(unset).length > 0) update['$unset'] = unset;
+
+    return userRepo.updateEmployment(id, update);
+}
+
 async function login(userName, password) {
     // 1. Find bruger
     const user = await userRepo.findByName(userName);
@@ -292,5 +323,7 @@ module.exports = {
     getUserById,
     updateUser,
     login,
+    getEmployeeForEdit,
+    updateEmployment,
     deleteUser
 };

@@ -6,12 +6,17 @@ const { weekDays } = require('../utils/weekDays');
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+
+const workHoursSchema = new mongoose.Schema({
+    day: { type: String, enum: Object.values(weekDays), required: true },
+    from: { type: String, match: timePattern, required: true },
+    to: { type: String, match: timePattern, required: true },
+}, { _id: false });
+
 const employmentSchema = new mongoose.Schema({
-    hoursPerWeek: { type: Number, min: 0, max: 60 },
+    hoursPerWeek: { type: Number, min: 0, max: 500 },
     startDate: { type: Date },
-    workDays: [{ type: String, enum: Object.values(weekDays) }],
-    workFrom: { type: String, match: timePattern },
-    workTo: { type: String, match: timePattern },
+    workHours: [workHoursSchema],
     areas: [{ type: String, enum: Object.values(areas) }],
 }, { _id: false });
 

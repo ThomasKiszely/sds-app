@@ -1,0 +1,22 @@
+<div class="overlay overlay-drawer">
+    <aside class="overlay-content modal-card drawer-panel" role="dialog" aria-modal="true" aria-labelledby="editEmploymentTitle">
+        <div class="modal-header">
+            <div>
+                <h2 id="editEmploymentTitle">Arbejdstid</h2>
+                <p class="page-sub"><%= employee.fullName %> · <%= roleLabel(employee.role) %></p>
+            </div>
+            <button type="button" class="modal-close-btn" data-close-modal title="Luk">&times;</button>
+        </div>
+
+        <form hx-patch="/employees/<%= employee._id %>/employment" hx-target="#content" class="drawer-form" data-employment-form>
+            <div class="modal-body-scroll drawer-body">
+                <%- include('_workFields', { employment: employee.employment }) %>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn-primary"><%- icon('check') %> Gem</button>
+                <button type="button" class="button-secondary" data-close-modal>Annuller</button>
+            </div>
+        </form>
+    </aside>
+</div>

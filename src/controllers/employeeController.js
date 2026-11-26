@@ -62,8 +62,43 @@ async function createEmployee(req, res, next) {
     }
 }
 
+// -----------------------------------------------------
+// Rediger arbejdstid-panel (HTMX → #overlay)
+async function showEditForm(req, res, next) {
+    try {
+        const employee = await userService.getEmployeeForEdit(req.params.id, req.session.user.role);
+
+        return res.render('employees/_editDrawer', {
+            employee,
+            weekDays: Object.values(weekDays),
+            weekDayLabels,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// -----------------------------------------------------
+// Gem kontrakttimer og arbejdstider (HTMX → #content)
+async function updateEmployment(req, res, next) {
+    try {
+        await userService.updateEmployment(
+            req.params.id,
+            req.body.employment || {},
+            req.session.user.role
+        );
+
+        res.set('HX-Trigger', JSON.stringify({ toast: 'Arbejdstid gemt.' }));
+        return listEmployees(req, res, next);
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     listEmployees,
     showCreateForm,
     createEmployee,
+    showEditForm,
+    updateEmployment,
 };
