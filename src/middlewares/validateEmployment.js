@@ -1,5 +1,5 @@
 const { areas } = require("../utils/areas");
-const { weekDays } = require("../utils/weekDays");
+const { weekDays, weekDayLabels } = require("../utils/weekDays");
 const { userError } = require("../utils/userError");
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -15,8 +15,7 @@ function toArray(value) {
  * og validerer dem. Køres efter validateCreateUser.
  */
 function validateEmployment(req, res, next) {
-    const { hoursPerWeek, startDate, workFrom, workTo } = req.body;
-    const workDays = toArray(req.body.workDays);
+    const { hoursPerWeek, startDate } = req.body;
     const selectedAreas = toArray(req.body.areas);
 
     const employment = {};
@@ -24,8 +23,11 @@ function validateEmployment(req, res, next) {
     // --- timer pr. uge ---
     if (hoursPerWeek !== undefined && hoursPerWeek !== "") {
         const hours = Number(hoursPerWeek);
-        if (!Number.isFinite(hours) || hours <= 0 || hours > 60) {
-            return next(userError("Timer pr. uge skal være mellem 1 og 60", 400));
+        if (!Number.isFinite(hours) || hours <= 0) {
+            return next(userError("Kontrakttimer skal være større end 0", 400));
+        }
+        if (hours > 500) {
+            return next(userError("Kontrakttimer må højst være 500", 400));
         }
         employment.hoursPerWeek = hours;
     }
@@ -39,29 +41,37 @@ function validateEmployment(req, res, next) {
         employment.startDate = date;
     }
 
-    // --- arbejdsdage ---
-    if (!workDays.every(d => Object.values(weekDays).includes(d))) {
-        return next(userError("Ugyldig arbejdsdag", 400));
-    }
-    if (workDays.length > 0) {
-        employment.workDays = workDays;
+    // --- arbejdstider pr. dag ---
+    const rawHours = req.body.workHours ?? {};
+
+    if (typeof rawHours !== "object" || Array.isArray(rawHours)) {
+        return next(userError("Ugyldige arbejdstider", 400));
     }
 
-    // --- arbejdstid ---
-    const hasFrom = workFrom !== undefined && workFrom !== "";
-    const hasTo = workTo !== undefined && workTo !== "";
-    if (hasFrom !== hasTo) {
-        return next(userError("Udfyld både Fra og Til", 400));
+    const validDays = Object.values(weekDays);
+
+    if (!Object.keys(rawHours).every(day => validDays.includes(day))) {
+        return next(userError("Ugyldige arbejdsdage", 400));
     }
-    if (hasFrom) {
-        if (!timePattern.test(workFrom) || !timePattern.test(workTo)) {
-            return next(userError("Tid skal skrives som TT:MM", 400));
+
+    const workHours = [];
+
+    for (const day of validDays) {
+        const hours = rawHours[day];
+        if (!hours) continue;
+
+        const {from, to} = hours;
+        if (!timePattern.test(from) || !timePattern.test(to)) {
+            return next(userError(`Tid skal skrives som TT:MM (${weekDayLabels[day]})`, 400));
         }
-        if (workFrom >= workTo) {
-            return next(userError("Fra skal være før Til", 400));
+        // TT:MM kan sammenlignes som tekst
+        if (to <= from) {
+            return next(userError(`Til-tid skal være senere end fra-tid (${weekDayLabels[day]})`, 400));
         }
-        employment.workFrom = workFrom;
-        employment.workTo = workTo;
+        workHours.push({day, from, to});
+    }
+    if (workHours.length > 0) {
+        employment.workHours = workHours;
     }
 
     // --- områder ---

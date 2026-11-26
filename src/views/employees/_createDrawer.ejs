@@ -8,7 +8,7 @@
             <button type="button" class="modal-close-btn" data-close-modal title="Luk">&times;</button>
         </div>
 
-        <form hx-post="/employees" hx-target="#content" class="drawer-form">
+        <form hx-post="/employees" hx-target="#content" class="drawer-form" data-employment-form>
             <div class="modal-body-scroll drawer-body">
                 <div class="form-group">
                     <label for="fullName">Fulde navn</label>
@@ -47,39 +47,12 @@
                     <% } %>
                 </fieldset>
 
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label for="hoursPerWeek">Timer pr. uge</label>
-                        <input type="number" id="hoursPerWeek" name="hoursPerWeek" min="1" max="60" step="0.5">
-                    </div>
-                    <div class="form-group">
-                        <label for="startDate">Startdato</label>
-                        <input type="date" id="startDate" name="startDate">
-                    </div>
+                <div class="form-group">
+                    <label for="startDate">Startdato</label>
+                    <input type="date" id="startDate" name="startDate">
                 </div>
 
-                <fieldset class="choice-fieldset">
-                    <legend>Kan arbejde</legend>
-                    <div class="chip-row">
-                        <% weekDays.forEach(d => { %>
-                            <label class="choice-chip">
-                                <input type="checkbox" name="workDays" value="<%= d %>" <%= ['sat', 'sun'].includes(d) ? '' : 'checked' %>>
-                                <%= weekDayLabels[d] %>
-                            </label>
-                        <% }) %>
-                    </div>
-                </fieldset>
-
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label for="workFrom">Fra</label>
-                        <input type="time" id="workFrom" name="workFrom">
-                    </div>
-                    <div class="form-group">
-                        <label for="workTo">Til</label>
-                        <input type="time" id="workTo" name="workTo">
-                    </div>
-                </div>
+                <%- include('_workFields', { employment: undefined }) %>
 
                 <fieldset class="choice-fieldset">
                     <legend>Område</legend>

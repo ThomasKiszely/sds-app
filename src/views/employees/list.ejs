@@ -1,6 +1,29 @@
 <%
     const active = employees.filter(e => e.active);
-    const formatDays = (days) => (days || []).map(d => weekDayLabels[d]).join(', ');
+    // Samler dage med samme tidsrum: "Man, Tir, Ons 07:00–15:00"
+    const groupWorkHours = (workHours) => {
+        const order = Object.keys(weekDayLabels);
+        const groups = new Map();
+        [...(workHours || [])]
+            .sort((a, b) => order.indexOf(a.day) - order.indexOf(b.day))
+            .forEach(h => {
+                const key = `${h.from}–${h.to}`;
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(weekDayLabels[h.day]);
+            });
+        return [...groups].map(([time, days]) => ({ time, days: days.join(', ') }));
+    };
+
+    // Timer i de registrerede arbejdstider pr. uge
+    const toMinutes = (time) => {
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+    const weeklyHours = (workHours) =>
+        (workHours || []).reduce((sum, h) => sum + toMinutes(h.to) - toMinutes(h.from), 0) / 60;
+
+    // 37.5 → "37,5", 40 → "40"
+    const formatHours = (hours) => String(Math.round(hours * 10) / 10).replace('.', ',');
 %>
 <article class="standard employees-page" data-nav-path="/employees">
     <header class="page-header">
@@ -23,8 +46,9 @@
                 <th scope="col">Rolle</th>
                 <th scope="col">Område</th>
                 <th scope="col">Arbejdstid</th>
-                <th scope="col" class="num">Timer pr. uge</th>
+                <th scope="col">Timer pr. uge</th>
                 <th scope="col">Status</th>
+                <th scope="col"><span class="visually-hidden">Handlinger</span></th>
             </tr>
             </thead>
             <tbody>
@@ -48,20 +72,38 @@
                         <% } %>
                     </td>
                     <td data-label="Arbejdstid">
-                        <% if (job.workFrom) { %>
-                            <%= job.workFrom %>–<%= job.workTo %>
-                            <% if (job.workDays && job.workDays.length > 0) { %><div class="list-row-sub"><%= formatDays(job.workDays) %></div><% } %>
+                        <% const groups = groupWorkHours(job.workHours); %>
+                        <% if (groups.length > 0) { %>
+                            <% groups.forEach(g => { %>
+                                <div class="work-hours-line"><%= g.time %> <span class="list-row-sub"><%= g.days %></span></div>
+                            <% }) %>
                         <% } else { %>
                             <span class="muted">–</span>
                         <% } %>
                     </td>
-                    <td data-label="Timer pr. uge" class="num"><%= job.hoursPerWeek != null ? String(job.hoursPerWeek).replace('.', ',') : '–' %></td>
+                    <td data-label="Timer pr. uge">
+                        <% const worked = weeklyHours(job.workHours); const contract = job.hoursPerWeek; %>
+                        <% if (contract) { const pct = Math.min(100, Math.round(worked / contract * 100)); const over = worked > contract; %>
+                            <div class="hours-usage<%= over ? ' is-over' : '' %>">
+                                <span><strong><%= formatHours(worked) %></strong> af <%= formatHours(contract) %> t</span>
+                                <div class="progress" role="img" aria-label="<%= formatHours(worked) %> af <%= formatHours(contract) %> timer"><span style="width: <%= pct %>%"></span></div>
+                                <% if (over) { %><span class="hours-usage-note">Over kontrakt</span><% } %>
+                            </div>
+                        <% } else if (worked > 0) { %>
+                            <%= formatHours(worked) %> t <span class="list-row-sub">ingen kontrakt</span>
+                        <% } else { %>
+                            <span class="muted">–</span>
+                        <% } %>
+                    </td>
                     <td data-label="Status">
                         <% if (e.active) { %>
                             <span class="badge badge-ok">Aktiv</span>
                         <% } else { %>
                             <span class="badge badge-off">Deaktiveret</span>
                         <% } %>
+                    </td>
+                    <td data-label="" class="row-actions">
+                        <button type="button" class="btn-small button-secondary" hx-get="/employees/<%= e._id %>/edit" hx-target="#overlay"><%- icon('clock-3') %> Arbejdstid</button>
                     </td>
                 </tr>
             <% }) %>
