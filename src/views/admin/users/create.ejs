@@ -22,8 +22,9 @@
 
         <label for="role">Rolle</label>
         <select id="role" name="role" required>
-            <option value="admin">Admin</option>
-            <option value="user">Bruger</option>
+            <% Object.values(userRoles).forEach(r => { %>
+                <option value="<%= r %>"><%= roleLabel(r) %></option>
+            <% }) %>
         </select>
 
         <button type="submit">Opret</button>

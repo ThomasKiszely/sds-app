@@ -42,7 +42,18 @@
                     <%= u.phoneNumber || "–" %>
                     <% if (u.email) { %><div class="list-row-sub"><%= u.email %></div><% } %>
                 </td>
-                <td data-label="Rolle"><%= u.role === "admin" ? "Admin" : "Bruger" %></td>
+                <td data-label="Rolle">
+                    <% if (isSelf || !u.active) { %>
+                        <%= roleLabel(u.role) %>
+                    <% } else { %>
+                        <select name="role" aria-label="Rolle for <%= u.fullName %>"
+                                hx-patch="/users/<%= u._id %>/role" hx-trigger="change" hx-target="#content">
+                            <% Object.values(userRoles).forEach(r => { %>
+                                <option value="<%= r %>" <%= u.role === r ? "selected" : "" %>><%= roleLabel(r) %></option>
+                            <% }) %>
+                        </select>
+                    <% } %>
+                </td>
                 <td data-label="Status">
                     <% if (!u.active) { %>
                         <span class="badge badge-inactive">Deaktiveret</span>
@@ -58,12 +69,6 @@
 
                     <% if (!isSelf) { %>
                         <button class="btn-small" hx-patch="/users/<%= u._id %>/reset-password" hx-target="#content">Nulstil kodeord</button>
-
-                        <% if (u.role !== "admin") { %>
-                            <button class="btn-small" hx-patch="/users/<%= u._id %>/role" hx-target="#content" hx-vals='{"role": "admin"}'>Gør til admin</button>
-                        <% } else { %>
-                            <button class="btn-small" hx-patch="/users/<%= u._id %>/role" hx-target="#content" hx-vals='{"role": "user"}'>Gør til bruger</button>
-                        <% } %>
                     <% } %>
 
                     <% if (u.active) { %>

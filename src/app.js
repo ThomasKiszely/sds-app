@@ -34,7 +34,7 @@ const { navigationFor, tabItemsFor } = require('./utils/navigation');
 const { requireAdmin } = require('./middlewares/requireAdmin');
 const { requireLogin } = require('./middlewares/requireLogin');
 const { requireRole } = require('./middlewares/requireRole');
-const { roleGroups } = require('./utils/userRoles');
+const { roleGroups, userRoles } = require('./utils/userRoles');
 const { mustChangePassword } = require('./middlewares/mustChangePassword');
 const { notFound } = require('./middlewares/notFound');
 const { errorHandler } = require('./middlewares/errorHandler');
@@ -93,6 +93,7 @@ app.locals.icon = viewHelpers.icon;
 app.locals.initials = viewHelpers.initials;
 app.locals.kr = viewHelpers.kr;
 app.locals.roleLabel = viewHelpers.roleLabel;
+app.locals.userRoles = userRoles;
 app.locals.navigationFor = navigationFor;
 app.locals.tabItemsFor = tabItemsFor;
 
