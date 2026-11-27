@@ -1,4 +1,5 @@
 const { icon } = require('./icons');
+const { roleGroups } = require('./userRoles');
 
 // Initialer til avatarer: "Anna Holm" -> "AH"
 function initials(name) {
@@ -29,4 +30,10 @@ function roleLabel(role) {
     return roleLabels[role] || role || '';
 }
 
-module.exports = { icon, initials, kr, roleLabel };
+// Salg (admin og seller) må se priser og oprette/ændre kunder, planer og tilbud.
+// Samme gruppe som requireRole(...roleGroups.sales) på ruterne.
+function canSell(user) {
+    return Boolean(user) && roleGroups.sales.includes(user.role);
+}
+
+module.exports = { icon, initials, kr, roleLabel, canSell };

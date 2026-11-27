@@ -10,17 +10,19 @@
     <p><strong>Email:</strong> <%= location.contactPerson.email %></p>
 
     <nav class="nav-group">
-        <button hx-get="/locations/<%= location._id %>/edit" hx-target="#content">
-            Rediger lokation
-        </button>
+        <% if (canSell(user)) { %>
+            <button hx-get="/locations/<%= location._id %>/edit" hx-target="#content">
+                Rediger lokation
+            </button>
 
-        <button
-            hx-delete="/locations/<%= location._id %>"
-            hx-target="#content"
-            hx-confirm="Vil du slette lokationen?"
-        >
-            Slet lokation
-        </button>
+            <button
+                hx-delete="/locations/<%= location._id %>"
+                hx-target="#content"
+                hx-confirm="Vil du slette lokationen?"
+            >
+                Slet lokation
+            </button>
+        <% } %>
 
         <button
             hx-get="/customers/<%= location.customerId %>/details"

@@ -93,6 +93,7 @@ app.locals.icon = viewHelpers.icon;
 app.locals.initials = viewHelpers.initials;
 app.locals.kr = viewHelpers.kr;
 app.locals.roleLabel = viewHelpers.roleLabel;
+app.locals.canSell = viewHelpers.canSell;
 app.locals.userRoles = userRoles;
 app.locals.navigationFor = navigationFor;
 app.locals.tabItemsFor = tabItemsFor;
@@ -149,7 +150,8 @@ app.use('/admin', requireAdmin, adminRouter);
 
 // Salg: tilbud, beregning, planer og kontrakter (indeholder priser).
 // /offers og /newPlan styrer selv adgang pr. rute, da accept-linket er offentligt.
-app.use('/cleaningPlans', requireRole(...roleGroups.sales), cleaningPlanRouter);
+// /cleaningPlans: planner må se en plan (uden priser); resten er låst til salg i routeren.
+app.use('/cleaningPlans', requireRole(...roleGroups.customers), cleaningPlanRouter);
 app.use('/contracts', requireRole(...roleGroups.sales), contractRouter);
 app.use('/newPlanDraft', requireRole(...roleGroups.sales), newPlanDraftRouter);
 

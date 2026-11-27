@@ -7,6 +7,7 @@
         contact.name ? contact.name + (contact.phone ? ', ' + contact.phone : '') : null,
     ].filter(Boolean);
 %>
+<% const sales = canSell(user); %>
 <article class="standard customer-details-page">
     <button type="button" class="back-link" hx-get="/customers" hx-target="#content"><%- icon('arrow-left') %> Kunder</button>
 
@@ -19,10 +20,12 @@
             <% if (user && user.role === 'admin') { %>
                 <button type="button" hx-get="/customers/<%= customer._id %>/edit" hx-target="#content">Rediger kunde</button>
             <% } %>
-            <button type="button" hx-get="/customers/<%= customer._id %>/plans" hx-target="#content">Planer og tilbud</button>
-            <button type="button" class="btn-primary" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
-                <%- icon('plus') %> Ny bygning
-            </button>
+            <button type="button" hx-get="/customers/<%= customer._id %>/plans" hx-target="#content"><%= sales ? 'Planer og tilbud' : 'Rengøringsplaner' %></button>
+            <% if (sales) { %>
+                <button type="button" class="btn-primary" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
+                    <%- icon('plus') %> Ny bygning
+                </button>
+            <% } %>
         </div>
     </header>
 
@@ -39,11 +42,13 @@
             <% if (locs.length === 0) { %>
                 <div class="empty-state">
                     Kunden har ingen bygninger endnu.
-                    <div style="margin-top: 10px">
-                        <button type="button" class="btn-small" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
-                            <%- icon('plus') %> Tilføj bygning
-                        </button>
-                    </div>
+                    <% if (sales) { %>
+                        <div style="margin-top: 10px">
+                            <button type="button" class="btn-small" hx-get="/customers/<%= customer._id %>/locations/create" hx-target="#content">
+                                <%- icon('plus') %> Tilføj bygning
+                            </button>
+                        </div>
+                    <% } %>
                 </div>
             <% } else { %>
                 <table class="data-table responsive-table location-list" style="margin-top: 0">
@@ -65,13 +70,15 @@
                                 <%= (loc.contactPerson && loc.contactPerson.name) || '–' %>
                             </td>
                             <td class="actions">
-                                <button class="btn-small" hx-get="/locations/<%= loc._id %>/edit" hx-target="#content">Rediger</button>
-                                <button class="btn-small btn-ghost btn-danger"
-                                        hx-delete="/locations/<%= loc._id %>"
-                                        hx-target="#content"
-                                        hx-confirm="Vil du slette bygningen?">
-                                    Slet
-                                </button>
+                                <% if (sales) { %>
+                                    <button class="btn-small" hx-get="/locations/<%= loc._id %>/edit" hx-target="#content">Rediger</button>
+                                    <button class="btn-small btn-ghost btn-danger"
+                                            hx-delete="/locations/<%= loc._id %>"
+                                            hx-target="#content"
+                                            hx-confirm="Vil du slette bygningen?">
+                                        Slet
+                                    </button>
+                                <% } %>
                             </td>
                         </tr>
                     <% }) %>
@@ -89,6 +96,7 @@
             </div>
         </section>
 
+        <% if (sales) { %>
         <aside class="stack" style="padding-top: 34px">
             <section class="card is-preview">
                 <h2 class="panel-title" style="font-size: 15px">Gruppe-rabat<span class="preview-badge">Preview</span></h2>
@@ -109,5 +117,6 @@
                 </label>
             </section>
         </aside>
+        <% } %>
     </div>
 </article>
