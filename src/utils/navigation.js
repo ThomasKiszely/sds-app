@@ -15,7 +15,6 @@ const { userRoles } = require('./userRoles');
 const planning = { label: 'Planlægning', icon: 'calendar-days', href: '/preview/planning', match: ['/preview/planning'], preview: true, tab: true };
 const quickCalc = { label: 'Hurtig beregning', tabLabel: 'Tilbud', icon: 'calculator', href: '/newPlanDraft/summary', match: ['/newPlanDraft', '/newPlan/'], tab: true };
 const customers = { label: 'Kunder', icon: 'building-2', href: '/customers', match: ['/customers', '/locations', '/cleaningPlans', '/offers', '/contracts', '/preview/customer-group'], tab: true };
-const customerAddresses = { label: 'Kunder (kun adresser)', tabLabel: 'Kunder', icon: 'building-2', href: '/customers', match: ['/customers', '/locations'], tab: true };
 const employees = { label: 'Medarbejdere', icon: 'users', href: '/employees', match: ['/employees'], tab: true };
 const invoices = { label: 'Fakturaer', icon: 'file-text', href: '/preview/invoices', match: ['/preview/invoices'], preview: true };
 const tasks = { label: 'Opgaver', icon: 'list-checks', href: '/cleaningTaskTemplates/page', match: ['/cleaningTaskTemplates'] };
@@ -42,7 +41,7 @@ const sectionsByRole = {
         cleaningPreview,
     ],
     [userRoles.planner]: [
-        { items: [planning, customerAddresses, employees] },
+        { items: [planning, customers, employees] },
         { items: [tasks, rooms] },
     ],
     [userRoles.seller]: [

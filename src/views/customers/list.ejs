@@ -25,9 +25,11 @@
                        hx-vals='{"filter": "<%= filter %>"}'
                        hx-include="<%= include %>">
             </div>
-            <button type="button" class="btn-primary" hx-get="/customers/create" hx-target="#content">
-                <%- icon('plus') %> Opret kunde
-            </button>
+            <% if (canSell(user)) { %>
+                <button type="button" class="btn-primary" hx-get="/customers/create" hx-target="#content">
+                    <%- icon('plus') %> Opret kunde
+                </button>
+            <% } %>
         </div>
     </header>
 
@@ -43,9 +45,11 @@
                     <%= label %>
                 </button>
             <% }) %>
-            <button type="button" class="tab" hx-get="/preview/customer-group" hx-target="#content">
-                Grupper <span class="preview-badge">Preview</span>
-            </button>
+            <% if (canSell(user)) { %>
+                <button type="button" class="tab" hx-get="/preview/customer-group" hx-target="#content">
+                    Grupper <span class="preview-badge">Preview</span>
+                </button>
+            <% } %>
         </div>
 
         <select name="sort"

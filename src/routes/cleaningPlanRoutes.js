@@ -4,6 +4,20 @@ const cleaningPlanController = require('../controllers/cleaningPlanController');
 const validateCleaningPlan = require('../middlewares/validateCleaningPlan');
 const validatePlanId = require('../middlewares/validatePlanId');
 const { lookupLimiter } = require('../middlewares/lookupLimiter');
+const { requireRole } = require('../middlewares/requireRole');
+const { roleGroups } = require('../utils/userRoles');
+
+// Se plan (VIEW). Planner må læse; priserne skjules i viewet.
+router.get('/:planId/view',
+    validatePlanId,
+    lookupLimiter,
+    cleaningPlanController.viewPlan
+);
+
+// Alt herunder kræver salg (PDF'en indeholder priser)
+router.use(requireRole(...roleGroups.sales));
+
+router.get('/:planId/planPdf', validatePlanId, cleaningPlanController.generatePlanPdf);
 
 // Arkiverede planer
 router.get('/archived',
@@ -28,15 +42,6 @@ router.delete('/:planId',
     validatePlanId,
     cleaningPlanController.deleteCleaningPlan
 );
-
-// Se plan (VIEW)
-router.get('/:planId/view',
-    validatePlanId,
-    lookupLimiter,
-    cleaningPlanController.viewPlan
-);
-
-router.get('/:planId/planPdf', validatePlanId, cleaningPlanController.generatePlanPdf);
 
 // Find plan (JSON)
 router.get('/:planId',
