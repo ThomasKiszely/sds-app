@@ -8,7 +8,7 @@ const { validateObjectId } = require("../middlewares/validateObjectId");
 const { requireRole } = require("../middlewares/requireRole");
 const { roleGroups } = require("../utils/userRoles");
 
-// Planner må kun læse kunder. Ændringer og planer (priser) kræver salg.
+// Planner må kun læse kunder og deres planer. Ændringer og oprettelse kræver salg.
 const requireSales = requireRole(...roleGroups.sales);
 
 // CUSTOMER DETAILS
@@ -26,7 +26,6 @@ router.get('/:id/edit',
 
 // CUSTOMER PLANS
 router.get('/:id/plans',
-    requireSales,
     validateObjectId("id"),
     customerController.customerPlans
 );

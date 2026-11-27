@@ -1,31 +1,36 @@
+<% const sales = canSell(user); %>
 <article class="standard customer-plans-page">
     <button type="button" class="back-link" hx-get="/customers/<%= customerId %>/details" hx-target="#content"><%- icon('arrow-left') %> Kunde</button>
 
     <header class="page-header">
         <div>
-            <h1>Planer og tilbud</h1>
-            <p class="page-sub">Rengøringsplaner for kundens bygninger, med tilbud og kontrakt.</p>
+            <h1><%= sales ? 'Planer og tilbud' : 'Rengøringsplaner' %></h1>
+            <p class="page-sub"><%= sales ? 'Rengøringsplaner for kundens bygninger, med tilbud og kontrakt.' : 'Rengøringsplaner for kundens bygninger.' %></p>
         </div>
-        <div class="page-actions">
-            <button type="button" class="btn-primary"
-                    hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
-                    hx-target="#content">
-                <%- icon('plus') %> Ny rengøringsplan
-            </button>
-        </div>
+        <% if (sales) { %>
+            <div class="page-actions">
+                <button type="button" class="btn-primary"
+                        hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
+                        hx-target="#content">
+                    <%- icon('plus') %> Ny rengøringsplan
+                </button>
+            </div>
+        <% } %>
     </header>
 
     <% if (plans.length === 0) { %>
 
         <div class="empty-state">
             Der er endnu ingen rengøringsplaner for denne kunde.
-            <div style="margin-top: 10px">
-                <button type="button" class="btn-small"
-                        hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
-                        hx-target="#content">
-                    <%- icon('plus') %> Opret rengøringsplan
-                </button>
-            </div>
+            <% if (sales) { %>
+                <div style="margin-top: 10px">
+                    <button type="button" class="btn-small"
+                            hx-get="/newPlanDraft/customer?customerId=<%= customerId %>"
+                            hx-target="#content">
+                        <%- icon('plus') %> Opret rengøringsplan
+                    </button>
+                </div>
+            <% } %>
         </div>
 
     <% } else { %>
@@ -34,10 +39,12 @@
             <thead>
             <tr>
                 <th>Bygning og plan</th>
-                <th class="num">Pr. måned</th>
+                <% if (sales) { %><th class="num">Pr. måned</th><% } %>
                 <th>Status</th>
-                <th>Tilbud og kontrakt</th>
-                <th><span class="visually-hidden">Handlinger</span></th>
+                <% if (sales) { %>
+                    <th>Tilbud og kontrakt</th>
+                    <th><span class="visually-hidden">Handlinger</span></th>
+                <% } %>
             </tr>
             </thead>
 
@@ -49,12 +56,14 @@
                         <div class="list-row-sub"><%= plan.name %> · <%= plan.location.address %></div>
                     </td>
 
-                    <td data-label="Pr. måned" class="num">
-                        <strong><%= plan.totalMonthlyPrice.toLocaleString("da-DK", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) %> kr.</strong>
-                    </td>
+                    <% if (sales) { %>
+                        <td data-label="Pr. måned" class="num">
+                            <strong><%= plan.totalMonthlyPrice.toLocaleString("da-DK", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) %> kr.</strong>
+                        </td>
+                    <% } %>
 
                     <td data-label="Status">
                         <% if (plan.isActive) { %>
@@ -64,6 +73,7 @@
                         <% } %>
                     </td>
 
+                    <% if (sales) { %>
                     <td data-label="Tilbud">
                         <% if (plan.offerId) { %>
                             <button class="btn-small"
@@ -116,6 +126,7 @@
                             </button>
                         <% } %>
                     </td>
+                    <% } %>
                 </tr>
             <% }) %>
             </tbody>
